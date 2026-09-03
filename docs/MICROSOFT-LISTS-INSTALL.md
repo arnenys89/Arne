@@ -77,13 +77,11 @@ M365_API_AUDIENCE
 M365_API_SCOPE
 OPENAI_API_KEY
 OPENAI_MODEL
-aSHAREPOINT_SITE_ID
+SHAREPOINT_SITE_ID
 USERS_LIST_ID
 TEMPLATES_LIST_ID
 USAGE_LIST_ID
 ```
-
-Let op: `aSHAREPOINT_SITE_ID` is een typefoutgevoelige regel; de juiste variabele is **`SHAREPOINT_SITE_ID`**.
 
 De bestaande GitHub Secrets `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` en `OPENAI_API_KEY` worden door de backend als aliases ondersteund voor tenant/client/secret. De SharePoint/List-waarden moeten nog als server environment variables worden toegevoegd.
 
