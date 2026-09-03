@@ -1,14 +1,24 @@
 # Microsoft Lists instellen voor OnderwijsAI
 
-## 1. Maak één SharePoint-site voor de applicatie
+## Belangrijk: aanmelden is niet tenantgebonden
 
-Gebruik een bestaande schoolsite of een aparte beheer-/ICT-site. Noteer de **site ID** van die site voor `SHAREPOINT_SITE_ID`.
+OnderwijsAI gebruikt de Microsoft `common` authority. Daardoor kan een gebruiker zich aanmelden met:
+
+- een werkaccount van Microsoft 365;
+- een schoolaccount;
+- een persoonlijk Microsoft-account (Outlook.com, Hotmail, Live enz.).
+
+De app beperkt de **Microsoft-aanmelding dus niet tot één tenant**. Microsoft vereist wel dat de appregistratie in Entra is ingesteld op **Accounts in any organizational directory and personal Microsoft accounts** (`AzureADandPersonalMicrosoftAccount`). De `common` authority is hiervoor de juiste authority. Zie de Microsoft-documentatie over ondersteunde accounttypen en de common authority.
+
+## 1. SharePoint-site voor de applicatie
+
+Microsoft Lists blijft de centrale databron voor gebruikers, sjablonen en gebruik. Gebruik hiervoor de school-SharePointsite. De tenant die hiervoor wordt ingesteld is uitsluitend de **data-/SharePointtenant**; hij bepaalt niet wie mag inloggen.
+
+Noteer de site-ID als `SHAREPOINT_SITE_ID`.
 
 ## 2. Maak de drie Lists
 
 ### AI Gebruikers
-
-Maak deze kolommen:
 
 - Title — Eén regel tekst
 - Account — Eén regel tekst
@@ -17,17 +27,9 @@ Maak deze kolommen:
 - TokensGebruikt — Getal
 - Actief — Ja/Nee
 
-Voeg minstens één beheerder toe:
-
-- Account = het M365-account van de beheerder
-- Rol = `Beheerder`
-- TokenBudget = bijvoorbeeld `1000000`
-- TokensGebruikt = `0`
-- Actief = `Ja`
+Voeg minstens één beheerder toe. De waarde in `Account` moet exact overeenkomen met het Microsoft-account waarmee de beheerder aanmeldt.
 
 ### AI Sjablonen
-
-Maak:
 
 - Title — Eén regel tekst
 - TemplateId — Eén regel tekst
@@ -37,11 +39,9 @@ Maak:
 - Actief — Ja/Nee
 - Volgorde — Getal
 
-Kopieer de tien records uit `data/templates.json` naar deze List. De velden `id`, `title`, `description`, `outputs`, `prompt` en `active` corresponderen met de List-kolommen.
+De tien bestaande sjablonen staan in `data/templates.json`.
 
 ### AI Gebruik
-
-Maak:
 
 - Title — Eén regel tekst
 - Account — Eén regel tekst
@@ -51,48 +51,50 @@ Maak:
 - TotaalTokens — Getal
 - Datum — Datum en tijd
 
-## 3. Entra ID
+## 3. Microsoft Entra-appregistratie
 
-Gebruik bij voorkeur één appregistratie voor deze eerste architectuur. De browser krijgt een token voor de eigen API. De Node-backend gebruikt daarna On-Behalf-Of om namens de gebruiker Microsoft Graph aan te spreken.
+Kies bij **Supported account types**:
 
-Configureer:
+**Accounts in any organizational directory and personal Microsoft accounts**
 
-- een SPA redirect URI voor het definitieve domein;
-- een delegated scope `api://<client-id>/access_as_user`;
-- Microsoft Graph delegated permissions die de gekozen SharePoint Lists kunnen lezen en wijzigen;
-- admin consent voor de vereiste permissions;
-- een client secret voor de serverzijde.
+De applicatie gebruikt vervolgens:
 
-Voor een productieomgeving moet de Graph-toegang zo beperkt mogelijk worden ingericht. Microsoft Graph documenteert `Sites.Read.All` als least-privileged permission voor het lezen van List-items; voor wijzigingen is een schrijfmachtiging nodig. Ondersteuning voor geselecteerde Lists kan verder worden verfijnd afhankelijk van de gekozen permissiestrategie.
+`https://login.microsoftonline.com/common`
+
+voor de gebruikersaanmelding.
+
+De backend valideert het token tegen de tenant-ID die in het token wordt meegegeven. Er wordt dus geen vaste schooltenant gebruikt om gebruikers bij de login te blokkeren.
+
+Voor de SharePoint Lists gebruikt de server app-only Microsoft Graph-toegang. Daardoor hoeft een persoonlijk Microsoft-account zelf geen toegang te hebben tot de school-SharePointsite.
 
 ## 4. Servervariabelen
 
-Vul op de hostingomgeving minstens in:
-
 ```text
-M365_TENANT_ID
 M365_CLIENT_ID
-M365_CLIENT_SECRET
-M365_API_AUDIENCE
+aM365_API_AUDIENCE
 M365_API_SCOPE
-OPENAI_API_KEY
-OPENAI_MODEL
+AZURE_CLIENT_SECRET
+SHAREPOINT_TENANT_ID
 SHAREPOINT_SITE_ID
 USERS_LIST_ID
 TEMPLATES_LIST_ID
 USAGE_LIST_ID
+OPENAI_API_KEY
+OPENAI_MODEL
 ```
 
-De bestaande GitHub Secrets `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` en `OPENAI_API_KEY` worden door de backend als aliases ondersteund voor tenant/client/secret. De SharePoint/List-waarden moeten nog als server environment variables worden toegevoegd.
+Let op: `aM365_API_AUDIENCE` is hierboven bewust herkenbaar als mogelijke typefout; de juiste variabelenaam is **`M365_API_AUDIENCE`**. Gebruik dus de naam uit `.env.example`.
 
-## 5. Testvolgorde
+De bestaande GitHub Secrets `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID` en `OPENAI_API_KEY` kunnen als bron voor de serverconfiguratie worden gebruikt. Voor de nieuwe configuratie is `AZURE_TENANT_ID` de SharePoint/data-tenant en wordt die opgeslagen als `SHAREPOINT_TENANT_ID`.
 
-1. Meld aan met het beheeraccount.
-2. Controleer of de beheerpagina zichtbaar is.
-3. Controleer of de drie Lists correct worden uitgelezen.
-4. Voeg één testleerkracht toe.
-5. Meld aan als die leerkracht.
-6. Genereer eerst tekst.
-7. Controleer daarna PDF-output.
-8. Controleer in `AI Gebruik` of het tokenverbruik is gelogd.
-9. Controleer dat de OpenAI API-key nergens in de browserbroncode voorkomt.
+## 5. Wat betekent dit praktisch?
+
+Een gebruiker kan dus gewoon op **Aanmelden met Microsoft** klikken en bijvoorbeeld kiezen voor:
+
+- `leerkracht@school.be`;
+- `naam@outlook.com`;
+- een ander Microsoft-account.
+
+Daarna bepaalt OnderwijsAI zelf of dat account toegang heeft tot de AI-omgeving en welk tokenbudget eraan gekoppeld is.
+
+**Aanmelden** en **toegang tot de AI-diensten** zijn daarmee twee verschillende zaken.
