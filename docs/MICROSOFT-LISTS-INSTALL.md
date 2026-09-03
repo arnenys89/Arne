@@ -8,7 +8,7 @@ OnderwijsAI gebruikt de Microsoft `common` authority. Daardoor kan een gebruiker
 - een schoolaccount;
 - een persoonlijk Microsoft-account (Outlook.com, Hotmail, Live enz.).
 
-De app beperkt de **Microsoft-aanmelding dus niet tot één tenant**. Microsoft vereist wel dat de appregistratie in Entra is ingesteld op **Accounts in any organizational directory and personal Microsoft accounts** (`AzureADandPersonalMicrosoftAccount`). De `common` authority is hiervoor de juiste authority. Zie de Microsoft-documentatie over ondersteunde accounttypen en de common authority.
+De app beperkt de **Microsoft-aanmelding dus niet tot één tenant**. Microsoft vereist wel dat de appregistratie in Entra is ingesteld op **Accounts in any organizational directory and personal Microsoft accounts** (`AzureADandPersonalMicrosoftAccount`). De `common` authority is hiervoor de juiste authority.
 
 ## 1. SharePoint-site voor de applicatie
 
@@ -71,7 +71,7 @@ Voor de SharePoint Lists gebruikt de server app-only Microsoft Graph-toegang. Da
 
 ```text
 M365_CLIENT_ID
-aM365_API_AUDIENCE
+M365_API_AUDIENCE
 M365_API_SCOPE
 AZURE_CLIENT_SECRET
 SHAREPOINT_TENANT_ID
@@ -83,9 +83,7 @@ OPENAI_API_KEY
 OPENAI_MODEL
 ```
 
-Let op: `aM365_API_AUDIENCE` is hierboven bewust herkenbaar als mogelijke typefout; de juiste variabelenaam is **`M365_API_AUDIENCE`**. Gebruik dus de naam uit `.env.example`.
-
-De bestaande GitHub Secrets `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID` en `OPENAI_API_KEY` kunnen als bron voor de serverconfiguratie worden gebruikt. Voor de nieuwe configuratie is `AZURE_TENANT_ID` de SharePoint/data-tenant en wordt die opgeslagen als `SHAREPOINT_TENANT_ID`.
+De bestaande GitHub Secrets `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID` en `OPENAI_API_KEY` kunnen als bron voor de serverconfiguratie worden gebruikt. In deze configuratie is `AZURE_TENANT_ID` de SharePoint/data-tenant en wordt die als `SHAREPOINT_TENANT_ID` gebruikt.
 
 ## 5. Wat betekent dit praktisch?
 
