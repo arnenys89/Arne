@@ -3,60 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OnderwijsAI — goedgekeurde AI-sjablonen</title>
-<style>
-:root{--navy:#132238;--blue:#2463eb;--light:#f4f7fb;--line:#dfe6ef;--text:#182334;--muted:#64748b;--green:#15966b;--white:#fff}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:var(--light)}
-button,input,textarea{font:inherit}.top{height:68px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 32px}.brand{font-weight:800;font-size:20px;letter-spacing:-.3px}.brand span{color:#77a7ff}.user{display:flex;align-items:center;gap:12px;font-size:14px}.avatar{width:36px;height:36px;border-radius:50%;background:#3b82f6;display:grid;place-items:center;font-weight:700}
-.shell{max-width:1280px;margin:0 auto;padding:34px 28px 60px}.hero{display:flex;justify-content:space-between;align-items:end;margin-bottom:28px}.eyebrow{color:var(--blue);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.08em}.hero h1{font-size:34px;margin:7px 0 8px;letter-spacing:-1px}.hero p{margin:0;color:var(--muted);max-width:700px}.tokens{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 18px;min-width:180px}.tokens strong{display:block;font-size:23px}.tokens small{color:var(--muted)}
-.layout{display:grid;grid-template-columns:340px 1fr;gap:22px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 3px 12px #12223808}.templates{padding:18px}.panel-title{font-weight:800;margin-bottom:12px}.template{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:11px;padding:13px 14px;margin:7px 0;cursor:pointer;transition:.15s}.template:hover,.template.active{border-color:#7aa5ff;background:#f5f8ff}.template b{display:block;font-size:14px}.template small{display:block;color:var(--muted);margin-top:4px;line-height:1.35}.badge{float:right;background:#edf3ff;color:var(--blue);border-radius:20px;padding:3px 7px;font-size:10px;font-weight:800}
-.workspace{padding:25px}.workspace h2{margin:0 0 5px;font-size:23px}.sub{color:var(--muted);font-size:14px;margin-bottom:22px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field.full{grid-column:1/-1}label{font-size:13px;font-weight:700;display:block;margin-bottom:7px}input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:none;background:#fff}input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2463eb14}textarea{min-height:170px;resize:vertical}.actions{display:flex;align-items:center;justify-content:space-between;margin-top:18px}.primary{border:0;background:var(--blue);color:#fff;padding:12px 18px;border-radius:9px;font-weight:750;cursor:pointer}.primary:hover{background:#1d4ed8}.notice{font-size:12px;color:var(--muted)}.output{display:none;margin-top:22px;border-top:1px solid var(--line);padding-top:20px}.output.show{display:block}.output-head{display:flex;justify-content:space-between;align-items:center}.output h3{margin:0}.copy{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer}.result{white-space:pre-wrap;background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:12px;line-height:1.55}
-.admin{margin-top:22px;padding:20px}.admin h3{margin:0 0 5px}.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px}.admin-card{border:1px solid var(--line);border-radius:10px;padding:14px}.admin-card strong{display:block;font-size:18px}.admin-card small{color:var(--muted)}.secure{color:var(--green);font-weight:700;font-size:12px}
-.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#edf3ff,#f8fafc)}.login-card{width:min(440px,calc(100% - 32px));background:#fff;border:1px solid var(--line);border-radius:20px;padding:38px;box-shadow:0 20px 50px #13223818;text-align:center}.ms-logo{width:48px;height:48px;margin:0 auto 18px;background:linear-gradient(90deg,#f25022 50%,#7fba00 50%);position:relative}.ms-logo:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(90deg,#00a4ef 50%,#ffb900 50%)}.login-card h1{margin:0 0 8px}.login-card p{color:var(--muted);line-height:1.5}.ms-btn{width:100%;border:0;background:var(--navy);color:#fff;border-radius:9px;padding:13px;font-weight:750;cursor:pointer;margin-top:15px}.hidden{display:none!important}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.hero{display:block}.tokens{margin-top:18px}.fields,.admin-grid{grid-template-columns:1fr}.top{padding:0 18px}.shell{padding:25px 16px}}
-</style>
+<title>OnderwijsAI</title>
+<meta http-equiv="refresh" content="0;url=public/index.html">
+<style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;color:#102a43}a{color:#1769aa}</style>
 </head>
 <body>
-<div id="login" class="login">
-  <div class="login-card">
-    <div class="ms-logo"></div>
-    <h1>OnderwijsAI</h1>
-    <p>Veilige toegang voor leerkrachten. Meld aan met je Microsoft 365-schoolaccount om de goedgekeurde AI-sjablonen te gebruiken.</p>
-    <button class="ms-btn" onclick="signIn()">Aanmelden met Microsoft 365</button>
-    <p style="font-size:12px;margin-top:18px">Alleen accounts uit de schooltenant krijgen toegang.</p>
-  </div>
-</div>
-
-<div id="app" class="hidden">
-<header class="top"><div class="brand">Onderwijs<span>AI</span></div><div class="user"><div><b id="userName">Leerkracht</b><br><span style="opacity:.7">Schoolaccount</span></div><div class="avatar" id="avatar">L</div></div></header>
-<main class="shell">
-<section class="hero"><div><div class="eyebrow">Goedgekeurde AI-omgeving</div><h1>Maak onderwijsmateriaal met AI.</h1><p>Kies een goedgekeurd sjabloon, geef je context en laat de AI een eerste versie maken. De school beheert de modellen, sjablonen en het gebruiksbudget.</p></div><div class="tokens"><strong id="tokenCount">18.450</strong><small>tokens beschikbaar</small></div></section>
-<div class="layout">
-<aside class="panel templates"><div class="panel-title">Sjablonen</div>
-<div id="templateList"></div>
-</aside>
-<section class="panel workspace">
-<h2 id="selectedTitle">Lesvoorbereiding</h2><div class="sub" id="selectedSub">PDF & Smartschool</div>
-<div class="fields"><div><label>Vak / domein</label><input id="subject" placeholder="bv. elektriciteit, Nederlands, STEM"></div><div><label>Doelgroep / klas</label><input id="class" placeholder="bv. 4EM, 2A, 16 leerlingen"></div><div class="field full"><label>Onderwerp en context</label><input id="topic" placeholder="Beschrijf kort wat je wilt laten maken..."></div><div class="field full"><label>Extra instructies voor de AI</label><textarea id="prompt" placeholder="bv. Gebruik duidelijke leerdoelen, differentiatie en een korte evaluatie..."></textarea></div></div>
-<div class="actions"><span class="notice">Geschat verbruik: <b id="estimate">450</b> tokens</span><button class="primary" onclick="generate()">Genereer met AI</button></div>
-<div class="output" id="output"><div class="output-head"><h3>Voorbeeldresultaat</h3><button class="copy" onclick="copyResult()">Kopieer</button></div><div class="result" id="result"></div></div>
-</section></div>
-<section class="panel admin" id="adminPanel"><h3>Beheer</h3><div class="secure">● Beheerder</div><div class="admin-grid"><div class="admin-card"><strong>12</strong><small>actieve leerkrachten</small></div><div class="admin-card"><strong>18.450</strong><small>tokens resterend</small></div><div class="admin-card"><strong>10</strong><small>goedgekeurde sjablonen</small></div></div><p class="notice" style="margin:14px 0 0">In de productieomgeving worden de OpenAI API-sleutel, gebruikersbudgetten en sjabloonprompts uitsluitend server-side beheerd. Plaats nooit een API-sleutel in deze browsercode.</p></section>
-</main></div>
-<script>
-const templates=[
-['Lesvoorbereiding','PDF & Smartschool'],['STEM-Project','Leerling-, lerarenbundel & fiches'],['Praktijkproject','Werkvoorbereiding & veiligheid'],['Toets','Leerling-PDF, leraar-PDF met antwoorden & fiche'],['Opdracht','Leerling-PDF, leraar-PDF met antwoorden & fiche'],['Examen','Leerling-PDF, leraar-PDF met antwoorden & fiche'],['Activiteit & Uitstap','Brief, aanvraag-PDF, mededeling & bericht'],['Oudercommunicatie','Brief & Smartschoolbericht'],['Uitnodiging Oudercontact','Brief, Smartschool & leidraad'],['Zorg- en Remediëringsplan','GC & IAC']];
-let selected=0;
-const list=document.getElementById('templateList');
-templates.forEach((t,i)=>{const b=document.createElement('button');b.className='template'+(i===0?' active':'');b.innerHTML='<span class="badge">GOEDGEKEURD</span><b>'+t[0]+'</b><small>'+t[1]+'</small>';b.onclick=()=>selectTemplate(i);list.appendChild(b)});
-function selectTemplate(i){selected=i;document.querySelectorAll('.template').forEach((b,n)=>b.classList.toggle('active',n===i));document.getElementById('selectedTitle').textContent=templates[i][0];document.getElementById('selectedSub').textContent=templates[i][1];document.getElementById('output').classList.remove('show')}
-function signIn(){
-  // Production: initialize @azure/msal-browser with your Entra tenant/client ID and use loginPopup/loginRedirect.
-  // This demo login is deliberately local until those tenant settings are supplied.
-  document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');
-}
-function generate(){const topic=document.getElementById('topic').value||'een lesonderwerp';const subject=document.getElementById('subject').value||'het vak';const cls=document.getElementById('class').value||'de doelgroep';const extra=document.getElementById('prompt').value||'Werk helder, praktisch en bruikbaar voor de leerkracht.';const title=templates[selected][0];document.getElementById('result').textContent='AI-CONCEPT — '+title+'\n\nOnderwerp: '+topic+'\nVak/domein: '+subject+'\nDoelgroep: '+cls+'\n\n'+extra+'\n\n[Hier verschijnt in de productieomgeving de door de school goedgekeurde AI-output, gegenereerd via de beveiligde server/API.]';document.getElementById('output').classList.add('show');let n=Number(document.getElementById('tokenCount').textContent.replace('.',''));document.getElementById('tokenCount').textContent=Math.max(0,n-450).toLocaleString('nl-BE');}
-function copyResult(){navigator.clipboard?.writeText(document.getElementById('result').textContent)}
-</script>
+<p>OnderwijsAI wordt geopend… <a href="public/index.html">Open de applicatie</a>.</p>
 </body>
 </html>
