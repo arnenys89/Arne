@@ -9,61 +9,116 @@ import PDFDocument from 'pdfkit';
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(process.cwd(), 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
-const TENANT = process.env.M365_TENANT_ID || 'common';
-const CLIENT_ID = process.env.M365_CLIENT_ID || '';
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').toLowerCase();
+const FALLBACK_TEMPLATES = path.join(DATA_DIR, 'templates.json');
+const FALLBACK_USERS = path.join(DATA_DIR, 'users.json');
+const TENANT = process.env.M365_TENANT_ID || process.env.AZURE_TENANT_ID || '';
+const CLIENT_ID = process.env.M365_CLIENT_ID || process.env.AZURE_CLIENT_ID || '';
+const CLIENT_SECRET = process.env.M365_CLIENT_SECRET || process.env.AZURE_CLIENT_SECRET || '';
+const API_AUDIENCE = process.env.M365_API_AUDIENCE || CLIENT_ID;
+const API_SCOPE = process.env.M365_API_SCOPE || (CLIENT_ID ? `api://${CLIENT_ID}/access_as_user` : '');
 const MODEL = process.env.OPENAI_MODEL || 'gpt-5.6-luna';
+const SITE_ID = process.env.SHAREPOINT_SITE_ID || '';
+const USERS_LIST = process.env.USERS_LIST_ID || process.env.USERS_LIST_NAME || 'AI Gebruikers';
+const TEMPLATES_LIST = process.env.TEMPLATES_LIST_ID || process.env.TEMPLATES_LIST_NAME || 'AI Sjablonen';
+const USAGE_LIST = process.env.USAGE_LIST_ID || process.env.USAGE_LIST_NAME || 'AI Gebruik';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const jwks = createRemoteJWKSet(new URL(`https://login.microsoftonline.com/${TENANT}/discovery/v2.0/keys`));
+const jwks = TENANT ? createRemoteJWKSet(new URL(`https://login.microsoftonline.com/${TENANT}/discovery/v2.0/keys`)) : null;
 
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1h' }));
 
 async function readJson(file, fallback) { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; } }
 async function writeJson(file, data) { await fs.mkdir(DATA_DIR, { recursive: true }); await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8'); }
+function bearer(req) { const h = req.headers.authorization || ''; return h.startsWith('Bearer ') ? h.slice(7) : ''; }
+function field(item, ...names) { const f = item?.fields || {}; for (const n of names) if (f[n] !== undefined && f[n] !== null) return f[n]; return ''; }
+
 async function authenticate(req, res, next) {
   try {
-    const h = req.headers.authorization || '';
-    if (!h.startsWith('Bearer ')) return res.status(401).json({ error: 'Aanmelden vereist.' });
-    const { payload } = await jwtVerify(h.slice(7), jwks, { issuer: `https://login.microsoftonline.com/${TENANT}/v2.0`, audience: process.env.M365_API_AUDIENCE || CLIENT_ID });
-    const email = String(payload.preferred_username || payload.email || '').toLowerCase();
+    if (!jwks || !API_AUDIENCE) return res.status(503).json({ error: 'Microsoft 365-authenticatie is nog niet geconfigureerd.' });
+    const token = bearer(req); if (!token) return res.status(401).json({ error: 'Aanmelden vereist.' });
+    const { payload } = await jwtVerify(token, jwks, { issuer: `https://login.microsoftonline.com/${TENANT}/v2.0`, audience: API_AUDIENCE });
+    const email = String(payload.preferred_username || payload.upn || payload.email || '').toLowerCase();
     if (!email) return res.status(401).json({ error: 'Geen schoolaccount gevonden.' });
-    req.user = { email, name: payload.name || email }; next();
-  } catch { res.status(401).json({ error: 'Ongeldige of verlopen Microsoft 365-sessie.' }); }
+    req.user = { email, name: String(payload.name || email) }; req.accessToken = token; next();
+  } catch (e) { console.error('Auth:', e?.message || e); res.status(401).json({ error: 'Ongeldige of verlopen Microsoft 365-sessie.' }); }
 }
-async function isAdmin(email) { return !!ADMIN_EMAIL && email === ADMIN_EMAIL; }
 
-app.get('/api/config', (_req, res) => res.json({ clientId: CLIENT_ID, tenantId: TENANT, apiScope: process.env.M365_API_SCOPE || '' }));
-app.get('/api/templates', authenticate, async (_req, res) => res.json(await readJson(TEMPLATES_FILE, [])));
-app.get('/api/me', authenticate, async (req, res) => {
-  const users = await readJson(USERS_FILE, {}), u = users[req.user.email] || { allocated: 0, used: 0, active: true };
-  res.json({ ...req.user, allocated: u.allocated, used: u.used, remaining: Math.max(0, u.allocated-u.used), admin: await isAdmin(req.user.email), active: u.active !== false });
-});
+async function graphToken(userToken) {
+  if (!CLIENT_ID || !CLIENT_SECRET || !TENANT) throw new Error('OBO-configuratie ontbreekt: tenant, client ID of client secret.');
+  const body = new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: userToken, requested_token_use: 'on_behalf_of', scope: 'https://graph.microsoft.com/.default' });
+  const r = await fetch(`https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/token`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error_description || 'Microsoft Graph-token kon niet worden verkregen.'); return d.access_token;
+}
+async function graph(userToken, endpoint, options = {}) {
+  const token = await graphToken(userToken);
+  const r = await fetch(`https://graph.microsoft.com/v1.0${endpoint}`, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d?.error?.message || `Microsoft Graph gaf HTTP ${r.status}.`); return d;
+}
+async function listRef(userToken, configured) {
+  if (!SITE_ID) throw new Error('SHAREPOINT_SITE_ID ontbreekt.');
+  if (/^[0-9a-f-]{20,}$/i.test(configured)) return configured;
+  return (await graph(userToken, `/sites/${SITE_ID}/lists/${encodeURIComponent(configured)}`)).id;
+}
+async function listItems(userToken, configured) {
+  const id = await listRef(userToken, configured);
+  const d = await graph(userToken, `/sites/${SITE_ID}/lists/${id}/items?expand=fields`); return { id, items: d.value || [] };
+}
+async function createListItem(userToken, configured, fields) { const id = await listRef(userToken, configured); return graph(userToken, `/sites/${SITE_ID}/lists/${id}/items`, { method: 'POST', body: JSON.stringify({ fields }) }); }
+async function updateListItemFields(userToken, configured, itemId, fields) { const id = await listRef(userToken, configured); return graph(userToken, `/sites/${SITE_ID}/lists/${id}/items/${itemId}/fields`, { method: 'PATCH', body: JSON.stringify(fields) }); }
 
-app.post('/api/generate', authenticate, async (req, res) => {
-  const { templateId, input, format='text' } = req.body || {};
-  const templates = await readJson(TEMPLATES_FILE, []), template = templates.find(t => t.id === templateId);
-  if (!template) return res.status(400).json({ error: 'Onbekend sjabloon.' });
-  const users = await readJson(USERS_FILE, {}), user = users[req.user.email] || { allocated: 0, used: 0, active: true };
-  if (user.active === false) return res.status(403).json({ error: 'Je account is gedeactiveerd.' });
-  if (Math.max(0,user.allocated-user.used) < 1) return res.status(402).json({ error: 'Je tokenbudget is opgebruikt. Neem contact op met de beheerder.' });
-  if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'De OpenAI API is nog niet geconfigureerd op de server.' });
-  const prompt = `${template.prompt}\n\nCONTEXT VAN DE LEERKRACHT:\n${String(input||'').slice(0,30000)}\n\nMaak alleen de gevraagde onderwijscontent. Gebruik geen persoonsgegevens die niet nodig zijn. Schrijf in correct Nederlands (Vlaanderen).`;
+async function loadTemplates(req) {
+  if (SITE_ID) {
+    try {
+      const { items } = await listItems(req.accessToken, TEMPLATES_LIST);
+      const result = items.map(i => ({ id: String(field(i, 'TemplateId', 'ID', 'Title') || i.id).toLowerCase().replace(/\s+/g, '-'), title: String(field(i, 'Title', 'Naam') || 'Sjabloon'), description: String(field(i, 'Beschrijving', 'Description') || ''), outputs: String(field(i, 'Outputtypes', 'OutputTypes') || '').split(/[,;|]/).map(x => x.trim()).filter(Boolean), prompt: String(field(i, 'Systeeminstructie', 'Prompt') || ''), active: field(i, 'Actief', 'Active') !== false })).filter(x => x.active && x.prompt);
+      if (result.length) return result.sort((a,b) => a.title.localeCompare(b.title, 'nl'));
+    } catch (e) { console.warn('Lists-sjablonen niet beschikbaar; fallback:', e.message); }
+  }
+  return readJson(FALLBACK_TEMPLATES, []);
+}
+async function findUser(req, email = req.user.email) {
+  if (SITE_ID) {
+    try {
+      const { items } = await listItems(req.accessToken, USERS_LIST);
+      const item = items.find(i => String(field(i, 'Account', 'Email', 'UPN')).toLowerCase() === email.toLowerCase());
+      if (item) return { id: item.id, email, name: String(field(item, 'Title', 'Naam') || email), role: String(field(item, 'Rol', 'Role') || 'Leerkracht'), allocated: Math.max(0, Number(field(item, 'TokenBudget', 'Allocated', 'Budget') || 0)), used: Math.max(0, Number(field(item, 'TokensGebruikt', 'Used', 'Verbruikt') || 0)), active: field(item, 'Actief', 'Active') !== false };
+      return null;
+    } catch (e) { console.warn('Lists-gebruiker niet beschikbaar; fallback:', e.message); }
+  }
+  const users = await readJson(FALLBACK_USERS, {}), u = users[email];
+  return u ? { id: email, email, name: email, role: u.admin ? 'Beheerder' : 'Leerkracht', allocated: Number(u.allocated || 0), used: Number(u.used || 0), active: u.active !== false } : null;
+}
+function isAdmin(user) { return String(user?.role || '').toLowerCase() === 'beheerder'; }
+async function saveUserUsage(req, user, used) {
+  if (SITE_ID && user.id !== user.email) return updateListItemFields(req.accessToken, USERS_LIST, user.id, { TokensGebruikt: Number(user.used || 0) + Number(used || 0) });
+  const users = await readJson(FALLBACK_USERS, {}); users[user.email] = { ...(users[user.email] || {}), allocated: user.allocated, used: Number(user.used || 0) + Number(used || 0), active: user.active !== false, admin: isAdmin(user) }; await writeJson(FALLBACK_USERS, users);
+}
+
+app.get('/api/config', (_req, res) => res.json({ clientId: CLIENT_ID, tenantId: TENANT, apiScope: API_SCOPE, listsConfigured: Boolean(SITE_ID) }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, lists: Boolean(SITE_ID), openai: Boolean(process.env.OPENAI_API_KEY), model: MODEL }));
+app.get('/api/templates', authenticate, async (req,res) => { try { res.json(await loadTemplates(req)); } catch(e) { res.status(500).json({error:e.message}); } });
+
+app.get('/api/me', authenticate, async (req,res) => { try { const u=await findUser(req); if(!u) return res.status(403).json({error:'Je account staat nog niet in AI Gebruikers. Vraag de beheerder om toegang.'}); if(!u.active) return res.status(403).json({error:'Je account is gedeactiveerd.'}); res.json({...u,remaining:Math.max(0,u.allocated-u.used),admin:isAdmin(u)}); } catch(e) { res.status(500).json({error:e.message}); } });
+
+app.post('/api/generate', authenticate, async (req,res) => {
   try {
-    const response = await openai.responses.create({ model: MODEL, input: prompt, max_output_tokens: 5000 });
-    const text = response.output_text || '', used = response.usage?.total_tokens || Math.max(1, Math.ceil((prompt.length+text.length)/4));
-    user.used += used; users[req.user.email] = user; await writeJson(USERS_FILE, users);
-    if (format === 'pdf') { const pdf=await makePdf(text,template.title); return res.json({text,tokens:used,remaining:Math.max(0,user.allocated-user.used),pdf:pdf.toString('base64'),filename:`${template.id}.pdf`}); }
-    res.json({ text, tokens: used, remaining: Math.max(0,user.allocated-user.used) });
-  } catch(e) { res.status(500).json({ error:e?.message||'Genereren mislukt.' }); }
+    const { templateId, input, format='text' } = req.body || {};
+    const templates=await loadTemplates(req), template=templates.find(t=>t.id===templateId); if(!template) return res.status(400).json({error:'Onbekend of niet-goedgekeurd sjabloon.'});
+    const user=await findUser(req); if(!user) return res.status(403).json({error:'Je account staat niet in de gebruikerslijst.'}); if(!user.active) return res.status(403).json({error:'Je account is gedeactiveerd.'});
+    const remaining=Math.max(0,user.allocated-user.used); if(remaining<1) return res.status(402).json({error:'Je tokenbudget is opgebruikt. Neem contact op met de beheerder.'}); if(!process.env.OPENAI_API_KEY) return res.status(503).json({error:'De OpenAI API is nog niet geconfigureerd op de server.'});
+    const safeInput=String(input||'').slice(0,30000); const prompt=`${template.prompt}\n\nCONTEXT VAN DE LEERKRACHT:\n${safeInput}\n\nMaak alleen de gevraagde onderwijscontent. Schrijf in correct Nederlands (Vlaanderen). Neem geen onnodige persoonsgegevens op. Structureer meerdere gevraagde outputtypes met duidelijke titels. Geef geen uitleg over je eigen werking.`;
+    const response=await openai.responses.create({model:MODEL,input:prompt,max_output_tokens:Math.min(6000,Math.max(1000,remaining))}); const text=response.output_text||''; const used=Number(response.usage?.total_tokens||Math.max(1,Math.ceil((prompt.length+text.length)/4)));
+    await saveUserUsage(req,user,used);
+    if(SITE_ID){try{await createListItem(req.accessToken,USAGE_LIST,{Title:`${template.title} — ${req.user.email} — ${new Date().toISOString()}`,Account:req.user.email,Sjabloon:template.title,InputTokens:Number(response.usage?.input_tokens||0),OutputTokens:Number(response.usage?.output_tokens||0),TotaalTokens:used,Datum:new Date().toISOString()});}catch(e){console.warn('Gebruik kon niet worden gelogd:',e.message);}}
+    if(format==='pdf'){const pdf=await makePdf(text,template.title);return res.json({text,tokens:used,remaining:Math.max(0,remaining-used),pdf:pdf.toString('base64'),filename:`${template.id}.pdf`});}
+    res.json({text,tokens:used,remaining:Math.max(0,remaining-used)});
+  } catch(e) { console.error('Generate:',e); res.status(500).json({error:e?.message||'Genereren mislukt.'}); }
 });
-function makePdf(text,title){return new Promise((resolve,reject)=>{const doc=new PDFDocument({margin:48}),chunks=[];doc.on('data',c=>chunks.push(c));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);doc.fontSize(20).text(title);doc.moveDown();doc.fontSize(10).fillColor('#333').text('Gegenereerd via School AI');doc.moveDown();doc.fillColor('#111').fontSize(11).text(text,{lineGap:3});doc.end();});}
+function makePdf(text,title){return new Promise((resolve,reject)=>{const doc=new PDFDocument({margin:52}),chunks=[];doc.on('data',c=>chunks.push(c));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);doc.fontSize(20).fillColor('#102a43').text(title);doc.moveDown(.4);doc.fontSize(9).fillColor('#667788').text('OnderwijsAI — gegenereerd concept');doc.moveDown(1);doc.fontSize(11).fillColor('#17202a').text(text,{lineGap:3});doc.end();});}
 
-app.get('/api/admin/users', authenticate, async(req,res)=>{if(!(await isAdmin(req.user.email)))return res.status(403).json({error:'Beheerdersrechten vereist.'});res.json(await readJson(USERS_FILE,{}));});
-app.put('/api/admin/users/:email',authenticate,async(req,res)=>{if(!(await isAdmin(req.user.email)))return res.status(403).json({error:'Beheerdersrechten vereist.'});const email=decodeURIComponent(req.params.email).toLowerCase(),users=await readJson(USERS_FILE,{}),old=users[email]||{allocated:0,used:0,active:true};users[email]={allocated:Math.max(0,Number(req.body.allocated??old.allocated)),used:old.used,active:req.body.active!==false};await writeJson(USERS_FILE,users);res.json(users[email]);});
-app.put('/api/admin/templates/:id',authenticate,async(req,res)=>{if(!(await isAdmin(req.user.email)))return res.status(403).json({error:'Beheerdersrechten vereist.'});const templates=await readJson(TEMPLATES_FILE,[]),i=templates.findIndex(t=>t.id===req.params.id);if(i<0)return res.status(404).json({error:'Sjabloon niet gevonden.'});templates[i]={...templates[i],title:String(req.body.title||templates[i].title),description:String(req.body.description||''),prompt:String(req.body.prompt||templates[i].prompt)};await writeJson(TEMPLATES_FILE,templates);res.json(templates[i]);});
-
-app.get(/.*/, (_req,res)=>res.sendFile(path.join(process.cwd(),'public','index.html')));
-app.listen(PORT,()=>console.log(`School AI draait op http://localhost:${PORT}`));
+app.get('/api/admin/users',authenticate,async(req,res)=>{const me=await findUser(req);if(!me||!isAdmin(me))return res.status(403).json({error:'Beheerdersrechten vereist.'});try{if(SITE_ID){const {items}=await listItems(req.accessToken,USERS_LIST);return res.json(items.map(i=>({id:i.id,email:String(field(i,'Account','Email','UPN')),name:String(field(i,'Title','Naam')),role:String(field(i,'Rol','Role')||'Leerkracht'),allocated:Number(field(i,'TokenBudget','Allocated','Budget')||0),used:Number(field(i,'TokensGebruikt','Used','Verbruikt')||0),active:field(i,'Actief','Active')!==false})));}const users=await readJson(FALLBACK_USERS,{});res.json(Object.entries(users).map(([email,u])=>({id:email,email,name:email,role:u.admin?'Beheerder':'Leerkracht',allocated:Number(u.allocated||0),used:Number(u.used||0),active:u.active!==false})));}catch(e){res.status(500).json({error:e.message});}});
+app.put('/api/admin/users/:email',authenticate,async(req,res)=>{const me=await findUser(req);if(!me||!isAdmin(me))return res.status(403).json({error:'Beheerdersrechten vereist.'});const email=decodeURIComponent(req.params.email).toLowerCase(),allocated=Math.max(0,Number(req.body.allocated||0)),active=req.body.active!==false;try{if(SITE_ID){const {items}=await listItems(req.accessToken,USERS_LIST),item=items.find(i=>String(field(i,'Account','Email','UPN')).toLowerCase()===email);if(item)await updateListItemFields(req.accessToken,USERS_LIST,item.id,{TokenBudget:allocated,Actief:active});else await createListItem(req.accessToken,USERS_LIST,{Title:email,Account:email,Rol:'Leerkracht',TokenBudget:allocated,TokensGebruikt:0,Actief:active});return res.json({email,allocated,active});}const users=await readJson(FALLBACK_USERS,{}),old=users[email]||{used:0};users[email]={...old,allocated,active};await writeJson(FALLBACK_USERS,users);res.json({email,allocated,used:Number(old.used||0),active});}catch(e){res.status(500).json({error:e.message});}});
+app.put('/api/admin/templates/:id',authenticate,async(req,res)=>{const me=await findUser(req);if(!me||!isAdmin(me))return res.status(403).json({error:'Beheerdersrechten vereist.'});const templates=await loadTemplates(req),current=templates.find(t=>t.id===req.params.id);if(!current)return res.status(404).json({error:'Sjabloon niet gevonden.'});try{if(SITE_ID){const {items}=await listItems(req.accessToken,TEMPLATES_LIST),item=items.find(i=>String(field(i,'TemplateId','ID','Title')).toLowerCase().replace(/\s+/g,'-')===req.params.id||String(field(i,'Title','Naam')).toLowerCase()===current.title.toLowerCase());if(!item)return res.status(404).json({error:'List-item voor sjabloon niet gevonden.'});const description=String(req.body.description??current.description),prompt=String(req.body.prompt??current.prompt);await updateListItemFields(req.accessToken,TEMPLATES_LIST,item.id,{Beschrijving:description,Systeeminstructie:prompt});return res.json({...current,description,prompt});}const fallback=await readJson(FALLBACK_TEMPLATES,[]),i=fallback.findIndex(t=>t.id===req.params.id);if(i<0)return res.status(404).json({error:'Sjabloon niet gevonden.'});fallback[i]={...fallback[i],description:String(req.body.description??fallback[i].description),prompt:String(req.body.prompt??fallback[i].prompt)};await writeJson(FALLBACK_TEMPLATES,fallback);res.json(fallback[i]);}catch(e){res.status(500).json({error:e.message});}});
+app.get('/api/admin/setup',authenticate,async(req,res)=>{const me=await findUser(req);if(!me||!isAdmin(me))return res.status(403).json({error:'Beheerdersrechten vereist.'});res.json({listsConfigured:Boolean(SITE_ID),siteIdConfigured:Boolean(SITE_ID),usersList:USERS_LIST,templatesList:TEMPLATES_LIST,usageList:USAGE_LIST,openaiConfigured:Boolean(process.env.OPENAI_API_KEY),model:MODEL,apiConfigured:Boolean(TENANT&&CLIENT_ID&&CLIENT_SECRET)});});
+app.get(/.*/,(_req,res)=>res.sendFile(path.join(process.cwd(),'public','index.html')));
+app.listen(PORT,()=>console.log(`OnderwijsAI draait op http://localhost:${PORT}`));
