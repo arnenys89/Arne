@@ -9,10 +9,8 @@ Deze applicatie gebruikt GitHub voor de frontend en broncode, en Azure Static We
 - `api/`: Azure Functions v4 API
 - Azure Static Web Apps: hosting van frontend + serverless API
 - Microsoft Entra ID: Microsoft-login via `common`
-- Microsoft Graph: server-side toegang tot schoolse SharePoint Lists
+- Microsoft Graph: server-side toegang tot SharePoint Lists
 - OpenAI: uitsluitend server-side via `OPENAI_API_KEY`
-
-Azure Static Web Apps stelt managed Azure Functions beschikbaar via `/api`; de API-map wordt in de GitHub Actions-workflow met `api_location` aangewezen. citeturn269696search2turn269696search9
 
 ## 1. Azure Static Web App aanmaken
 
@@ -25,15 +23,13 @@ Kies:
 - Branch: `master`
 - App type: Custom / No framework
 
-De GitHub Actions-workflow in `.github/workflows/azure-static-web-apps.yml` is voorbereid met:
+De GitHub Actions-workflow gebruikt:
 
 ```yaml
 app_location: "public"
 api_location: "api"
 output_location: ""
 ```
-
-Azure Static Web Apps gebruikt de `api`-route voor Functions API's. citeturn269696search2turn269696search6
 
 ## 2. GitHub Secret voor deployment
 
@@ -49,33 +45,33 @@ Open in Azure Static Web Apps:
 
 **Settings → Environment variables**
 
-Voeg voor de production environment minstens deze variabelen toe:
+Configureer minstens:
 
 ```text
 M365_CLIENT_ID
 M365_API_AUDIENCE
 M365_API_SCOPE
 AZURE_CLIENT_SECRET
-SHAREPOINT_TENANT_ID
 SHAREPOINT_SITE_ID
 USERS_LIST_ID
 TEMPLATES_LIST_ID
 USAGE_LIST_ID
 OPENAI_API_KEY
 OPENAI_MODEL
+ALLOW_JSON_FALLBACK
 ```
 
-Aanbevolen waarde voor `OPENAI_MODEL` is:
+Gebruik voor productie:
 
 ```text
-gpt-5.6-luna
+ALLOW_JSON_FALLBACK=false
 ```
 
-De Azure Static Web Apps application settings zijn als environment variables beschikbaar voor de backend API en worden versleuteld opgeslagen. Configureer productiewaarden in Azure, niet in `local.settings.json`. citeturn269696search0
+De secrets en app settings horen alleen server-side in Azure te staan.
 
-## 4. Microsoft Entra ID
+## 4. Microsoft-login en automatische tenantkeuze
 
-De frontend en backend gebruiken bewust de Microsoft identity platform `common` authority:
+De frontend en backend gebruiken:
 
 ```text
 https://login.microsoftonline.com/common
@@ -83,38 +79,52 @@ https://login.microsoftonline.com/common
 
 De app-registratie moet dus accounts uit meerdere organisaties en persoonlijke Microsoft-accounts ondersteunen.
 
-`M365_API_AUDIENCE` moet overeenkomen met de audience waarvoor het access token wordt uitgegeven, bijvoorbeeld:
+`M365_CLIENT_ID` is de **vaste Client ID van OnderwijsAI**. Die verandert niet per gebruiker of per school.
+
+De backend leest na een succesvolle Microsoft-aanmelding de `tid`-claim uit het access token. Voor een werk- of schoolaccount is dit de Microsoft Entra-tenant van de gebruiker. Die tenant wordt automatisch gebruikt voor de server-side Microsoft Graph-authenticatie.
+
+Daarom is `SHAREPOINT_TENANT_ID` niet meer nodig en mag die variabele niet meer worden ingesteld.
+
+Conceptueel:
 
 ```text
-api://<CLIENT-ID>
+Gebruiker meldt aan
+        ↓
+access token
+        ↓
+ tid = tenant van gebruiker
+        ↓
+Microsoft Graph app-only token voor die tenant
+        ↓
+SharePoint Lists
 ```
 
-`M365_API_SCOPE` moet overeenkomen met de gedeclareerde delegated permission, bijvoorbeeld:
+De Graph app-registratie moet wel als service principal aanwezig zijn in de betreffende tenant en daar de vereiste Application permissions + admin consent hebben. Zonder die toestemming kan de API wel authenticeren, maar niet de SharePoint Lists van die tenant lezen.
 
-```text
-api://<CLIENT-ID>/access_as_user
-```
+## 5. Persoonlijke Microsoft-accounts
 
-## 5. Microsoft Graph / SharePoint Lists
+Een persoonlijk Microsoft-account kan via `common` aanmelden, maar heeft geen school-tenant waarin de school-Lists staan. Daarom wordt een consumentaccount wel als geldige Microsoft-aanmelding herkend, maar krijgt het zonder gekoppelde schoolomgeving geen toegang tot OnderwijsAI-data.
 
-De login-tenant en de data-tenant zijn bewust van elkaar gescheiden.
+## 6. SharePoint Lists
 
-`SHAREPOINT_TENANT_ID` identificeert alleen de schoolse SharePoint-omgeving waarin de Lists staan. Deze waarde bepaalt niet wie kan inloggen.
+Maak in de SharePoint-omgeving de Lists:
 
-De app gebruikt voor Lists app-only Microsoft Graph-toegang. De Entra-appregistratie heeft daarom passende **Application permissions** voor Microsoft Graph nodig, met admin consent in de schooltenant.
+- `AI Gebruikers`
+- `AI Sjablonen`
+- `AI Gebruik`
 
-## 6. Custom domain
+De standaard configuratie gebruikt `SHAREPOINT_SITE_ID` en de drie List-namen of List-ID's. Bij meerdere tenants kunnen de tenant-specifieke site/list-ID's later worden uitgebreid naar een tenantconfiguratie, terwijl de tenant zelf steeds automatisch uit de login komt.
+
+## 7. Custom domain
 
 Nadat de Static Web App werkt op de door Azure toegewezen hostnaam:
 
 1. Open **Custom domains** in de Static Web App.
 2. Voeg `ai.richt.be` toe.
 3. Volg de door Azure gegeven DNS-records.
-4. Verwijder pas daarna de oude GitHub Pages-DNS-koppeling.
+4. Verwijder daarna de oude GitHub Pages-koppeling.
 
-Azure Static Web Apps ondersteunt custom domains en voorziet automatisch SSL/TLS-certificaten voor custom domains. citeturn658228search6
-
-## 7. Testvolgorde
+## 8. Testvolgorde
 
 Test na deployment eerst:
 
@@ -122,12 +132,13 @@ Test na deployment eerst:
 https://ai.richt.be/api/health
 ```
 
-Verwacht een JSON-resultaat met onder meer:
+De response bevat onder meer:
 
 ```json
 {
   "ok": true,
-  "accountTypes": "common"
+  "accountTypes": "common",
+  "tenantResolution": "from-signin-tid"
 }
 ```
 
@@ -139,14 +150,17 @@ https://ai.richt.be/api/config
 
 Pas als beide werken, test je de Microsoft-login.
 
-## 8. Beveiliging
+Na login moet `/api/me` de tenant van de aangemelde gebruiker tonen en de juiste SharePoint-omgeving aanspreken.
+
+## 9. Beveiliging
 
 - `OPENAI_API_KEY` staat nooit in de browser.
-- De frontend ontvangt alleen niet-geheime configuratie zoals client ID en delegated scope.
+- `AZURE_CLIENT_SECRET` staat nooit in de browser.
 - Access tokens worden server-side cryptografisch gevalideerd.
-- Het SharePoint-token voor app-only Graph blijft server-side.
+- De Graph-applicatietoken wordt server-side per tenant gecachet.
 - Tokenbudgetten en gebruikersrechten worden server-side gecontroleerd.
+- In productie staat `ALLOW_JSON_FALLBACK=false`, zodat een SharePoint-fout niet stilzwijgend overschakelt naar lokale JSON-data.
 
-## 9. Opmerking over de oude Node/Express-server
+## 10. Belangrijke beperking
 
-`server.js` blijft in de repository als referentie en voor een klassieke Node-deployment. De productievariant voor `ai.richt.be` gebruikt nu de serverless API onder `api/`.
+De tenant wordt automatisch bepaald, maar de app kan niet magisch een SharePoint-site en Lists vinden in een willekeurige tenant. De betreffende tenant moet de OnderwijsAI-app toestaan en de ingestelde `SHAREPOINT_SITE_ID`/Lists moeten daar bestaan. Voor een echte multi-school SaaS is een volgende stap een tenantconfiguratielaag waarin per `tid` een SharePoint-site en Lists worden gekoppeld.
