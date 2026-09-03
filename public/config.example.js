@@ -1,7 +1,7 @@
-// Kopieer dit bestand naar public/config.js als je de configuratie niet via /api/config wilt aanbieden.
-// Alleen publieke waarden horen hier te staan. NOOIT client secrets of OPENAI_API_KEY.
+// Alleen publieke waarden. NOOIT client secrets of OPENAI_API_KEY.
+// De gebruikerslogin gebruikt Microsoft "common": werk/school + persoonlijke accounts.
 window.EDUCATION_AI_CONFIG = {
   clientId: 'YOUR-ENTRA-APP-CLIENT-ID',
-  tenantId: 'YOUR-ENTRA-TENANT-ID',
+  authority: 'https://login.microsoftonline.com/common',
   apiScope: 'api://YOUR-ENTRA-APP-CLIENT-ID/access_as_user'
 };
