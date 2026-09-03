@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102a43">
-<title>OnderwijsAI — goedgekeurde AI voor onderwijs</title>
+<title>OnderwijsAI — AI voor onderwijs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
@@ -15,30 +15,16 @@
   <section class="login-card">
     <div class="brandmark">AI</div>
     <h1>OnderwijsAI</h1>
-    <p>Een afgeschermde AI-omgeving voor onderwijsprofessionals. Meld aan met je Microsoft 365-schoolaccount en werk met de sjablonen die door de school zijn goedgekeurd.</p>
-    <button class="btn primary" id="loginBtn" style="width:100%;margin-top:14px">Aanmelden met Microsoft 365</button>
-    <div class="login-note"><strong>Veilig ingericht</strong><br>Je OpenAI-sleutel wordt uitsluitend server-side gebruikt. Je school beheert toegang, sjablonen en tokenbudgetten.</div>
+    <p>Een AI-omgeving voor onderwijsprofessionals. Meld aan met je Microsoft-account en gebruik de goedgekeurde onderwijsfuncties.</p>
+    <button class="btn primary" id="loginBtn" style="width:100%;margin-top:14px">Aanmelden met Microsoft</button>
+    <div class="login-note"><strong>Microsoft-account</strong><br>Je kunt aanmelden met een werk-, school- of persoonlijk Microsoft-account. Toegang tot OnderwijsAI en het tokenbudget worden daarna door de applicatie beheerd.</div>
   </section>
 </div>
-
 <div id="app" class="app hidden">
-  <header class="topbar">
-    <div class="brand"><div class="brandmark">AI</div><span>OnderwijsAI</span></div>
-    <div class="top-actions"><span class="user-name" id="userName"></span><span class="quota" id="quota"></span><button class="btn secondary" id="logoutBtn">Afmelden</button></div>
-  </header>
-  <div class="layout">
-    <aside class="sidebar">
-      <nav>
-        <button class="active" data-page="home">Sjablonen</button>
-        <button data-page="generate">Genereren</button>
-        <button data-page="admin" id="adminNav" class="hidden">Beheer</button>
-      </nav>
-      <div class="side-foot">Goedgekeurde AI-content<br>voor onderwijsprofessionals</div>
-    </aside>
-    <main class="main" id="main"></main>
-  </div>
+  <header class="topbar"><div class="brand"><div class="brandmark">AI</div><span>OnderwijsAI</span></div><div class="top-actions"><span class="user-name" id="userName"></span><span class="quota" id="quota"></span><button class="btn secondary" id="logoutBtn">Afmelden</button></div></header>
+  <div class="layout"><aside class="sidebar"><nav><button class="active" data-page="home">Sjablonen</button><button data-page="generate">Genereren</button><button data-page="admin" id="adminNav" class="hidden">Beheer</button></nav><div class="side-foot">Goedgekeurde AI-content<br>voor onderwijsprofessionals</div></aside><main class="main" id="main"></main></div>
 </div>
 <div id="toast" class="toast"></div>
-<script src="/app.js"></script>
+<script src="/app-common.js"></script>
 </body>
 </html>
