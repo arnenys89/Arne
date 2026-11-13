@@ -1,0 +1,10 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "analysisStatus": "pending",
+    "analyst": "ChatGPT",
+    "description": "Deze dataset wordt gevuld met inhoudelijk beoordeelde verbanden door ChatGPT. De website berekent zelf geen verbanden.",
+    "lastAnalysedAt": null
+  },
+  "edges": []
+}
