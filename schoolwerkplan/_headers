@@ -3,3 +3,15 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/content.json
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+/app.js
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/styles.css
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
