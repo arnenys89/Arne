@@ -128,6 +128,6 @@ export default {
       return json({ events: result.results });
     }
 
-    return json({ error: 'Niet gevonden.' }, 404);
+    if (env.ASSETS) return env.ASSETS.fetch(request);\n    return json({ error: 'Niet gevonden.' }, 404);
   }
 };
