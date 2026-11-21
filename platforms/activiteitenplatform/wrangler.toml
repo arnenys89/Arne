@@ -1,0 +1,8 @@
+name = "richtpunt-activiteitenplatform"
+main = "src/index.js"
+compatibility_date = "2026-11-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "richtpunt-activiteitenplatform"
+database_id = "5648141b-afd2-41fc-87f8-be3500f7b1eb"
