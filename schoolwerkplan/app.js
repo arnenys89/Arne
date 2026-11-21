@@ -15,7 +15,8 @@ const chapters=[
 {id:"kwaliteit",title:"Interne kwaliteitsontwikkeling",subtitle:"Cyclische evaluatie, kwaliteitsborging en bijsturing",start:154,end:155,icon:"▥",sections:[["Interne kwaliteitsontwikkeling",155]]}
 ];
 let data,loadPromise=null,loadError=null,view="overzicht",activeChapter=null,activePage=null,searchIndex=null,searchTimer=null;
-function loadStoredSet(key){try{const value=JSON.parse(localStorage.getItem(key)||"[]");return new Set(Array.isArray(value)?value.filter(Number.isInteger):[])}catch(error){console.warn("Lokale leesgegevens konden niet worden gelezen:",key,error);return new Set()}}\nconst readSet=loadStoredSet("swp-read"),favSet=loadStoredSet("swp-favs");
+function loadStoredSet(key){try{const value=JSON.parse(localStorage.getItem(key)||"[]");return new Set(Array.isArray(value)?value.filter(Number.isInteger):[])}catch(error){console.warn("Lokale leesgegevens konden niet worden gelezen:",key,error);return new Set()}}
+const readSet=loadStoredSet("swp-read"),favSet=loadStoredSet("swp-favs");
 const save=()=>{try{localStorage.setItem("swp-read",JSON.stringify([...readSet]));localStorage.setItem("swp-favs",JSON.stringify([...favSet]))}catch(error){console.warn("Lokale voortgang kon niet worden bewaard:",error)}};
 const chapter=id=>chapters.find(c=>c.id===id), chapterForPage=n=>chapters.find(c=>n>=c.start&&n<=c.end), progress=()=>Math.round(readSet.size/155*100);
 function cleanText(value){return String(value||"").replace(/\r/g,"").replace(/\u00a0/g," ").split("\n").map(line=>{if(!line.includes("\t"))line=line.replace(/^ {2,}/,"");return line.replace(/[ \t]+$/,"")}).join("\n").replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,"\n\n").trim()}
