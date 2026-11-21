@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const iconText = (icon) => ({'shopping-cart':'B','calendar':'A','graduation-cap':'P','calendar-check':'C','book-open':'R','layout-dashboard':'D','network':'N'}[icon] || '•');
+const iconText = (icon) => ({'shopping-cart':'B','calendar':'A','graduation-cap':'P','calendar-check':'C','book-open':'R','layout-dashboard':'D','network':'N','book-open':'W'}[icon] || '•');
 async function api(path) {
   const response = await fetch(path, { headers: { 'accept':'application/json' } });
   const data = await response.json().catch(() => ({}));

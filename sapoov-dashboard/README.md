@@ -26,3 +26,7 @@ Deze eerste implementatie is een veilige basis en staat op een aparte GitHub-bra
 - `reviewer`: beoordelen binnen toegewezen applicaties.
 - `staff`: standaardgebruik.
 - `reader`: alleen-lezen.
+
+
+## Schoolwerkplan
+De applicatiecatalogus bevat ook **Schoolwerkplan**. Voer migratie `0002_schoolwerkplan.sql` uit op de centrale SAPOOV-D1-database. Toegang wordt per gebruiker toegekend via `user_app_roles`; de tegel verschijnt bij gebruikers met een toegewezen rol.
