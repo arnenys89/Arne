@@ -33,13 +33,14 @@
 <a class="dashboard-link" href="https://richtpunt-dashboard.arne-nys.workers.dev" target="_blank" rel="noopener">SAPOOV ↗</a>
 </div>
 </header>
-<div class="content" id="content"><section class="hero"><div><p class="eyebrow">BELEID & KWALITEIT · RICHTPUNT</p><h1>Schoolwerkplan</h1><p>Interactieve raadpleegomgeving van het schoolwerkplan van campus Ninove–Zottegem.</p><p>De toepassing wordt gestart. Als deze melding blijft staan, wordt de fout hieronder zichtbaar.</p><p id="startupDiagnostic" role="status">Applicatie initialiseren…</p></div></section></div>
+<div class="content" id="content"><section class="hero"><div><p class="eyebrow">BELEID & KWALITEIT · RICHTPUNT</p><h1>Schoolwerkplan</h1><p>Interactieve raadpleegomgeving van het schoolwerkplan van campus Ninove–Zottegem.</p><p>De toepassing wordt gestart. Als deze melding blijft staan, wordt de fout hieronder zichtbaar.</p></div></section></div>
 <footer><span>RICHTPUNT CAMPUS NINOVE – ZOTTEGEM</span><span>SMART APPS · POOV</span></footer>
 </main>
 </div>
-<div id="searchResults" class="search-results hidden"></div>
+<div id="searchResults" class="search-results hidden"></div><div id="startupDiagnostic" role="status" style="position:fixed;left:12px;bottom:12px;z-index:20;background:#fff;padding:8px 12px;border:1px solid #d7ad01;border-radius:6px;font:12px Arial;color:#555">HTML geladen; JavaScript wordt gecontroleerd…</div>
 <script>window.addEventListener("error",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.message||"JavaScript-fout")+" ("+(e.filename||"onbekend")+":"+e.lineno+")";});window.addEventListener("unhandledrejection",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason));});</script>
 <script>
+const startupStatus=document.getElementById("startupDiagnostic");if(startupStatus)startupStatus.textContent="JavaScript gestart; interface wordt opgebouwd…";
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const chapters=[
 {id:"visie",title:"Pedagogisch project",subtitle:"Missie, visie en waarden",start:1,end:5,icon:"◉",sections:[["Missie, visie en waarden",3],["Neutraliteit in het provinciaal onderwijs",4],["Richtpunt campus Ninove-Zottegem",5]]},
@@ -80,6 +81,7 @@ document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLower
 const menuBtn=$("#menuBtn");if(menuBtn)menuBtn.addEventListener("click",()=>$("#sidebar")?.classList.toggle("open"));
 function ensureData(withSearch=false){if(data){if(withSearch&&!searchIndex)searchIndex=data.pages.map(p=>({p,body:cleanText(p.text).toLowerCase(),title:pageTitle(p).toLowerCase()}));return Promise.resolve(data)}if(!loadPromise){loadPromise=fetch("./content.json").then(r=>{if(!r.ok)throw Error("Inhoud kon niet worden geladen.");return r.json()}).then(d=>{data=d;loadError=null;render();return data}).catch(e=>{loadError=e.message;render();throw e}).finally(()=>{loadPromise=null})}return loadPromise.then(d=>{if(withSearch&&!searchIndex)searchIndex=d.pages.map(p=>({p,body:cleanText(p.text).toLowerCase(),title:pageTitle(p).toLowerCase()}));return d})}
 render();
+if(startupStatus){startupStatus.textContent="Applicatie geladen.";setTimeout(()=>startupStatus.remove(),2500)}
 
 </script>
 </body>
