@@ -33,11 +33,12 @@
 <a class="dashboard-link" href="https://richtpunt-dashboard.arne-nys.workers.dev" target="_blank" rel="noopener">SAPOOV ↗</a>
 </div>
 </header>
-<div class="content" id="content"><div class="loading">Schoolwerkplan wordt geladen…</div></div>
+<div class="content" id="content"><section class="hero"><div><p class="eyebrow">BELEID & KWALITEIT · RICHTPUNT</p><h1>Schoolwerkplan</h1><p>Interactieve raadpleegomgeving van het schoolwerkplan van campus Ninove–Zottegem.</p><p>De toepassing wordt gestart. Als deze melding blijft staan, wordt de fout hieronder zichtbaar.</p><p id="startupDiagnostic" role="status">Applicatie initialiseren…</p></div></section></div>
 <footer><span>RICHTPUNT CAMPUS NINOVE – ZOTTEGEM</span><span>SMART APPS · POOV</span></footer>
 </main>
 </div>
 <div id="searchResults" class="search-results hidden"></div>
-<script src="./app.js?v=20261121-3" defer></script>
+<script>window.addEventListener("error",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.message||"JavaScript kon niet worden uitgevoerd.")+" ("+(e.filename||"onbekend bestand")+":"+e.lineno+")";});window.addEventListener("unhandledrejection",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason));});</script>
+<script src="./app.js?v=20261121-4" defer onerror="document.getElementById('startupDiagnostic').textContent='Opstartfout: app.js kon niet geladen worden.'"></script>
 </body>
 </html>
