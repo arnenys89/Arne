@@ -11,3 +11,4 @@ binding = "DB"
 database_name = "sapoov-db"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
 migrations_dir = "migrations"
+\n[assets]\ndirectory = "./public"\nbinding = "ASSETS"\n
