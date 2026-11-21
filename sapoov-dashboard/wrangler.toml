@@ -1,0 +1,13 @@
+name = "sapoov-dashboard"
+main = "src/index.js"
+compatibility_date = "2026-11-21"
+
+[vars]
+CF_ACCESS_TEAM_DOMAIN = "YOUR-TEAM.cloudflareaccess.com"
+# Configure CF_ACCESS_AUD and SUPERADMIN_EMAILS as environment variables/secrets.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sapoov-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
