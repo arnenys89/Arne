@@ -10,3 +10,5 @@ Interactieve, doorzoekbare weergave van het aangeleverde schoolwerkplan (155 pag
 
 ## Brongetrouwheid
 De inhoud is tekstueel geëxtraheerd uit Schoolwerkplan.pdf. Pagina's met hoofdzakelijk schema's, afbeeldingen of tabellen kunnen beperkte tekstextractie hebben. Opvolgingsstatussen zijn persoonlijke notities in de browser en geen vastgestelde realisatiegegevens.
+
+Deployment trigger: initial Cloudflare Pages project connection.
