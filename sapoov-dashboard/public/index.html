@@ -10,9 +10,25 @@
 <header class="top"><a class="brand" href="/" aria-label="Provinciaal Onderwijs Oost-Vlaanderen"><img class="brand-logo" src="/poov-logo.svg" alt="Provinciaal Onderwijs Oost-Vlaanderen"></a><div id="identity" class="identity">Beveiligde omgeving</div></header>
 <main class="wrap">
 <section class="intro"><h1>Welkom bij <abbr title="Smart Apps voor Provinciaal Onderwijs Oost-Vlaanderen" tabindex="0">SAPOOV</abbr></h1></section>
-<div id="message" class="message">Je beveiligde sessie wordt gecontroleerd…</div>
+<div id="message" class="message">Je beveiligde sessie wordt gecontroleerd…</div><div id="notice" class="notice" role="status"></div>
 <section id="apps" class="apps"></section>
-<section id="admin" class="admin hidden"><div class="section-head"><div><p class="eyebrow">CENTRAAL BEHEER</p><h2>Gebruikers en toegangsrechten</h2></div></div><div class="admin-grid"><div class="panel"><h3>Gebruikers</h3><div id="users">Laden…</div></div><div class="panel"><h3>Auditlog</h3><div id="audit">Laden…</div></div></div></section>
+<section id="admin" class="admin hidden">
+ <div class="section-head"><div><p class="eyebrow">CENTRAAL BEHEER</p><h2>Gebruikersbeheer</h2><p class="muted">Beheer centraal wie toegang heeft tot welke toepassing en welke rechten daarbij horen.</p></div></div>
+ <div class="workspace-nav"><button id="admin-nav" class="workspace-tab hidden">Gebruikersbeheer</button><span class="workspace-note">Alleen de centrale superadministrator kan rechten wijzigen.</span></div>
+ <div class="admin-workspace">
+  <aside class="panel users-panel"><div class="panel-heading"><h3>Gebruikers</h3><span id="user-count" class="count">0</span></div><div id="user-list" class="user-list"></div></aside>
+  <div class="workspace-main">
+   <section class="panel"><div class="panel-heading"><div><p class="eyebrow">TOEPASSING</p><h3>Rechten per website</h3></div><select id="app-select" class="field"></select></div>
+    <div class="management-grid">
+     <div><div class="panel-heading"><h3>Rollen beheren</h3><button id="new-role" class="primary-btn">Nieuwe rol</button></div><p class="muted">Maak toepassingsspecifieke rollen aan, zoals administrator, aankoper, teamleider of lezer. Rechten zijn technische sleutels die de website controleert.</p><div id="role-list" class="role-list"></div></div>
+     <div class="role-editor hidden" id="role-editor"><h3 id="role-editor-title">Nieuwe rol</h3><label for="role-name">Rolnaam</label><input id="role-name" class="field" placeholder="Bijv. Teamleider"><label for="role-description">Omschrijving</label><input id="role-description" class="field" placeholder="Wat mag deze rol?"><label for="role-permissions">Rechtensleutels</label><textarea id="role-permissions" class="field" rows="4" placeholder="reservations.manage_team, reservations.view_all"></textarea><small class="muted">Komma-gescheiden. Gebruik * uitsluitend voor volledige toegang.</small><div class="button-row"><button id="save-role" class="primary-btn">Opslaan</button><button id="cancel-role" class="secondary-btn">Annuleren</button></div></div>
+    </div>
+   </section>
+   <section class="panel assignment-panel"><p class="eyebrow">GEBRUIKERSTOEGANG</p><h3 id="selected-user">Selecteer een gebruiker</h3><p id="selected-email" class="muted"></p><div class="assign-line"><select id="assign-role" class="field"><option>Kies een rol…</option></select><button id="assign-button" class="primary-btn" disabled>Recht toekennen</button></div><div id="assigned-list" class="assigned-list"></div></section>
+   <section class="panel"><div class="panel-heading"><h3>Auditlog</h3></div><div id="audit" class="audit-list"></div></section>
+  </div>
+ </div>
+</section>
 </main><footer>Provinciaal Onderwijs Oost-Vlaanderen <span>·</span> SAPOOV</footer>
 <script src="/app.js"></script>
 </body></html>
