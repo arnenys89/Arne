@@ -30,7 +30,8 @@ export async function handleWorkplace(request,env,identity,centralUser){
  const url=new URL(request.url),path='/api'+url.pathname.slice(PREFIX.length),db=env.DB;
  if(!db)return json({error:'De centrale database is niet beschikbaar.'},503);
  const app=await db.prepare('SELECT id,access_audience,status FROM applications WHERE id=?').bind('werkplekreservatie').first();
- if(!app||app.status!=='active'||!app.access_audience||!identity.audiences.includes(app.access_audience))return json({error:'Je hebt geen toegang tot Werkplekreservatie.'},403);
+ const dashboardAudience='054dbe1a5080009991cecfb82474037a7efb146c6815ade0ccc5c8919183ee98';
+ if(!app||app.status!=='active'||!app.access_audience||(!identity.audiences.includes(app.access_audience)&&!identity.audiences.includes(dashboardAudience)))return json({error:'Je hebt geen toegang tot Werkplekreservatie.'},403);
  const roleRows=await db.prepare('SELECT r.id,r.name,r.permissions_json,uar.scope_json FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id=?').bind(centralUser.id,'werkplekreservatie').all();
  if(!roleRows.results.length)return json({error:'Je hebt geen rol toegewezen voor Werkplekreservatie.'},403);
  const permissions=[...new Set(roleRows.results.flatMap(r=>{try{return JSON.parse(r.permissions_json||'[]')}catch{return []}}))];
