@@ -32,6 +32,14 @@ html,body{height:100%;overflow:hidden}.shell{height:100vh;height:100dvh;min-heig
     </div>
    </section>
    <section class="um-panel"><p class="eyebrow">GEBRUIKERSTOEGANG</p><h2 id="um-selected-user">Selecteer een gebruiker</h2><p id="um-selected-email" class="um-muted"></p><button id="um-toggle-status" class="um-secondary">Account blokkeren</button><div class="um-assign-line"><select id="um-assign-role" class="um-field"><option value="">Kies een rol…</option></select><button id="um-assign-button" class="um-primary" disabled>Recht toekennen</button></div><label for="um-scope">Aanvullende beperking (optioneel, JSON)</label><textarea id="um-scope" class="um-field" rows="2" placeholder="{}"></textarea><small class="um-muted">Bijvoorbeeld campus, team of categorie. De websitebackend moet deze beperking toepassen.</small><div id="um-assigned-list" class="um-assigned-list"></div></section>
+   <section class="um-panel"><div class="um-panel-head"><div><p class="eyebrow">CENTRAAL TEAMBEHEER</p><h2>Teams en teamleden</h2></div><span id="um-team-count" class="um-count">0</span></div>
+    <p class="um-muted">Beheer vakteams, campussen, teamleden en coördinatoren vanuit SAPOOV. Deze gegevens worden centraal opgeslagen.</p>
+    <div class="um-split">
+     <div><label for="um-team-select">Team</label><select id="um-team-select" class="um-field"></select><div id="um-team-members" class="um-assigned-list"></div></div>
+     <div><label for="um-team-name">Teamnaam</label><input id="um-team-name" class="um-field" placeholder="Naam van het team"><label for="um-team-campus">Campus</label><select id="um-team-campus" class="um-field"><option>Ninove</option><option>Zottegem</option><option>Beide campussen</option></select><label for="um-team-description">Omschrijving</label><input id="um-team-description" class="um-field" placeholder="Omschrijving"><div class="um-actions"><button id="um-team-save" class="um-primary">Team opslaan</button><button id="um-team-new" class="um-secondary">Nieuw team</button></div>
+      <label for="um-team-user">Personeelslid toevoegen</label><select id="um-team-user" class="um-field"></select><select id="um-team-member-role" class="um-field"><option value="member">Teamlid</option><option value="coordinator">Teamcoördinator</option></select><button id="um-team-add-member" class="um-primary">Lid toevoegen</button></div>
+    </div>
+   </section>
    <section class="um-panel"><div class="um-panel-head"><h2>Auditlog</h2><span class="um-muted">Laatste wijzigingen</span></div><div id="um-audit" class="um-audit"></div></section>
   </div>
  </div>
@@ -45,18 +53,24 @@ filters.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;fav
 // SAPOOV centraal gebruikersbeheer — uitsluitend zichtbaar voor de centrale superadministrator.
 const umEsc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const umApi=async(path,options={})=>{const r=await fetch('/api/user-management'+path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d;};
-let umUsers=[],umApps=[],umRoles=[],umAssignments=[],umSelectedUser='',umSelectedApp='',umEditingRole=null;
+let umUsers=[],umApps=[],umRoles=[],umAssignments=[],umTeams=[],umTeamMembers=[],umSelectedTeam='',umSelectedUser='',umSelectedApp='',umEditingRole=null;
 function umNotice(message,error=false){const n=document.querySelector('#um-notice');n.textContent=message;n.classList.toggle('error',error);}
 async function umLoad(){
- const [u,a,audit]=await Promise.all([umApi('/users'),umApi('/applications'),umApi('/audit')]);
+ const [u,a,audit,t]=await Promise.all([umApi('/users'),umApi('/applications'),umApi('/audit'),umApi('/teams')]);
  umUsers=u.users||[];umAssignments=(u.assignments||[]).map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
- umApps=a.applications||[];umRoles=a.roles||[];
+ umApps=a.applications||[];umRoles=a.roles||[];umTeams=t.teams||[];umTeamMembers=t.members||[];if(!umSelectedTeam||!umTeams.some(x=>x.id===umSelectedTeam))umSelectedTeam=umTeams[0]?.id||'';
  if(!umSelectedApp||!umApps.some(x=>x.id===umSelectedApp))umSelectedApp=umApps[0]?.id||'';
  if(!umSelectedUser||!umUsers.some(x=>x.id===umSelectedUser))umSelectedUser=umUsers[0]?.id||'';
  document.querySelector('#um-audit').innerHTML=(audit.events||[]).map(e=>'<div class="um-audit-row"><b>'+umEsc(e.action)+'</b><span>'+umEsc(e.actor_email)+'</span><small>'+umEsc(e.created_at)+'</small></div>').join('')||'<p class="um-muted">Nog geen wijzigingen.</p>';
  umRender();
 }
 function umRender(){
+ document.querySelector('#um-team-count').textContent=umTeams.length;
+ const team=umTeams.find(t=>t.id===umSelectedTeam);
+ document.querySelector('#um-team-select').innerHTML=umTeams.map(t=>'<option value="'+umEsc(t.id)+'" '+(t.id===umSelectedTeam?'selected':'')+'>'+umEsc(t.name)+' · '+umEsc(t.campus)+'</option>').join('')||'<option value="">Geen teams</option>';
+ document.querySelector('#um-team-members').innerHTML=umTeamMembers.filter(m=>m.team_id===umSelectedTeam).map(m=>'<div class="um-assigned"><span>'+umEsc(m.display_name||m.email)+'<small>'+ (m.member_role==='coordinator'?'Teamcoördinator':'Teamlid')+'</small></span><button class="um-small danger" data-team-remove="'+umEsc(m.user_id)+'">Verwijderen</button></div>').join('')||'<p class="um-muted">Geen teamleden.</p>';
+ document.querySelector('#um-team-user').innerHTML='<option value="">Kies personeelslid…</option>'+umUsers.filter(u=>u.status==='active').map(u=>'<option value="'+umEsc(u.id)+'">'+umEsc(u.display_name||u.email)+' · '+umEsc(u.email)+'</option>').join('');
+ if(team){document.querySelector('#um-team-name').value=team.name;document.querySelector('#um-team-campus').value=team.campus;document.querySelector('#um-team-description').value=team.description||'';}else{document.querySelector('#um-team-name').value='';document.querySelector('#um-team-description').value='';}
  document.querySelector('#um-user-count').textContent=umUsers.length;
  const userQuery=(document.querySelector('#um-user-search')?.value||'').toLocaleLowerCase('nl').trim();const visibleUsers=umUsers.filter(u=>!userQuery||((u.display_name||'')+' '+u.email).toLocaleLowerCase('nl').includes(userQuery));document.querySelector('#um-user-list').innerHTML=visibleUsers.map(u=>'<div class="um-user-row"><button class="um-user '+(u.id===umSelectedUser?'selected':'')+'" data-um-user="'+umEsc(u.id)+'"><strong>'+umEsc(u.display_name||u.email)+'</strong><small>'+umEsc(u.email)+'</small><span>'+u.application_count+' toepassingen · '+umEsc(u.status)+'</span></button><button class="um-small '+(u.status==='blocked'?'':'danger')+'" data-um-status="'+umEsc(u.id)+'" data-next-status="'+(u.status==='blocked'?'active':'blocked')+'">'+(u.status==='blocked'?'Activeren':'Blokkeren')+'</button></div>').join('')||'<p class="um-muted">Nog geen gebruikers geregistreerd.</p>';
  document.querySelector('#um-app-select').innerHTML=umApps.map(a=>'<option value="'+umEsc(a.id)+'" '+(a.id===umSelectedApp?'selected':'')+'>'+umEsc(a.name)+'</option>').join('');
@@ -85,6 +99,11 @@ async function umInit(){
   const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
  }catch(e){console.warn('SAPOOV centraal gebruikersbeheer niet beschikbaar:',e.message);}
 }
+document.querySelector('#um-team-select').addEventListener('change',e=>{umSelectedTeam=e.target.value;umRender();});
+document.querySelector('#um-team-new').addEventListener('click',()=>{umSelectedTeam='';umRender();document.querySelector('#um-team-name').focus();});
+document.querySelector('#um-team-save').addEventListener('click',async()=>{try{const name=document.querySelector('#um-team-name').value.trim();if(!name)throw new Error('Geef het team een naam.');const old=umTeams.find(t=>t.id===umSelectedTeam);const payload={id:old?.id,name,campus:document.querySelector('#um-team-campus').value,description:document.querySelector('#um-team-description').value.trim(),active:true};const saved=await umApi('/teams',{method:'POST',body:JSON.stringify(payload)});umSelectedTeam=saved.id||umSelectedTeam;await umLoad();umNotice('Team opgeslagen.');}catch(e){umNotice(e.message,true);}});
+document.querySelector('#um-team-add-member').addEventListener('click',async()=>{try{const userId=document.querySelector('#um-team-user').value;if(!umSelectedTeam||!userId)throw new Error('Kies een team en personeelslid.');await umApi('/team-members',{method:'POST',body:JSON.stringify({teamId:umSelectedTeam,userId,memberRole:document.querySelector('#um-team-member-role').value})});await umLoad();umNotice('Teamlid toegevoegd.');}catch(e){umNotice(e.message,true);}});
+document.querySelector('#um-team-members').addEventListener('click',async e=>{const b=e.target.closest('[data-team-remove]');if(!b)return;try{await umApi('/team-members?teamId='+encodeURIComponent(umSelectedTeam)+'&userId='+encodeURIComponent(b.dataset.teamRemove),{method:'DELETE'});await umLoad();umNotice('Teamlid verwijderd.');}catch(err){umNotice(err.message,true);}});
 document.querySelector('#um-user-search').addEventListener('input',umRender);
 document.querySelector('#um-user-list').addEventListener('click',async e=>{const status=e.target.closest('[data-um-status]');if(status){const next=status.dataset.nextStatus;if(next==='blocked'&&!confirm('Deze gebruiker blokkeren en de toegang tot SAPOOV-toepassingen intrekken?'))return;try{await umApi('/users',{method:'PATCH',body:JSON.stringify({userId:status.dataset.umStatus,status:next})});await umLoad();umNotice(next==='blocked'?'Gebruiker geblokkeerd.':'Gebruiker geactiveerd.');}catch(err){umNotice(err.message,true);}return;}const b=e.target.closest('[data-um-user]');if(b){umSelectedUser=b.dataset.umUser;umRender();}});
 document.querySelector('#um-app-select').addEventListener('change',e=>{umSelectedApp=e.target.value;umEditingRole=null;umRender();});
