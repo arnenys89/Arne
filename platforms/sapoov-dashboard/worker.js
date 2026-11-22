@@ -782,7 +782,7 @@ export default {
    headers.set("x-sapoov-proxy","bestelplatform");
    return new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});
   }
-  const routeMap={"/api/user-management/me":"/api/me","/api/user-management/users":"/api/admin/users","/api/user-management/applications":"/api/admin/applications","/api/user-management/roles":"/api/admin/roles","/api/user-management/assignments":"/api/admin/assignments","/api/user-management/audit":"/api/admin/audit"};
+  const routeMap={"/api/user-management/me":"/api/me","/api/user-management/users":"/api/admin/users","/api/user-management/applications":"/api/admin/applications","/api/user-management/roles":"/api/admin/roles","/api/user-management/assignments":"/api/admin/assignments","/api/user-management/audit":"/api/admin/audit","/api/user-management/teams":"/api/admin/teams","/api/user-management/team-members":"/api/admin/team-members"};
   if(routeMap[url.pathname]){
    const token=request.headers.get("Cf-Access-Jwt-Assertion")||"";
    if(!token)return Response.json({error:"Cloudflare Access-aanmelding vereist."},{status:401});
