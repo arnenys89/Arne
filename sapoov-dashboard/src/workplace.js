@@ -70,7 +70,7 @@ export async function handleWorkplace(request,env,identity,centralUser){
  if(path==='/api/reservations'&&request.method==='POST'){
   const body=await request.json().catch(()=>null),workstationId=typeof body?.workstation_id==='string'?body.workstation_id:'',date=body?.date,from=body?.from,to=body?.to,recurrence=body?.recurrence||'once',remarks=typeof body?.remarks==='string'?body.remarks.trim().slice(0,1000):'';
   if(!workstationId||!validDate(date)||!validTime(from)||!validTime(to)||to<=from||!['once','weekly','monthly','schoolyear'].includes(recurrence))return json({error:'Controleer werkplek, datum en tijdstip.'},400);
-  if(!permissions.includes('*')&&!permissions.includes('reservations.create'))return json({error:'Je hebt geen rechten om reservaties aan te maken.'},403);
+  if(!permissions.includes('*')&&!permissions.includes('reservations.create')&&!permissions.includes('reservations.manage_team'))return json({error:'Je hebt geen rechten om reservaties aan te maken.'},403);
   const desk=await db.prepare('SELECT id,name FROM wp_workstations WHERE id=? AND active=1').bind(workstationId).first();if(!desk)return json({error:'Deze werkplek bestaat niet of is niet beschikbaar.'},404);
   const slots=makeSlots(date,from,to,recurrence);
   for(const slot of slots){const conflict=await db.prepare("SELECT id FROM wp_reservations WHERE workstation_id=? AND status='active' AND start_at < ? AND end_at > ? LIMIT 1").bind(workstationId,slot.end,slot.start).first();if(conflict)return json({error:'De werkplek is niet vrij op '+slot.start.slice(0,10)+'. Er werd niets gereserveerd.'},409);}
