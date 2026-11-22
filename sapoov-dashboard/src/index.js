@@ -86,6 +86,16 @@ export default {
         ]);
         return json({applications:apps.results,roles:roles.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')}))});
       }
+      if (method==='POST' && path==='/api/admin/applications') {
+        const b=await bodyJson(request);
+        if (!b?.id) return json({error:'Toepassing ontbreekt.'},400);
+        const audience=String(b.accessAudience||'').trim();
+        if (audience && !/^[a-f0-9]{20,128}$/i.test(audience)) return json({error:'Ongeldige Cloudflare Access audience.'},400);
+        const result=await env.DB.prepare('UPDATE applications SET access_audience=? WHERE id=?').bind(audience,b.id).run();
+        if (!result.meta.changes) return json({error:'Toepassing niet gevonden.'},404);
+        await audit(env.DB,user,'application.access_audience.update','application',b.id,{configured:Boolean(audience)});
+        return json({ok:true});
+      }
       if (method==='POST' && path==='/api/admin/roles') {
         const b=await bodyJson(request);
         if (!b || !b.applicationId || !String(b.name||'').trim()) return json({error:'Toepassing en rolnaam zijn verplicht.'},400);
