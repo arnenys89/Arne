@@ -43,14 +43,10 @@ INSERT OR IGNORE INTO roles(id, application_id, name, description, permissions_j
  ('richtpunt-dashboard-gebruiker','richtpunt-dashboard','Gebruiker','Toegang tot toegewezen toepassingen','["dashboard.read"]'),
  ('richtpunt-dashboard-administrator','richtpunt-dashboard','Administrator','Volledig beheer van het dashboard','["*"]');
 
-INSERT OR IGNORE INTO roles(id, application_id, name, description, permissions_json)
-SELECT 'professionalisering-' || lower(replace(replace(name,'/','-'),' ','-')), 'professionalisering', name, description,
- CASE name WHEN 'Administrator' THEN '["*"]' WHEN 'Directie' THEN '["personnel.read_all"]'
- WHEN 'TAC/TA' THEN '["activities.manage"]' WHEN 'Econoom' THEN '["budget.manage"]'
- WHEN 'Personeelsverantwoordelijke' THEN '["personnel.manage"]' WHEN 'Personeelslid' THEN '["activities.read_own"]' ELSE '[]' END
-FROM (SELECT 'Administrator' name,'Volledig beheer van deze toepassing' description
- UNION ALL SELECT 'Directie','Inzage in personeelsgegevens'
- UNION ALL SELECT 'TAC/TA','Beheer van toegewezen activiteiten'
- UNION ALL SELECT 'Econoom','Financieel en economisch beheer'
- UNION ALL SELECT 'Personeelsverantwoordelijke','Beheer van personeelsgegevens'
- UNION ALL SELECT 'Personeelslid','Standaardtoegang voor personeelsleden');
+INSERT OR IGNORE INTO roles(id,application_id,name,description,permissions_json) VALUES
+('professionalisering-administrator','professionalisering','Administrator','Volledig beheer van deze toepassing','["*"]'),
+('professionalisering-directie','professionalisering','Directie','Inzage in personeelsgegevens','["personnel.read_all"]'),
+('professionalisering-tac-ta','professionalisering','TAC/TA','Beheer van toegewezen activiteiten','["activities.manage"]'),
+('professionalisering-econoom','professionalisering','Econoom','Financieel en economisch beheer','["budget.manage"]'),
+('professionalisering-personeelsverantwoordelijke','professionalisering','Personeelsverantwoordelijke','Beheer van personeelsgegevens','["personnel.manage"]'),
+('professionalisering-personeelslid','professionalisering','Personeelslid','Standaardtoegang voor personeelsleden','["activities.read_own"]');
