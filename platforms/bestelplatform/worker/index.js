@@ -218,8 +218,11 @@ async function authenticate(req,env){
  // SAPOOV is the source of truth for teams and memberships. The local tables
  // are synchronised as a compatibility projection for existing order queries.
  for(const team of central.teams||[]){
+  const allowedCampuses=["Ninove","Zottegem","Beide campussen"];
+  const campus=allowedCampuses.includes(team.campus)?team.campus:"Beide campussen";
+  const customCampus=team.custom_campus||(allowedCampuses.includes(team.campus)?null:(team.campus||null));
   await env.DB.prepare("INSERT INTO teams(id,name,campus,description,active,custom_campus) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,campus=excluded.campus,description=excluded.description,active=excluded.active,custom_campus=excluded.custom_campus,updated_at=CURRENT_TIMESTAMP")
-   .bind(team.id,team.name,team.campus,team.description||"",team.active===0?0:1,team.custom_campus||null).run();
+   .bind(team.id,team.name,campus,team.description||"",team.active===0?0:1,customCampus).run();
  }
  await env.DB.prepare("DELETE FROM team_members WHERE user_id=?").bind(user.id).run();
  for(const membership of central.teamMemberships||[]){
