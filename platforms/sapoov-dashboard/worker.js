@@ -79,7 +79,7 @@ async function umInit(){
   const me=await umApi('/me');
   const allowed=new Map((me.applications||[]).map(a=>[a.id,a]));
   const idByName={'Bestelplatform':'bestelplatform','Examenmaker':'examenmaker','Professionalisering':'professionalisering','Activiteitenplatform':'activiteitenplatform','Calendar Bridge':'calendar-bridge','Schoolreglementen':'schoolreglementen','SAPO Doelennetwerk':'doelennetwerk','Werkplekreservatie':'werkplekreservatie','Schoolwerkplan':'schoolwerkplan','Beleidskompas':'beleidskompas','Edudash':'edudash'};
-  document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=card.dataset.name==='Examenmaker'?'/examenmaker':app.url;}});
+  document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=app.url;}});
   draw();
   if(!me.superadmin)return;
   const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
