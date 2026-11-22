@@ -10,7 +10,7 @@ const routes = {
 export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
-  const targetPath = routes[url.pathname];
+  const targetPath = routes[url.pathname] || (url.pathname.startsWith('/api/werkplekreservatie/') ? url.pathname : null);
   if (!targetPath) return new Response("Not found", { status: 404 });
 
   const token = request.headers.get("Cf-Access-Jwt-Assertion");
