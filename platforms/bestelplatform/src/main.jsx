@@ -3,6 +3,16 @@ import{createRoot}from'react-dom/client';
 import{ShoppingCart,ClipboardList,Package,Users,Settings,Plus,Search,Building2,CheckCircle2,Clock3,Trash2,Save,Filter,RotateCcw,Truck,ChevronRight,FileText,MessageCircleQuestion,MessageCircle,XCircle,ShoppingBag,PackageCheck,Ban}from'lucide-react';
 import'./style.css';
 
+// De applicatie wordt zowel zelfstandig als geïntegreerd in SAPOOV gebruikt.
+// In de geïntegreerde omgeving lopen API-aanvragen via de dashboardproxy.
+const nativeFetch = window.fetch.bind(window);
+window.fetch = (input, ...options) => {
+  if (typeof input === 'string' && (input === '/api' || input.startsWith('/api/')) && window.location.pathname.startsWith('/bestelplatform')) {
+    input = '/bestelplatform' + input;
+  }
+  return nativeFetch(input, ...options);
+};
+
 const seedCatalog=[
 {id:'a1',name:'A4 kopieerpapier',category:'Kantoormateriaal',unit:'pak',active:true},
 {id:'a2',name:'Balpen blauw',category:'Schrijfmateriaal',unit:'doos',active:true},
