@@ -23,6 +23,24 @@ function getProfilePicture(request) {
 }
 
 export async function onRequest(context) {
+  const pathname = new URL(context.request.url).pathname;
+  const staticAsset = /\\.(?:css|js|png|svg|jpg|jpeg|webp|ico|woff2?|map)$/i.test(pathname);
+  if (!staticAsset) {
+    const assertion = context.request.headers.get("Cf-Access-Jwt-Assertion") || "";
+    if (!assertion) return new Response("Aanmelden via de beveiligde schoolomgeving is vereist.", { status: 401 });
+    let accessResponse;
+    try {
+      accessResponse = await fetch("https://sapoov-identity-api.arne-nys.workers.dev/api/access/schoolwerkplan", {
+        headers: { "Cf-Access-Jwt-Assertion": assertion }
+      });
+    } catch {
+      return new Response("De centrale SAPOOV-rechtenservice is tijdelijk niet bereikbaar.", { status: 503 });
+    }
+    const access = await accessResponse.json().catch(() => ({}));
+    if (!accessResponse.ok || !access.authorized) {
+      return new Response(access.error || "Je hebt geen centrale toegang tot deze toepassing.", { status: 403 });
+    }
+  }
   const response = await context.next();
   const contentType = response.headers.get("content-type") || "";
   const email = context.request.headers.get("Cf-Access-Authenticated-User-Email") || "";
