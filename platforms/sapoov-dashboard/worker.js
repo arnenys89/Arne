@@ -19,7 +19,7 @@ const HTML = String.raw`<!doctype html><html lang="nl"><head><meta charset="utf-
 <section id="user-management" class="um-section hidden">
  <div class="um-heading"><div><p class="eyebrow">CENTRAAL BEHEER</p><h1>Gebruikersbeheer</h1><p>Beheer centraal de toegang tot alle gekoppelde websites en toepassingen.</p></div><span class="um-badge">Superadministrator</span></div>
  <div class="um-grid">
-  <aside class="um-panel"><div class="um-panel-head"><h2>Gebruikers</h2><span id="um-user-count" class="um-count">0</span></div><div id="um-user-list" class="um-user-list"></div></aside>
+  <aside class="um-panel"><div class="um-panel-head"><h2>Gebruikers</h2><span id="um-user-count" class="um-count">0</span></div><input id="um-user-search" class="um-field" type="search" placeholder="Zoek op naam of e-mailadres…"><div id="um-user-list" class="um-user-list"></div></aside>
   <div class="um-main">
    <section class="um-panel"><div class="um-panel-head"><div><p class="eyebrow">TOEPASSING</p><h2>Rollen en rechten</h2></div><select id="um-app-select" class="um-field"></select></div>
     <div class="um-split">
@@ -54,7 +54,7 @@ async function umLoad(){
 }
 function umRender(){
  document.querySelector('#um-user-count').textContent=umUsers.length;
- document.querySelector('#um-user-list').innerHTML=umUsers.map(u=>'<div class="um-user-row"><button class="um-user '+(u.id===umSelectedUser?'selected':'')+'" data-um-user="'+umEsc(u.id)+'"><strong>'+umEsc(u.display_name||u.email)+'</strong><small>'+umEsc(u.email)+'</small><span>'+u.application_count+' toepassingen · '+umEsc(u.status)+'</span></button><button class="um-small '+(u.status==='blocked'?'':'danger')+'" data-um-status="'+umEsc(u.id)+'" data-next-status="'+(u.status==='blocked'?'active':'blocked')+'">'+(u.status==='blocked'?'Activeren':'Blokkeren')+'</button></div>').join('')||'<p class="um-muted">Nog geen gebruikers geregistreerd.</p>';
+ const userQuery=(document.querySelector('#um-user-search')?.value||'').toLocaleLowerCase('nl').trim();const visibleUsers=umUsers.filter(u=>!userQuery||((u.display_name||'')+' '+u.email).toLocaleLowerCase('nl').includes(userQuery));document.querySelector('#um-user-list').innerHTML=visibleUsers.map(u=>'<div class="um-user-row"><button class="um-user '+(u.id===umSelectedUser?'selected':'')+'" data-um-user="'+umEsc(u.id)+'"><strong>'+umEsc(u.display_name||u.email)+'</strong><small>'+umEsc(u.email)+'</small><span>'+u.application_count+' toepassingen · '+umEsc(u.status)+'</span></button><button class="um-small '+(u.status==='blocked'?'':'danger')+'" data-um-status="'+umEsc(u.id)+'" data-next-status="'+(u.status==='blocked'?'active':'blocked')+'">'+(u.status==='blocked'?'Activeren':'Blokkeren')+'</button></div>').join('')||'<p class="um-muted">Nog geen gebruikers geregistreerd.</p>';
  document.querySelector('#um-app-select').innerHTML=umApps.map(a=>'<option value="'+umEsc(a.id)+'" '+(a.id===umSelectedApp?'selected':'')+'>'+umEsc(a.name)+'</option>').join('');
  const appRoles=umRoles.filter(r=>r.application_id===umSelectedApp),user=umUsers.find(u=>u.id===umSelectedUser);
  const userRoles=umAssignments.filter(x=>x.user_id===umSelectedUser&&x.application_id===umSelectedApp);
@@ -81,7 +81,7 @@ async function umInit(){
   const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
  }catch(e){console.warn('SAPOOV centraal gebruikersbeheer niet beschikbaar:',e.message);}
 }
-document.querySelector('#um-user-list').addEventListener('click',async e=>{const status=e.target.closest('[data-um-status]');if(status){const next=status.dataset.nextStatus;if(next==='blocked'&&!confirm('Deze gebruiker blokkeren en de toegang tot SAPOOV-toepassingen intrekken?'))return;try{await umApi('/users',{method:'PATCH',body:JSON.stringify({userId:status.dataset.umStatus,status:next})});await umLoad();umNotice(next==='blocked'?'Gebruiker geblokkeerd.':'Gebruiker geactiveerd.');}catch(err){umNotice(err.message,true);}return;}const b=e.target.closest('[data-um-user]');if(b){umSelectedUser=b.dataset.umUser;umRender();}});
+document.querySelector('#um-user-search').addEventListener('input',umRender);\ndocument.querySelector('#um-user-list').addEventListener('click',async e=>{const status=e.target.closest('[data-um-status]');if(status){const next=status.dataset.nextStatus;if(next==='blocked'&&!confirm('Deze gebruiker blokkeren en de toegang tot SAPOOV-toepassingen intrekken?'))return;try{await umApi('/users',{method:'PATCH',body:JSON.stringify({userId:status.dataset.umStatus,status:next})});await umLoad();umNotice(next==='blocked'?'Gebruiker geblokkeerd.':'Gebruiker geactiveerd.');}catch(err){umNotice(err.message,true);}return;}const b=e.target.closest('[data-um-user]');if(b){umSelectedUser=b.dataset.umUser;umRender();}});
 document.querySelector('#um-app-select').addEventListener('change',e=>{umSelectedApp=e.target.value;umEditingRole=null;umRender();});
 document.querySelector('#um-new-role').addEventListener('click',()=>{umEditingRole={};umRender();document.querySelector('#um-role-name').focus();});
 document.querySelector('#um-cancel-role').addEventListener('click',()=>{umEditingRole=null;umRender();});
