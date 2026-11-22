@@ -1,21 +1,44 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const id = () => crypto.randomUUID();
 const slug = value => String(value || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
 
+let jwksCache = null;
+let jwksFetchedAt = 0;
+const decode64url = value => Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(value.length/4)*4,'=')), c => c.charCodeAt(0));
 async function authenticate(request, env) {
   const token = request.headers.get('cf-access-jwt-assertion');
   if (!token || !env.CF_ACCESS_TEAM_DOMAIN || !env.CF_ACCESS_AUD) return null;
   try {
-    const issuer = `https://${env.CF_ACCESS_TEAM_DOMAIN.replace(/^https?:\\/\\//, '').replace(/\\/$/, '')}`;
-    const jwks = createRemoteJWKSet(new URL(`${issuer}/cdn-cgi/access/certs`));
-    const audiences = env.CF_ACCESS_AUD.split(',').map(x => x.trim()).filter(Boolean);
-    const { payload } = await jwtVerify(token, jwks, { issuer, audience: audiences });
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const header = JSON.parse(new TextDecoder().decode(decode64url(parts[0])));
+    const payload = JSON.parse(new TextDecoder().decode(decode64url(parts[1])));
+    if (header.alg !== 'RS256' || !header.kid) return null;
+    const team = env.CF_ACCESS_TEAM_DOMAIN.replace(/^https?:\\/\\//, '').replace(/\\/$/, '');
+    const issuer = 'https://' + team;
+    const allowedAudiences = env.CF_ACCESS_AUD.split(',').map(x => x.trim()).filter(Boolean);
+    const tokenAudiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+    const now = Math.floor(Date.now()/1000);
+    if (payload.iss !== issuer || !tokenAudiences.some(a => allowedAudiences.includes(a)) ||
+        !payload.sub || !payload.exp || payload.exp < now - 60 || (payload.nbf && payload.nbf > now + 60)) return null;
+    if (!jwksCache || Date.now() - jwksFetchedAt > 3600000) {
+      const response = await fetch(issuer + '/cdn-cgi/access/certs', { cf: { cacheTtl: 3600, cacheEverything: true } });
+      if (!response.ok) return null;
+      jwksCache = await response.json();
+      jwksFetchedAt = Date.now();
+    }
+    const jwk = (jwksCache.keys || []).find(k => k.kid === header.kid);
+    if (!jwk) return null;
+    const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+    const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, decode64url(parts[2]), new TextEncoder().encode(parts[0] + '.' + parts[1]));
+    if (!valid) return null;
     const email = String(payload.email || '').trim().toLowerCase();
-    if (!email || payload.type !== 'app') return null;
-    return { email, name: String(payload.name || email), audiences: Array.isArray(payload.aud) ? payload.aud : [payload.aud] };
-  } catch { return null; }
+    if (!email) return null;
+    return { email, name: String(payload.name || email), audiences: tokenAudiences };
+  } catch {
+    return null;
+  }
 }
 
 async function currentUser(db, identity) {
