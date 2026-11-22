@@ -751,7 +751,6 @@ export default {
   const url=new URL(request.url);
   if(url.pathname==="/examenmaker"||url.pathname.startsWith("/examenmaker/")){
    const subpath=url.pathname.slice("/examenmaker".length)||"/";
-   if(subpath.startsWith("/api/sapo/")){const legacy=new URL(subpath+url.search,"https://richtpunt-examenmaker.arne-nys.workers.dev");return fetch(new Request(legacy.toString(),request));}
    const target=new URL(request.url);target.pathname=subpath;return examenmakerFetch(new Request(target.toString(),request),env,ctx);
   }
   if(url.hostname==="bestelplatform.sapoov.be"){
