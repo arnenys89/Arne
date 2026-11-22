@@ -45,3 +45,17 @@ FROM (
   UNION ALL SELECT 'Teamleider','Reservaties en werkplekken binnen het team beheren'
   UNION ALL SELECT 'Administrator','Volledig beheer van deze toepassing'
 );
+
+INSERT OR IGNORE INTO applications(id,name,description,url,icon,category,sort_order) VALUES
+ ('werkplekreservatie','Werkplekreservatie','Werkplekken en lokalen reserveren','https://werkplekreservatie-poov.pages.dev','calendar','Personeel',80),
+ ('examenmaker','Examenmaker','Examens en evaluaties beheren','https://examenmaker-poov.pages.dev','clipboard-list','Onderwijs',90),
+ ('schoolwerkplan','Schoolwerkplan','Interactief schoolwerkplan','https://schoolwerkplan-poov.pages.dev','book-open','Onderwijs',100),
+ ('beleidskompas','Beleidskompas','Strategische en operationele doelen opvolgen','https://richtpunt-beleidskompas.pages.dev','compass','Onderwijs',110);
+INSERT OR IGNORE INTO roles(id,application_id,name,description,permissions_json) VALUES
+ ('activiteitenplatform-aanvrager','activiteitenplatform','Aanvrager','Activiteiten indienen en eigen aanvragen opvolgen','["activities.create","activities.view_own"]'),
+ ('activiteitenplatform-beoordelaar','activiteitenplatform','Beoordelaar','Activiteitenaanvragen beoordelen','["activities.view_all","activities.review"]'),
+ ('activiteitenplatform-administrator','activiteitenplatform','Administrator','Volledig beheer van deze toepassing','["*"]'),
+ ('schoolreglementen-beheerder','schoolreglementen','Beheerder','Schoolreglementen beheren','["regulations.manage"]'),
+ ('schoolreglementen-lezer','schoolreglementen','Lezer','Schoolreglementen raadplegen','["regulations.read"]'),
+ ('calendar-bridge-gebruiker','calendar-bridge','Gebruiker','Eigen agenda’s beheren','["calendar.manage_own"]'),
+ ('calendar-bridge-administrator','calendar-bridge','Administrator','Volledig beheer van deze toepassing','["*"]');
