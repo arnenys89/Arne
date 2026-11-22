@@ -14,8 +14,8 @@
 /* SAPOOV gedeelde vaste navigatie en afzonderlijke inhoudsscroll */
 html,body{height:100%;overflow:hidden}
 .sidebar{width:248px}
-.main{margin-left:248px;height:100dvh;min-height:0;overflow:hidden}
+.main{margin-left:248px;height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 .topbar{height:72px;min-height:72px;flex:0 0 72px;position:relative;top:auto}
 .content{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 @media(max-width:1050px){.sidebar{width:248px}.main{margin-left:248px}}
-@media(max-width:720px){.sidebar{width:270px}.main{margin-left:0;height:100dvh}.topbar{height:72px;min-height:72px;flex:0 0 72px}.content{overflow-y:auto;min-height:0}}
+@media(max-width:720px){.shell{height:100dvh;display:flex;flex-direction:column;overflow:hidden}.sidebar{position:relative;width:100%;height:auto;max-height:28dvh;overflow:auto;flex:0 0 auto}.main{margin-left:0;height:calc(100dvh - 28dvh);min-height:0}.topbar{height:52px;min-height:52px;flex:0 0 52px}.content{overflow-y:auto;min-height:0}}
