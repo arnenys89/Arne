@@ -9,12 +9,13 @@ async function userFor(request,env){
  const name=request.headers.get("Cf-Access-Authenticated-User-Name")||email.split("@")[0];
  await env.DB.prepare("INSERT INTO users(id,email,display_name) VALUES(?,?,?) ON CONFLICT(email) DO NOTHING").bind(id(),email,name).run();
  const u=await env.DB.prepare("SELECT id,email,display_name,active FROM users WHERE email=?").bind(email).first();
- if(!u||!u.active)throw new Response(JSON.stringify({error:"Gebruikersaccount is gedeactiveerd."}),{status:403,headers:{"content-type":"application/json"}});
+ if(!u)throw new Response(JSON.stringify({error:"Gebruikersprofiel niet gevonden."}),{status:403,headers:{"content-type":"application/json"}});
  let response;
  try{response=await fetch("https://sapoov-identity-api.arne-nys.workers.dev/api/access/activiteitenplatform",{headers:{"Cf-Access-Jwt-Assertion":token}})}
  catch{throw new Response(JSON.stringify({error:"De centrale SAPOOV-rechtenservice is tijdelijk niet bereikbaar."}),{status:503,headers:{"content-type":"application/json"}})}
  const access=await response.json().catch(()=>({}));
  if(!response.ok||!access.authorized)throw new Response(JSON.stringify({error:access.error||"Je hebt geen centrale toegang tot het Activiteitenplatform."}),{status:response.status===401?401:403,headers:{"content-type":"application/json"}});
+ await env.DB.prepare("UPDATE users SET active=1 WHERE id=?").bind(u.id).run();
  const permissions=[...new Set((access.roles||[]).flatMap(r=>r.permissions||[]))];
  const roles=(access.roles||[]).map(r=>r.name);
  const isAdmin=permissions.includes("*");
