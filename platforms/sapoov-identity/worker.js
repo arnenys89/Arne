@@ -105,10 +105,16 @@ export default {
       if (method==='POST' && path==='/api/admin/teams') {
         const b=await bodyJson(request), name=String(b?.name||'').trim(), campus=String(b?.campus||'').trim();
         if(!name || !['Ninove','Zottegem','Beide campussen','Andere'].includes(campus)) return json({error:'Teamnaam en een geldige campus zijn verplicht.'},400);
-        const teamId=id();
-        try { await env.DB.prepare('INSERT INTO teams(id,name,campus,description,active,custom_campus) VALUES(?,?,?,?,1,?)').bind(teamId,name,campus,String(b.description||''),campus==='Andere'?String(b.customCampus||'').trim():null).run(); }
-        catch { return json({error:'Er bestaat al een team met deze naam.'},409); }
-        await audit(env.DB,user,'team.create','team',teamId,{name,campus});
+        const teamId=b.id||id();
+        try {
+          if(b.id){
+            const result=await env.DB.prepare('UPDATE teams SET name=?,campus=?,description=?,active=1,custom_campus=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(name,campus,String(b.description||''),campus==='Andere'?String(b.customCampus||'').trim():null,teamId).run();
+            if(!result.meta.changes) return json({error:'Team niet gevonden.'},404);
+          } else {
+            await env.DB.prepare('INSERT INTO teams(id,name,campus,description,active,custom_campus) VALUES(?,?,?,?,1,?)').bind(teamId,name,campus,String(b.description||''),campus==='Andere'?String(b.customCampus||'').trim():null).run();
+          }
+        } catch { return json({error:'Er bestaat al een team met deze naam.'},409); }
+        await audit(env.DB,user,b.id?'team.update':'team.create','team',teamId,{name,campus});
         return json({ok:true,id:teamId});
       }
       if (method==='PUT' && path==='/api/admin/teams') {
