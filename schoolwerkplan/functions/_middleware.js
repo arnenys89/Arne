@@ -24,7 +24,7 @@ function getProfilePicture(request) {
 
 export async function onRequest(context) {
   const pathname = new URL(context.request.url).pathname;
-  const staticAsset = /\\.(?:css|js|png|svg|jpg|jpeg|webp|ico|woff2?|map)$/i.test(pathname);
+  const staticAsset = /\.(?:css|js|png|svg|jpg|jpeg|webp|ico|woff2?|map)$/i.test(pathname);
   if (!staticAsset) {
     const assertion = context.request.headers.get("Cf-Access-Jwt-Assertion") || "";
     if (!assertion) return new Response("Aanmelden via de beveiligde schoolomgeving is vereist.", { status: 401 });
