@@ -3,13 +3,14 @@ main = "src/index.js"
 compatibility_date = "2026-11-21"
 
 [vars]
-CF_ACCESS_TEAM_DOMAIN = "YOUR-TEAM.cloudflareaccess.com"
+CF_ACCESS_TEAM_DOMAIN = "sapoov.cloudflareaccess.com"
+CF_ACCESS_AUD = "20322e73dbe167a5c5fffa9ca78c7f5c90fddf938aab61fe5d1163959102836f,ca34c7f3a6cfc2c5c0e309b2443e6d127e431dcb57dd93f6724cb404a29bae0d,9115b101d19007cbb6ece0b0de54a653c03f4b3d084226993a8c480a54caad09,c5fdf0a87d8475a280b8ef4b88a7b1e20f457f30249a2e1c1556f30517ad7242,6784b780966a198ef48bd963cdd239c1ca50fcab0e7fcc76f717594eb75e074f,9967783c7467fbeaf29b550ee97119402b778f803d6649e4e93ee2f924c9d6e9,c76aa7483c5c89e436cb4ddf2ad0d545f79e612d9701ed357aa8921ab77dea73,5257fe65baaf3c44dbf00e929b4313f68397f72aa9ecc71e2cffb263f2d485b5,fcdaec75139ecac167e47c004195f34c1ff3c9da8bdf6e2e736408639050c8d9,f3a6b885d7f0802c88a37fc31bf78a40ae007c2e7574a1485ee81088ec9b5315"
 # Configure CF_ACCESS_AUD and SUPERADMIN_EMAILS as environment variables/secrets.
 
 [[d1_databases]]
 binding = "DB"
-database_name = "sapoov-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_name = "sapoov-central-identity"
+database_id = "2c1c8a88-bd61-4238-a5b1-2cab0b0baa4e"
 migrations_dir = "migrations"
 
 [assets]
