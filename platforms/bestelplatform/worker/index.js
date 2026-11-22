@@ -105,7 +105,7 @@ async function importImage(req, env) {
   let imageUrl,storage;
   if(env.IMAGES){
     await env.IMAGES.put(path,imageResponse.bytes,{httpMetadata:{contentType:imageResponse.type,cacheControl:"public, max-age=86400"}});
-    imageUrl=(env.APP_ORIGIN||"").replace(/\/$/,"")+"/api/images/"+path;
+    imageUrl=(env.APP_ORIGIN||"").replace(/\/$/,"")+"/bestelplatform/api/images/"+path;
     storage="Cloudflare R2";
   }else{
     const [owner, repo] = env.GITHUB_REPOSITORY.split("/");
