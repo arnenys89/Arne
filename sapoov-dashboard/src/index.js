@@ -87,9 +87,9 @@ export default {
       const app=await env.DB.prepare('SELECT * FROM applications WHERE id=? AND status="active"').bind(appSlug).first();
       if (!app) return json({error:'Onbekende toepassing.'},404);
       if (!app.access_audience || !identity.audiences.includes(app.access_audience)) return json({error:'De aanmeldsessie hoort niet bij deze toepassing.'},403);
-      const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json FROM user_app_roles uar
+      const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json,uar.scope_json FROM user_app_roles uar
         JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id=? ORDER BY r.name`).bind(user.id,app.id).all();
-      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')})),authorized:rows.results.length>0});
+      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:rows.results.length>0});
     }
 
     if (path.startsWith('/api/admin/')) {
@@ -98,7 +98,7 @@ export default {
         const result=await env.DB.prepare(`SELECT u.id,u.email,u.display_name,u.status,u.created_at,
           COUNT(DISTINCT uar.application_id) AS application_count FROM users u
           LEFT JOIN user_app_roles uar ON uar.user_id=u.id GROUP BY u.id ORDER BY u.email`).all();
-        const assignments=await env.DB.prepare(`SELECT uar.user_id,uar.application_id,uar.role_id,r.name AS role_name,a.name AS application_name
+        const assignments=await env.DB.prepare(`SELECT uar.user_id,uar.application_id,uar.role_id,uar.scope_json,r.name AS role_name,a.name AS application_name
           FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id JOIN applications a ON a.id=uar.application_id`).all();
         return json({users:result.results,assignments:assignments.results});
       }
@@ -152,7 +152,7 @@ export default {
         return json({ok:true});
       }
       if (method==='POST' && path==='/api/admin/assignments') {
-        const b=await bodyJson(request), {userId,applicationId,roleId}=b||{};
+        const b=await bodyJson(request), {userId,applicationId,roleId}=b||{};\n        const scope=b?.scope===undefined?{}:b.scope;\n        if (!scope || typeof scope!=='object' || Array.isArray(scope)) return json({error:'Scope moet een JSON-object zijn.'},400);
         if (![userId,applicationId,roleId].every(v=>typeof v==='string'&&v)) return json({error:'Gebruiker, toepassing en rol zijn verplicht.'},400);
         const [target,app,role]=await Promise.all([
           env.DB.prepare('SELECT id FROM users WHERE id=?').bind(userId).first(),
@@ -160,7 +160,7 @@ export default {
           env.DB.prepare('SELECT id,application_id FROM roles WHERE id=?').bind(roleId).first()
         ]);
         if (!target||!app||!role||role.application_id!==applicationId) return json({error:'Gebruiker, toepassing of toepassingsrol niet gevonden.'},404);
-        await env.DB.prepare('INSERT OR IGNORE INTO user_app_roles(user_id,application_id,role_id,assigned_by) VALUES(?,?,?,?)').bind(userId,applicationId,roleId,user.email).run();
+        await env.DB.prepare('INSERT INTO user_app_roles(user_id,application_id,role_id,assigned_by,scope_json) VALUES(?,?,?,?,?) ON CONFLICT(user_id,application_id,role_id) DO UPDATE SET assigned_by=excluded.assigned_by,assigned_at=CURRENT_TIMESTAMP,scope_json=excluded.scope_json').bind(userId,applicationId,roleId,user.email,JSON.stringify(scope)).run();
         await audit(env.DB,user,'assignment.grant','user_app_role',userId,{applicationId,roleId});
         return json({ok:true});
       }
