@@ -102,6 +102,16 @@ export default {
           FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id JOIN applications a ON a.id=uar.application_id`).all();
         return json({users:result.results,assignments:assignments.results});
       }
+      if (method==='PATCH' && path==='/api/admin/users') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !['active','blocked'].includes(b.status)) return json({error:'Gebruiker en geldige status zijn verplicht.'},400);
+        const target=await env.DB.prepare('SELECT id,email FROM users WHERE id=?').bind(b.userId).first();
+        if (!target) return json({error:'Gebruiker niet gevonden.'},404);
+        if ((env.SUPERADMIN_EMAILS||'').split(',').map(x=>x.trim().toLowerCase()).includes(String(target.email).toLowerCase()) && b.status!=='active') return json({error:'De centrale superadministrator kan niet worden geblokkeerd.'},409);
+        await env.DB.prepare('UPDATE users SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(b.status,b.userId).run();
+        await audit(env.DB,user,'user.status.update','user',b.userId,{email:target.email,status:b.status});
+        return json({ok:true});
+      }
       if (method==='GET' && path==='/api/admin/applications') {
         const [apps,roles]=await Promise.all([
           env.DB.prepare('SELECT * FROM applications ORDER BY sort_order,name').all(),
