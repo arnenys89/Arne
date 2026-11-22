@@ -1,4 +1,6 @@
 
+import { handleWorkplace } from './workplace.js';
+
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const id = () => crypto.randomUUID();
 const slug = value => String(value || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -69,6 +71,8 @@ export default {
     const user = await currentUser(env.DB,identity);
     if (user.status !== 'active') return json({error:'Je account is niet actief.'},403);
     const superadmin = isSuperadmin(identity.email,env);
+    if (path === '/werkplekreservatie' || path === '/werkplekreservatie/') return handleWorkplace(new Request(new URL('/api/werkplekreservatie/page', request.url), request), env, identity, user);
+    if (path.startsWith('/api/werkplekreservatie/')) return handleWorkplace(request, env, identity, user);
     const method = request.method, path = url.pathname;
 
     if (method==='GET' && path==='/api/me') {
