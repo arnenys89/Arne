@@ -35,7 +35,7 @@ const HTML = String.raw`<!doctype html><html lang="nl"><head><meta charset="utf-
 </section></div></main></div>
 <script>
 const cards=[...document.querySelectorAll('.app')],search=document.querySelector('#search'),filters=[...document.querySelectorAll('.filter')],grid=document.querySelector('#grid'),empty=document.querySelector('#empty');let category='Alles',favoritesOnly=false;const saved=()=>{try{return JSON.parse(localStorage.getItem('rp-dashboard-favs')||'[]')}catch{return []}};
-function draw(){const q=search.value.toLowerCase().trim(),fav=saved();let visible=0;cards.forEach(c=>{const ok=(category==='Alles'||c.dataset.category===category)&&(!favoritesOnly||fav.includes(c.dataset.name))&&(!q||(c.dataset.name+' '+c.innerText).toLowerCase().includes(q));c.style.display=ok?'flex':'none';if(ok)visible++;const b=c.querySelector('.star'),on=fav.includes(c.dataset.name);b.textContent=on?'★':'☆';b.classList.toggle('on',on)});empty.style.display=visible?'none':'block';grid.style.display=visible?'grid':'none';document.querySelector('#count').textContent=visible+' toepassing'+(visible===1?'':'en');document.querySelector('#sectionTitle').textContent=favoritesOnly?'Favorieten':'Alle toepassingen'}
+function draw(){const q=search.value.toLowerCase().trim(),fav=saved();let visible=0;cards.forEach(c=>{const ok=(c.dataset.centralAllowed!=='false')&&(category==='Alles'||c.dataset.category===category)&&(!favoritesOnly||fav.includes(c.dataset.name))&&(!q||(c.dataset.name+' '+c.innerText).toLowerCase().includes(q));c.style.display=ok?'flex':'none';if(ok)visible++;const b=c.querySelector('.star'),on=fav.includes(c.dataset.name);b.textContent=on?'★':'☆';b.classList.toggle('on',on)});empty.style.display=visible?'none':'block';grid.style.display=visible?'grid':'none';document.querySelector('#count').textContent=visible+' toepassing'+(visible===1?'':'en');document.querySelector('#sectionTitle').textContent=favoritesOnly?'Favorieten':'Alle toepassingen'}
 filters.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;favoritesOnly=false;filters.forEach(x=>x.classList.toggle('active',x===b));document.querySelector('[data-nav="favorites"]').classList.remove('active');draw()}));search.addEventListener('input',draw);cards.forEach(c=>c.querySelector('.star').addEventListener('click',()=>{let f=saved();f=f.includes(c.dataset.name)?f.filter(x=>x!==c.dataset.name):[...f,c.dataset.name];localStorage.setItem('rp-dashboard-favs',JSON.stringify(f));draw()}));document.querySelector('[data-nav="favorites"]').addEventListener('click',e=>{e.preventDefault();favoritesOnly=true;category='Alles';filters.forEach(x=>x.classList.toggle('active',x.dataset.filter==='Alles'));e.currentTarget.classList.add('active');draw()});document.querySelector('.nav a[href="#apps"]').addEventListener('click',()=>{favoritesOnly=false;document.querySelector('[data-nav="favorites"]').classList.remove('active');draw()});draw();
 
 // SAPOOV centraal gebruikersbeheer — uitsluitend zichtbaar voor de centrale superadministrator.
@@ -71,8 +71,15 @@ function umRender(){
 function umShow(){document.querySelector('#appsWorkspace').classList.add('hidden');document.querySelector('#user-management').classList.remove('hidden');document.querySelector('#userManagementNav').classList.add('active');document.querySelector('.nav a[href="#apps"]').classList.remove('active');document.querySelector('[data-nav="favorites"]').classList.remove('active');}
 function umHide(){document.querySelector('#appsWorkspace').classList.remove('hidden');document.querySelector('#user-management').classList.add('hidden');document.querySelector('#userManagementNav').classList.remove('active');}
 async function umInit(){
- try{const me=await umApi('/me');if(!me.superadmin)return;const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();}
- catch(e){console.warn('SAPOOV gebruikersbeheer niet beschikbaar:',e.message);}
+ try{
+  const me=await umApi('/me');
+  const allowed=new Map((me.applications||[]).map(a=>[a.id,a]));
+  const idByName={'Bestelplatform':'bestelplatform','Examenmaker':'examenmaker','Professionalisering':'professionalisering','Activiteitenplatform':'activiteitenplatform','Calendar Bridge':'calendar-bridge','Schoolreglementen':'schoolreglementen','SAPO Doelennetwerk':'doelennetwerk','Werkplekreservatie':'werkplekreservatie','Schoolwerkplan':'schoolwerkplan','Beleidskompas':'beleidskompas','Edudash':'edudash'};
+  document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=app.url;}});
+  draw();
+  if(!me.superadmin)return;
+  const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
+ }catch(e){console.warn('SAPOOV centraal gebruikersbeheer niet beschikbaar:',e.message);}
 }
 document.querySelector('#um-user-list').addEventListener('click',e=>{const b=e.target.closest('[data-um-user]');if(b){umSelectedUser=b.dataset.umUser;umRender();}});
 document.querySelector('#um-app-select').addEventListener('change',e=>{umSelectedApp=e.target.value;umEditingRole=null;umRender();});
