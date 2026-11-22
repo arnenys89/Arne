@@ -93,7 +93,7 @@ async function umInit(){
   const me=await umApi('/me');
   const allowed=new Map((me.applications||[]).map(a=>[a.id,a]));
   const idByName={'Bestelplatform':'bestelplatform','Examenmaker':'examenmaker','Professionalisering':'professionalisering','Activiteitenplatform':'activiteitenplatform','Calendar Bridge':'calendar-bridge','Schoolreglementen':'schoolreglementen','SAPO Doelennetwerk':'doelennetwerk','Werkplekreservatie':'werkplekreservatie','Schoolwerkplan':'schoolwerkplan','Beleidskompas':'beleidskompas','Edudash':'edudash'};
-  document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=card.dataset.name==='Examenmaker'?'/examenmaker':app.url;}});
+  document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=card.dataset.name==='Examenmaker'?'/examenmaker':card.dataset.name==='Bestelplatform'?'/bestelplatform':app.url;}});
   draw();
   if(!me.superadmin)return;
   const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
@@ -792,6 +792,28 @@ export default {
    if(request.method!=="GET"&&request.method!=="HEAD")init.body=await request.arrayBuffer();
    const target="https://sapoov-identity-api.arne-nys.workers.dev"+routeMap[url.pathname]+url.search;
    return fetch(target,init);
+  }
+  const bestellBase="https://richtpunt-bestelplatform.pages.dev";
+  const isBestelPage=url.pathname==="/bestelplatform"||url.pathname.startsWith("/bestelplatform/");
+  const isBestelAsset=url.pathname.startsWith("/bestelplatform-assets/");
+  const isSharedAsset=url.pathname.startsWith("/assets/");
+  const isBestelApi=url.pathname.startsWith("/api/")&&!url.pathname.startsWith("/api/user-management/");
+  if(isBestelPage||isBestelAsset||isSharedAsset||isBestelApi){
+   const target=new URL(request.url);
+   if(isBestelPage)target.pathname=url.pathname.replace(/^\/bestelplatform/,"")||"/";
+   else if(isBestelAsset)target.pathname=url.pathname.replace(/^\/bestelplatform-assets/,"/assets");
+   const upstreamRequest=new Request(target.toString(),request);
+   const upstream=await fetch(upstreamRequest);
+   const headers=new Headers(upstream.headers);
+   headers.set("x-sapoov-proxy","bestelplatform");
+   const type=headers.get("content-type")||"";
+   if(isBestelPage&&type.toLowerCase().includes("text/html")){
+    let html=await upstream.text();
+    html=html.replace(/(["'])\/assets\//g,'$1/bestelplatform-assets/').replace(/(["'])\/vite\.svg/g,'$1/bestelplatform-assets/vite.svg');
+    headers.delete("content-length");
+    return new Response(html,{status:upstream.status,statusText:upstream.statusText,headers});
+   }
+   return new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});
   }
   const response=await __sapoovOriginal.fetch(request,env,ctx);
   if(!response||!(response.headers.get("content-type")||"").toLowerCase().includes("text/html"))return response;
