@@ -152,7 +152,9 @@ export default {
         return json({ok:true});
       }
       if (method==='POST' && path==='/api/admin/assignments') {
-        const b=await bodyJson(request), {userId,applicationId,roleId}=b||{};\n        const scope=b?.scope===undefined?{}:b.scope;\n        if (!scope || typeof scope!=='object' || Array.isArray(scope)) return json({error:'Scope moet een JSON-object zijn.'},400);
+        const b=await bodyJson(request), {userId,applicationId,roleId}=b||{};
+        const scope=b?.scope===undefined?{}:b.scope;
+        if (!scope || typeof scope!=='object' || Array.isArray(scope)) return json({error:'Scope moet een JSON-object zijn.'},400);
         if (![userId,applicationId,roleId].every(v=>typeof v==='string'&&v)) return json({error:'Gebruiker, toepassing en rol zijn verplicht.'},400);
         const [target,app,role]=await Promise.all([
           env.DB.prepare('SELECT id FROM users WHERE id=?').bind(userId).first(),
