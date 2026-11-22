@@ -10,3 +10,12 @@
 .subsection-link b{font-size:14px;color:#9a7b00;font-weight:400}
 .chapter-nav button{line-height:1.4;padding:9px 10px}
 @media(max-width:720px){.subsection-list{grid-template-columns:1fr}.reader{padding:19px 16px}.reader-text{font-size:13px;line-height:1.6}}
+
+/* SAPOOV gedeelde vaste navigatie en afzonderlijke inhoudsscroll */
+html,body{height:100%;overflow:hidden}
+.sidebar{width:248px}
+.main{margin-left:248px;height:100dvh;min-height:0;overflow:hidden}
+.topbar{height:72px;min-height:72px;flex:0 0 72px;position:relative;top:auto}
+.content{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:1050px){.sidebar{width:248px}.main{margin-left:248px}}
+@media(max-width:720px){.sidebar{width:270px}.main{margin-left:0;height:100dvh}.topbar{height:72px;min-height:72px;flex:0 0 72px}.content{overflow-y:auto;min-height:0}}
