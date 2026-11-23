@@ -46,5 +46,6 @@ export async function onRequest(context) {
   const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id='beleidskompas' LIMIT 1").bind(user.id).first();
   if(!grant)return json({error:"Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Lezer of Beheerder toe te kennen."},403);
  }
- return context.next();
+ const assetUrl=new URL('/beleidskompas.html',request.url);
+ return context.env.ASSETS.fetch(new Request(assetUrl,request));
 }
