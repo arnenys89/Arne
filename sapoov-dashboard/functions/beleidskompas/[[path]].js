@@ -11,7 +11,7 @@ async function authenticate(request,env) {
   const header=JSON.parse(new TextDecoder().decode(decode64url(parts[0])));
   const payload=JSON.parse(new TextDecoder().decode(decode64url(parts[1])));
   if(header.alg!=="RS256"||!header.kid)return null;
-  const team=env.CF_ACCESS_TEAM_DOMAIN.replace(/^https?:\\/\\//,"").replace(/\\/$/,"");
+  const team=env.CF_ACCESS_TEAM_DOMAIN.replace(/^https?:\/\//,"").replace(/\/$/,"");
   const issuer="https://"+team;
   const audiences=Array.isArray(payload.aud)?payload.aud:[payload.aud];
   const now=Math.floor(Date.now()/1000);
