@@ -92,6 +92,14 @@ export default {
       return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:rows.results.length>0});
     }
 
+    if (method==='GET' && ['/beleidskompas','/beleidskompas/','/beleidskompas.html'].includes(path)) {
+      const app=await env.DB.prepare("SELECT id FROM applications WHERE id='beleidskompas' AND status='active'").first();
+      if (!app) return new Response('Beleidskompas is nog niet geconfigureerd.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
+      const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles WHERE user_id=? AND application_id='beleidskompas' LIMIT 1").bind(user.id).first();
+      if (!superadmin && !grant) return new Response('Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Beleidskompas-lezer toe te kennen.',{status:403,headers:{'content-type':'text/plain; charset=utf-8'}});
+      return env.ASSETS.fetch(new Request(new URL('/beleidskompas.html',url),request));
+    }
+
     if (path.startsWith('/api/admin/')) {
       if (!superadmin) return json({error:'Alleen de centrale superadministrator mag gebruikers en rechten beheren.'},403);
       if (method==='GET' && path==='/api/admin/users') {
