@@ -97,7 +97,7 @@ export default {
       if (!app) return new Response('Beleidskompas is nog niet geconfigureerd.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
       const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles WHERE user_id=? AND application_id='beleidskompas' LIMIT 1").bind(user.id).first();
       if (!superadmin && !grant) return new Response('Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Beleidskompas-lezer toe te kennen.',{status:403,headers:{'content-type':'text/plain; charset=utf-8'}});
-      return env.ASSETS.fetch(new Request(new URL('/beleidskompas.html',url),request));
+      return env.ASSETS.fetch(new Request(new URL('/beleidskompas.html',url),{method:'GET',headers:request.headers}));
     }
 
     if (path.startsWith('/api/admin/')) {
