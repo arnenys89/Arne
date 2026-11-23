@@ -46,8 +46,14 @@ export async function onRequest(context) {
   const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id='beleidskompas' LIMIT 1").bind(user.id).first();
   if(!grant)return json({error:"Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Lezer of Beheerder toe te kennen."},403);
  }
- const assetUrl=new URL('/beleidskompas/',request.url);
- const assetResponse=await context.env.ASSETS.fetch(new Request(assetUrl,request));
- if(!assetResponse.ok)return new Response('Beleidskompas-bestand niet gevonden.',{status:assetResponse.status});
- return assetResponse;
+ if(!env.ASSETS||typeof env.ASSETS.fetch!=="function")return json({error:"De statische SAPOOV-bestanden zijn niet beschikbaar.",diagnostic:"ASSETS binding ontbreekt"},503);
+ const assetUrl=new URL('/beleidskompas/index.html',request.url);
+ let assetResponse;
+ try { assetResponse=await env.ASSETS.fetch(new Request(assetUrl,request)); }
+ catch(error) { return json({error:"Beleidskompas kon niet geladen worden.",diagnostic:String(error)},502); }
+ if(!assetResponse.ok)return json({error:"Beleidskompas-bestand niet gevonden.",status:assetResponse.status,asset:assetUrl.pathname},assetResponse.status);
+ const headers=new Headers(assetResponse.headers);
+ headers.set("x-sapoov-route","beleidskompas");
+ headers.set("cache-control","no-store");
+ return new Response(assetResponse.body,{status:assetResponse.status,statusText:assetResponse.statusText,headers});
 }
