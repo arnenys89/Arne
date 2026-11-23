@@ -47,11 +47,13 @@ export async function onRequest(context) {
   if(!grant)return json({error:"Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Lezer of Beheerder toe te kennen."},403);
  }
  if(!env.ASSETS||typeof env.ASSETS.fetch!=="function")return json({error:"De statische SAPOOV-bestanden zijn niet beschikbaar.",diagnostic:"ASSETS binding ontbreekt"},503);
- const assetUrl=new URL('/beleidskompas/index.html',request.url);
+ const assetUrl=new URL('/beleidskompas/',request.url);
  let assetResponse;
  try { assetResponse=await env.ASSETS.fetch(new Request(assetUrl,request)); }
  catch(error) { return json({error:"Beleidskompas kon niet geladen worden.",diagnostic:String(error)},502); }
  if(!assetResponse.ok)return json({error:"Beleidskompas-bestand niet gevonden.",status:assetResponse.status,asset:assetUrl.pathname},assetResponse.status);
+ const assetHtml=await assetResponse.clone().text();
+ if(!assetHtml.includes('<title>Beleidskompas | SAPOOV</title>'))return json({error:"Cloudflare gaf niet het Beleidskompas-bestand terug.",diagnostic:"De asset-resolver viel terug op een andere HTML-pagina.",asset:assetUrl.pathname},502);
  const headers=new Headers(assetResponse.headers);
  headers.set("x-sapoov-route","beleidskompas");
  headers.set("cache-control","no-store");
