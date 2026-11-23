@@ -35,7 +35,7 @@ function renderAdmin(){
  if(editingRole){$('role-name').value=editingRole.id?editingRole.name:'';$('role-description').value=editingRole.id?editingRole.description:'';$('role-permissions').value=editingRole.id?(editingRole.permissions||[]).join(', '):'';$('role-editor-title').textContent=editingRole.id?'Rol aanpassen':'Nieuwe rol';}
 }
 function renderApps(){
- $('apps').innerHTML=apps.filter(a=>me.superadmin||assignments.some(x=>x.application_id===a.id)).map(a=>{const target=a.id==='werkplekreservatie'?'/werkplekreservatie':(a.url||'#');return `<a class="app" href="${esc(target)}" ${a.id==='werkplekreservatie'?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Er zijn nog geen toepassingen aan je account toegewezen.</div>';
+ $('apps').innerHTML=apps.filter(a=>me.superadmin||assignments.some(x=>x.application_id===a.id)).map(a=>{const internal=['werkplekreservatie','beleidskompas'].includes(a.id);const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');return `<a class="app" href="${esc(target)}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Er zijn nog geen toepassingen aan je account toegewezen.</div>';
 }
 async function start(){
  try{
