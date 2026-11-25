@@ -30,3 +30,8 @@ De API controleert zelf de identiteit, applicatietoewijzing en rechten. De front
 
 ## Belangrijke beperking
 De bestaande identity-API bevat de Professionalisering-routes, maar de Entra-appregistratie, productiehostnaam en secrets waren in de bestaande projectdocumentatie nog niet geconfigureerd. Deze repositorywijziging bouwt de frontend; ze activeert geen niet-bestaande loginconfiguratie of domein.
+
+
+## SAPOOV-integratie
+
+De beoogde ingang is `https://www.sapoov.be/professionalisering`. De centrale SAPOOV Access-toepassing beveiligt de dashboardhost. De API wordt via een afzonderlijke Worker-route naar `sapoov-identity-api` doorgestuurd.
