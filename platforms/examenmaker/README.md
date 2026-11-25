@@ -1,6 +1,6 @@
 # Examenmaker binnen SAPOOV
 
-De Examenmaker draait binnen de centrale SAPOOV Worker en gebruikt de centrale SAPOOV-toegangscontrole.
+De Examenmaker is volledig geïntegreerd in het centrale SAPOOV-platform.
 
 ## Productieconfiguratie
 
@@ -17,7 +17,7 @@ De Examenmaker draait binnen de centrale SAPOOV Worker en gebruikt de centrale S
 
 ## Behouden gegevens
 
-De oorspronkelijke D1-database is niet vervangen of leeggemaakt. De bestaande tabellen `users` en `exams` zijn behouden. Bij de integratiecontrole bevatte de database één gebruiker en één examen.
+De oorspronkelijke D1-database is behouden en niet leeggemaakt. De bestaande tabellen `users` en `exams` blijven de primaire gegevensbron.
 
 ## Functionele onderdelen
 
@@ -28,17 +28,8 @@ De oorspronkelijke D1-database is niet vervangen of leeggemaakt. De bestaande ta
 - Examen en verbetersleutel exporteren naar Word en PDF.
 - Zelfevaluatie en foutenbibliotheek opnemen in de examenoutput.
 
-## Migratie- en opruimstatus
+## Migratie afgerond
 
-De centrale Worker bevat de Examenmaker-handler. De oude database blijft behouden als primaire databron. De oude Access-toepassing en eventuele oude Worker mogen pas worden verwijderd nadat de volledige praktijktest is afgerond, inclusief login, SAPO-leerplannen, bewaren/openen van examens en de vier exportvarianten.
+De Examenmaker draait via de centrale SAPOOV Worker. De gebruiker heeft bevestigd dat de geïntegreerde versie werkt. De oude Cloudflare Access-toepassing is verwijderd. De oude afzonderlijke Worker was niet meer aanwezig in het Cloudflare-account. De oude Worker-broncode `legacy-worker.js` is uit deze branch verwijderd.
 
-## Nog te valideren in de praktijktest
-
-1. Toegang via de SAPOOV-dashboardtegel.
-2. Aanmelden en rechtencontrole met een leerkrachtaccount.
-3. Een nieuw examen aanmaken, bewaren, sluiten en opnieuw openen.
-4. Een bestaand examen openen en aanpassen.
-5. SAPO-leerplannen en doelen laden en selecteren.
-6. Examen naar Word en PDF exporteren.
-7. Verbetersleutel naar Word en PDF exporteren.
-8. Controleren dat gebruikers elkaars examens niet kunnen openen of aanpassen.
+De oorspronkelijke D1-database `richtpunt-examenmaker` blijft bewust behouden en is gekoppeld aan de centrale Worker. Er is geen oude database of examengegevens verwijderd.
