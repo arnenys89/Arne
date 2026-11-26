@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:local": "wrangler d1 migrations apply sapoov-db --local",
-    "db:remote": "wrangler d1 migrations apply sapoov-db --remote"
+    "db:local": "wrangler d1 migrations apply sapoov-central-identity --local",
+    "db:remote": "wrangler d1 migrations apply sapoov-central-identity --remote"
   },
   "dependencies": {
     "jose": "^6.1.0"
