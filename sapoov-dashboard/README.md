@@ -56,3 +56,20 @@ if (!allowed) return new Response("Onvoldoende rechten", { status: 403 });
 
 ## Migratie van bestaande websites
 De centrale gebruikers- en rollenwerkruimte en API zijn voorbereid. Een website is pas werkelijk centraal gekoppeld nadat haar eigen backend de API raadpleegt en haar lokale rolcontrole vervangt door de centrale rol- en permissioncontrole. Dat moet per toepassing worden getest, met behoud van bestaande gebruikersgegevens en functionele rechten. Tot die migratie blijft de bestaande lokale rechtencontrole van die website leidend.
+
+
+## Dashboard performance and administration API
+
+The dashboard loads the identity, application catalogue, users, roles and recent audit events first. The larger education, personnel and student panels are fetched on demand when their section approaches the viewport. This avoids loading all administrative datasets during the initial dashboard render.
+
+The Pages API router forwards the dashboard endpoints (`/api/me`, `/api/admin/*` and `/api/access/*`) to the identity Worker. The identity Worker remains responsible for validating the Cloudflare Access JWT and enforcing the superadministrator check.
+
+Migration `0005_admin_data.sql` adds the central tables for campuses, school years, classes, personnel profiles, students and class enrolments. It seeds the Ninove and Zottegem campuses and the 2026–2027 and 2027–2028 school years. Class records are intentionally not fabricated: they must be imported from the verified school administration source before student enrolments can be assigned.
+
+After deploying the identity Worker, apply the new migration to the same D1 database used by that Worker:
+
+```bash
+npx wrangler d1 migrations apply sapoov-central-identity --remote
+```
+
+Do not apply the migration to a different D1 database or deploy the new API before the migration has succeeded.
