@@ -54,15 +54,35 @@ filters.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;fav
 const umEsc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const umApi=async(path,options={})=>{const r=await fetch('/api/user-management'+path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d;};
 let umUsers=[],umApps=[],umRoles=[],umAssignments=[],umTeams=[],umTeamMembers=[],umSelectedTeam='',umSelectedUser='',umSelectedApp='',umEditingRole=null;
+let umLoaded=false,umAuditLoaded=false,umAuditObserver=null;
 function umNotice(message,error=false){const n=document.querySelector('#um-notice');n.textContent=message;n.classList.toggle('error',error);}
 async function umLoad(){
- const [u,a,audit,t]=await Promise.all([umApi('/users'),umApi('/applications'),umApi('/audit'),umApi('/teams')]);
+ const [u,a,t]=await Promise.all([umApi('/users'),umApi('/applications'),umApi('/teams')]);
  umUsers=u.users||[];umAssignments=(u.assignments||[]).map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
  umApps=a.applications||[];umRoles=a.roles||[];umTeams=t.teams||[];umTeamMembers=t.members||[];if(!umSelectedTeam||!umTeams.some(x=>x.id===umSelectedTeam))umSelectedTeam=umTeams[0]?.id||'';
  if(!umSelectedApp||!umApps.some(x=>x.id===umSelectedApp))umSelectedApp=umApps[0]?.id||'';
  if(!umSelectedUser||!umUsers.some(x=>x.id===umSelectedUser))umSelectedUser=umUsers[0]?.id||'';
- document.querySelector('#um-audit').innerHTML=(audit.events||[]).map(e=>'<div class="um-audit-row"><b>'+umEsc(e.action)+'</b><span>'+umEsc(e.actor_email)+'</span><small>'+umEsc(e.created_at)+'</small></div>').join('')||'<p class="um-muted">Nog geen wijzigingen.</p>';
+ umLoaded=true;
  umRender();
+ if(umAuditLoaded)await umLoadAudit();else umSetupAuditObserver();
+}
+async function umLoadAudit(){
+ const audit=await umApi('/audit');
+ document.querySelector('#um-audit').innerHTML=(audit.events||[]).map(e=>'<div class="um-audit-row"><b>'+umEsc(e.action)+'</b><span>'+umEsc(e.actor_email)+'</span><small>'+umEsc(e.created_at)+'</small></div>').join('')||'<p class="um-muted">Nog geen wijzigingen.</p>';
+ umAuditLoaded=true;
+}
+function umSetupAuditObserver(){
+ const target=document.querySelector('#um-audit');
+ if(!target)return;
+ if(!('IntersectionObserver' in window)){umLoadAudit().catch(e=>umNotice('Auditlog laden mislukt: '+e.message,true));return;}
+ if(umAuditObserver)umAuditObserver.disconnect();
+ umAuditObserver=new IntersectionObserver(entries=>{
+  if(entries.some(entry=>entry.isIntersecting)){
+   umAuditObserver.disconnect();
+   umLoadAudit().catch(e=>umNotice('Auditlog laden mislukt: '+e.message,true));
+  }
+ },{rootMargin:'200px 0px'});
+ umAuditObserver.observe(target);
 }
 function umRender(){
  document.querySelector('#um-team-count').textContent=umTeams.length;
@@ -96,7 +116,7 @@ async function umInit(){
   document.querySelectorAll('.app').forEach(card=>{const app=allowed.get(idByName[card.dataset.name]);card.dataset.centralAllowed=app?'true':'false';if(app){const link=card.querySelector('a.open');if(link&&app.url)link.href=card.dataset.name==='Examenmaker'?'/examenmaker':card.dataset.name==='Bestelplatform'?'/bestelplatform':app.url;}});
   draw();
   if(!me.superadmin)return;
-  const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',e=>{e.preventDefault();umShow();});await umLoad();
+  const nav=document.querySelector('#userManagementNav');nav.classList.remove('hidden');nav.addEventListener('click',async e=>{e.preventDefault();umShow();if(!umLoaded){umNotice('Gebruikersbeheer laden…');try{await umLoad();umNotice('');}catch(err){umNotice('Gebruikersbeheer laden mislukt: '+err.message,true);}}});
  }catch(e){console.warn('SAPOOV centraal gebruikersbeheer niet beschikbaar:',e.message);}
 }
 document.querySelector('#um-team-select').addEventListener('change',e=>{umSelectedTeam=e.target.value;umRender();});
