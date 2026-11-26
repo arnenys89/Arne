@@ -1,0 +1,33 @@
+/* SAPOOV Design System — centrale visuele basis voor alle toepassingen */
+:root{
+  --sapoov-gold:#d7ad01;--sapoov-grey:#555555;--sapoov-white:#ffffff;--sapoov-black:#171717;
+  --sapoov-bg:#f7f7f5;--sapoov-line:#e7e4da;--sapoov-soft:#fbf5dc;
+  --sapoov-sidebar-width:248px;--sapoov-header-height:72px;
+  --sapoov-font: "Meta Pro Light","Meta Pro",Arial,sans-serif;
+  --sapoov-radius:7px;--sapoov-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+html{color-scheme:light}
+body{font-family:var(--sapoov-font);color:var(--sapoov-black);background:var(--sapoov-bg)}
+.sapoov-shell{min-height:100vh;background:var(--sapoov-bg);color:var(--sapoov-black);font-family:var(--sapoov-font)}
+.sapoov-sidebar{position:fixed;z-index:1000;inset:0 auto 0 0;width:var(--sapoov-sidebar-width);display:flex;flex-direction:column;gap:5px;overflow-y:auto;padding:25px 16px;background:var(--sapoov-white);border-right:1px solid var(--sapoov-line)}
+.sapoov-brand{display:flex;align-items:center;gap:10px;padding:0 7px 20px;margin-bottom:8px;border-bottom:1px solid var(--sapoov-line);color:inherit;text-decoration:none}
+.sapoov-brand-mark{width:36px;height:36px;display:grid;place-items:center;background:var(--sapoov-gold);color:var(--sapoov-black);font-weight:800;font-size:19px;border-radius:6px}
+.sapoov-brand b{display:block;font-size:13px;letter-spacing:.8px}.sapoov-brand small{display:block;color:#888;font-size:9px;letter-spacing:1px}
+.sapoov-nav-label{margin:14px 10px 4px;color:#999;font-size:9px;font-weight:700;letter-spacing:1.4px}
+.sapoov-nav-link{display:block;padding:9px 12px;border-radius:var(--sapoov-radius);color:var(--sapoov-grey);text-decoration:none;font-size:12px}
+.sapoov-nav-link:hover,.sapoov-nav-link[aria-current=page]{background:var(--sapoov-soft);color:var(--sapoov-black)}
+.sapoov-header{position:fixed;z-index:999;top:0;left:var(--sapoov-sidebar-width);right:0;height:var(--sapoov-header-height);display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:#fff;border-bottom:1px solid var(--sapoov-line)}
+.sapoov-main{min-height:100vh;margin-left:var(--sapoov-sidebar-width);padding:calc(var(--sapoov-header-height) + 30px) 36px 50px}
+.sapoov-card{background:#fff;border:1px solid var(--sapoov-line);border-radius:var(--sapoov-radius);box-shadow:var(--sapoov-shadow)}
+.sapoov-button-primary{background:var(--sapoov-gold);border:1px solid var(--sapoov-gold);border-radius:var(--sapoov-radius);color:var(--sapoov-black);font:inherit;font-weight:600;cursor:pointer}
+.sapoov-button-secondary{background:#fff;border:1px solid var(--sapoov-line);border-radius:var(--sapoov-radius);color:var(--sapoov-grey);font:inherit;cursor:pointer}
+.sapoov-field{width:100%;border:1px solid #dcd9d0;border-radius:var(--sapoov-radius);background:#fff;color:var(--sapoov-black);font:inherit}
+@media(max-width:760px){
+ :root{--sapoov-header-height:54px}
+ .sapoov-sidebar{position:relative;inset:auto;width:100%;max-height:27dvh;overflow:auto;padding:9px 12px}
+ .sapoov-brand{padding-bottom:8px;margin-bottom:2px}
+ .sapoov-nav-label{display:none}
+ .sapoov-nav-link{display:inline-block;white-space:nowrap;padding:7px 9px}
+ .sapoov-header{position:relative;inset:auto;height:var(--sapoov-header-height);padding:0 12px}
+ .sapoov-main{height:calc(100dvh - 27dvh - var(--sapoov-header-height));min-height:0;margin:0;padding:22px 14px 35px;overflow:auto}
+}
