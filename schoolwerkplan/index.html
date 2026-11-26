@@ -41,7 +41,7 @@
 <script>window.addEventListener("error",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.message||"JavaScript-fout")+" ("+(e.filename||"onbekend")+":"+e.lineno+")";});window.addEventListener("unhandledrejection",function(e){var box=document.getElementById("startupDiagnostic");if(box)box.textContent="Opstartfout: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason));});</script>
 <script>
 const startupStatus=document.getElementById("startupDiagnostic");if(startupStatus)startupStatus.textContent="JavaScript gestart; interface wordt opgebouwd…";
-const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(String(id).replace(/^#/,"")), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const chapters=[
 {id:"visie",title:"Pedagogisch project",subtitle:"Missie, visie en waarden",start:1,end:5,icon:"◉",sections:[["Missie, visie en waarden",3],["Neutraliteit in het provinciaal onderwijs",4],["Richtpunt campus Ninove-Zottegem",5]]},
 {id:"organisatie",title:"Organisatie van de school",subtitle:"Schoolorganisatie, context, personeelsbeleid en professionalisering",start:6,end:27,icon:"⌘",sections:[["Schoolorganisatie",6],["Organigram",7],["Structuur",8],["Beleidsplan 2025–2029",12],["Schooluren",14],["Oudercontact",16],["Context en input",17],["Organisatiekenmerken",18],["Personeelsbeleid en professionalisering",22]]},
