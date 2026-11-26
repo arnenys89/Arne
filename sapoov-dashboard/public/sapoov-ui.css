@@ -31,3 +31,30 @@ body{font-family:var(--sapoov-font);color:var(--sapoov-black);background:var(--s
  .sapoov-header{position:relative;inset:auto;height:var(--sapoov-header-height);padding:0 12px}
  .sapoov-main{height:calc(100dvh - 27dvh - var(--sapoov-header-height));min-height:0;margin:0;padding:22px 14px 35px;overflow:auto}
 }
+
+/* Bestaande applicaties: gemeenschappelijke afwerking zonder hun functionaliteit te wijzigen */
+body{font-family:var(--sapoov-font)!important}
+.sapoov-side{background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.sapoov-side-brand,.sapoov-side-link{font-family:var(--sapoov-font)!important}
+.sapoov-side-link{border-radius:var(--sapoov-radius)!important}
+.sapoov-side-link:hover,.sapoov-side-link.active{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.sapoov-mark{background:var(--sapoov-gold)!important}
+.sapoov-dashboard .app,.app{border-radius:var(--sapoov-radius)!important;box-shadow:var(--sapoov-shadow)}
+/* Bestelplatform — bestaande React-shell */
+.shell>aside{background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.shell>aside .page-nav button{border-radius:var(--sapoov-radius)!important;font-family:var(--sapoov-font)!important}
+.shell>aside .page-nav button.active,.shell>aside .page-nav button:hover{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.shell>aside .poov-brand{border-bottom:1px solid var(--sapoov-line)!important;padding-bottom:18px!important}
+.shell>aside .sidebar-dashboard a{color:var(--sapoov-grey)!important}
+.shell>main>header{background:#fff!important;border-bottom:1px solid var(--sapoov-line)!important;font-family:var(--sapoov-font)!important}
+.shell>main>section .stats article,.shell>main>section .panel,.shell>main>section .order,.shell>main>section .empty{border-radius:var(--sapoov-radius)!important;box-shadow:var(--sapoov-shadow)!important}
+.shell>main>section .primary{background:var(--sapoov-gold)!important;border-color:var(--sapoov-gold)!important;color:var(--sapoov-black)!important}
+/* Beleidskompas — dezelfde typografie, navigatiebreedte en componentvormen */
+.layout>.side{width:auto!important;background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.layout>.side .nav a{border-radius:var(--sapoov-radius)!important}
+.layout>.side .nav a.active,.layout>.side .nav a:hover{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.layout>main>.top{height:var(--sapoov-header-height)!important;border-bottom:1px solid var(--sapoov-line)!important}
+.layout>main>.content{max-width:1440px}
+.layout .sd,.layout .od,.layout .action{border-radius:var(--sapoov-radius)!important}
+.layout .btn{border-radius:var(--sapoov-radius)!important}
+@media(max-width:850px){.layout>.side{width:auto!important}}
