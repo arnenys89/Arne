@@ -58,3 +58,11 @@ body{font-family:var(--sapoov-font)!important}
 .layout .sd,.layout .od,.layout .action{border-radius:var(--sapoov-radius)!important}
 .layout .btn{border-radius:var(--sapoov-radius)!important}
 @media(max-width:850px){.layout>.side{width:auto!important}}
+/* Centrale SAPOOV-toepassingsnavigatie in geïntegreerde applicaties */
+.sapoov-global-nav{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-top:1px solid var(--sapoov-line);border-bottom:1px solid var(--sapoov-line)}
+.sapoov-global-nav .sapoov-nav-label{margin:3px 10px 5px}
+.sapoov-global-nav .sapoov-nav-link{font-size:12px;padding:8px 10px}
+.shell>aside .sapoov-global-nav{margin:4px 0}
+.shell>aside .sapoov-global-nav .sapoov-nav-link{display:block;text-decoration:none;color:var(--sapoov-grey)}
+.shell>aside .sapoov-global-nav .sapoov-nav-link:hover{background:var(--sapoov-soft);color:var(--sapoov-black)}
+@media(max-width:760px){.sapoov-global-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}.sapoov-global-nav .sapoov-nav-label{grid-column:1/-1}}
