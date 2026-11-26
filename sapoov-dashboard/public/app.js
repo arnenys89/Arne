@@ -10,13 +10,26 @@ async function api(path,options={}) {
 }
 function notice(message,error=false){$('notice').textContent=message;$('notice').classList.toggle('error',error);}
 async function loadAdmin(){
- const [u,a,audit,ed,pe,st]=await Promise.all([api('/api/admin/users'),api('/api/admin/applications'),api('/api/admin/audit'),api('/api/admin/education'),api('/api/admin/personnel'),api('/api/admin/students')]);
- personnel=pe.personnel||[];students=st;
- education=ed;
- users=u.users;assignments=u.assignments.map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));apps=a.applications;roles=a.roles;
+ const [u,a,audit]=await Promise.all([
+  api('/api/admin/users'),api('/api/admin/applications'),api('/api/admin/audit')
+ ]);
+ users=u.users||[];
+ assignments=(u.assignments||[]).map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
+ apps=a.applications||[];roles=a.roles||[];
  if(!selectedApp||!apps.some(x=>x.id===selectedApp))selectedApp=apps[0]?.id||'';
  if(!selectedUser||!users.some(x=>x.id===selectedUser))selectedUser=users[0]?.id||'';
- renderAdmin();renderEducation();renderPersonnel();renderStudents();$('audit').innerHTML=audit.events.map(e=>`<div class="audit-row"><b>${esc(e.action)}</b><span>${esc(e.actor_email)}</span><small>${esc(e.created_at)}</small></div>`).join('')||'<p class="muted">Nog geen wijzigingen.</p>';
+ renderAdmin();
+ $('audit').innerHTML=(audit.events||[]).map(e=>`<div class="audit-row"><b>${esc(e.action)}</b><span>${esc(e.actor_email)}</span><small>${esc(e.created_at)}</small></div>`).join('')||'<p class="muted">Nog geen wijzigingen.</p>';
+}
+let detailLoads={education:false,personnel:false,students:false};
+async function loadEducation(){if(detailLoads.education)return;detailLoads.education=true;try{education=await api('/api/admin/education');renderEducation();}catch(e){detailLoads.education=false;notice('Onderwijsgegevens konden niet worden geladen: '+e.message,true);}}
+async function loadPersonnel(){if(detailLoads.personnel)return;detailLoads.personnel=true;try{const data=await api('/api/admin/personnel');personnel=data.personnel||[];renderPersonnel();}catch(e){detailLoads.personnel=false;notice('Personeelsgegevens konden niet worden geladen: '+e.message,true);}}
+async function loadStudents(){if(detailLoads.students)return;detailLoads.students=true;try{students=await api('/api/admin/students');renderStudents();}catch(e){detailLoads.students=false;notice('Leerlinggegevens konden niet worden geladen: '+e.message,true);}}
+function setupLazyAdminPanels(){
+ const targets=[['education-summary',loadEducation],['personnel-count',loadPersonnel],['student-count',loadStudents]];
+ if(!('IntersectionObserver' in window)){targets.forEach(([,load])=>load());return;}
+ const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){const target=targets.find(([id])=>$(id)===entry.target);if(target){observer.unobserve(entry.target);target[1]();}}}},{rootMargin:'250px 0px'});
+ targets.forEach(([id])=>{const el=$(id);if(el)observer.observe(el);});
 }
 function renderAdmin(){
  $('user-count').textContent=users.length;
@@ -67,7 +80,7 @@ async function start(){
  try{
   const data=await api('/api/me');me=data;$('identity').textContent=data.user.display_name||data.user.email;
   $('message').textContent=`Aangemeld als ${data.user.email}.`;apps=data.applications;assignments=data.assignments;renderApps();
-  if(data.superadmin){$('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');await loadAdmin();}
+  if(data.superadmin){$('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');await loadAdmin();setupLazyAdminPanels();}
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
@@ -92,9 +105,9 @@ $('assign-button').addEventListener('click',async()=>{try{const roleId=$('assign
 $('assigned-list').addEventListener('click',async e=>{const b=e.target.closest('[data-revoke]');if(!b)return;if(!confirm('Deze roltoewijzing verwijderen?'))return;try{await api('/api/admin/assignments?userId='+encodeURIComponent(selectedUser)+'&applicationId='+encodeURIComponent(selectedApp)+'&roleId='+encodeURIComponent(b.dataset.revoke),{method:'DELETE'});await loadAdmin();notice('Recht verwijderd.');}catch(err){notice(err.message,true);}});
 $('personnel-rows').addEventListener('click',e=>{const b=e.target.closest('[data-personnel]');if(!b)return;const p=personnel.find(x=>x.user_id===b.dataset.personnel);if(!p)return;$('personnel-user-id').value=p.user_id;$('personnel-number').value=p.staff_number||'';$('personnel-campus').value=p.campus_id||'';$('personnel-status').value=p.employment_status||'unknown';$('personnel-start').value=p.start_date||'';$('personnel-end').value=p.end_date||'';$('personnel-editor').classList.remove('hidden');$('personnel-editor').scrollIntoView({behavior:'smooth',block:'center'});});
 $('cancel-personnel').addEventListener('click',()=>$('personnel-editor').classList.add('hidden'));
-$('save-personnel').addEventListener('click',async()=>{try{await api('/api/admin/personnel',{method:'POST',body:JSON.stringify({userId:$('personnel-user-id').value,staffNumber:$('personnel-number').value.trim()||null,campusId:$('personnel-campus').value||null,employmentStatus:$('personnel-status').value,startDate:$('personnel-start').value||null,endDate:$('personnel-end').value||null})});$('personnel-editor').classList.add('hidden');await loadAdmin();notice('Personeelsprofiel opgeslagen.');}catch(e){notice(e.message,true);}});
-$('save-student').addEventListener('click',async()=>{try{await api('/api/admin/students',{method:'POST',body:JSON.stringify({studentNumber:$('student-number').value.trim(),firstName:$('student-first').value.trim(),lastName:$('student-last').value.trim(),preferredName:$('student-preferred').value.trim()})});$('student-number').value='';$('student-first').value='';$('student-last').value='';$('student-preferred').value='';await loadAdmin();notice('Leerling toegevoegd.');}catch(e){notice(e.message,true);}});
+$('save-personnel').addEventListener('click',async()=>{try{await api('/api/admin/personnel',{method:'POST',body:JSON.stringify({userId:$('personnel-user-id').value,staffNumber:$('personnel-number').value.trim()||null,campusId:$('personnel-campus').value||null,employmentStatus:$('personnel-status').value,startDate:$('personnel-start').value||null,endDate:$('personnel-end').value||null})});$('personnel-editor').classList.add('hidden');detailLoads.personnel=false;await loadPersonnel();await loadAdmin();notice('Personeelsprofiel opgeslagen.');}catch(e){notice(e.message,true);}});
+$('save-student').addEventListener('click',async()=>{try{await api('/api/admin/students',{method:'POST',body:JSON.stringify({studentNumber:$('student-number').value.trim(),firstName:$('student-first').value.trim(),lastName:$('student-last').value.trim(),preferredName:$('student-preferred').value.trim()})});$('student-number').value='';$('student-first').value='';$('student-last').value='';$('student-preferred').value='';detailLoads.students=false;await loadStudents();await loadAdmin();notice('Leerling toegevoegd.');}catch(e){notice(e.message,true);}});
 $('enrol-year').addEventListener('change',updateEnrolClasses);
-$('save-enrolment').addEventListener('click',async()=>{try{await api('/api/admin/student-enrolments',{method:'POST',body:JSON.stringify({studentId:$('enrol-student').value,schoolYearId:$('enrol-year').value,classId:$('enrol-class').value,startDate:$('enrol-start').value||null})});await loadAdmin();notice('Klasinschrijving opgeslagen.');}catch(e){notice(e.message,true);}});
+$('save-enrolment').addEventListener('click',async()=>{try{await api('/api/admin/student-enrolments',{method:'POST',body:JSON.stringify({studentId:$('enrol-student').value,schoolYearId:$('enrol-year').value,classId:$('enrol-class').value,startDate:$('enrol-start').value||null})});detailLoads.students=false;await loadStudents();notice('Klasinschrijving opgeslagen.');}catch(e){notice(e.message,true);}});
 $('class-search').addEventListener('input',renderEducation);$('campus-filter').addEventListener('change',renderEducation);$('year-filter').addEventListener('change',renderEducation);
 start();
