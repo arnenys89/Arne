@@ -305,6 +305,75 @@ export default {
         await audit(env.DB,user,'team.member.remove','team_member',userId,{teamId});
         return json({ok:true});
       }
+      if (method==='GET' && path==='/api/admin/education') {
+        const [campuses,years,classes]=await Promise.all([
+          env.DB.prepare('SELECT id,name,short_name FROM campuses ORDER BY name').all(),
+          env.DB.prepare('SELECT id,label,start_date,end_date,active FROM school_years ORDER BY start_date DESC').all(),
+          env.DB.prepare(`SELECT c.id,c.class_code,c.display_name,c.campus_id,c.school_year_id,c.active,cp.name AS campus_name,cp.short_name AS campus_short_name
+            FROM classes c JOIN campuses cp ON cp.id=c.campus_id ORDER BY cp.name,c.class_code`).all()
+        ]);
+        return json({campuses:campuses.results,school_years:years.results,classes:classes.results});
+      }
+      if (method==='GET' && path==='/api/admin/personnel') {
+        const result=await env.DB.prepare(`SELECT u.id AS user_id,u.email,u.display_name,p.staff_number,p.campus_id,c.name AS campus_name,
+          COALESCE(p.employment_status,'unknown') AS employment_status,p.start_date,p.end_date
+          FROM users u LEFT JOIN personnel_profiles p ON p.user_id=u.id LEFT JOIN campuses c ON c.id=p.campus_id
+          WHERE u.status='active' ORDER BY u.email`).all();
+        return json({personnel:result.results});
+      }
+      if (method==='POST' && path==='/api/admin/personnel') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !['unknown','active','leave','inactive'].includes(b.employmentStatus||'unknown')) return json({error:'Gebruiker en geldige personeelsstatus zijn verplicht.'},400);
+        const target=await env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first();
+        if (!target) return json({error:'Gebruiker niet gevonden.'},404);
+        if (b.campusId && !await env.DB.prepare('SELECT id FROM campuses WHERE id=?').bind(b.campusId).first()) return json({error:'Campus niet gevonden.'},404);
+        await env.DB.prepare(`INSERT INTO personnel_profiles(user_id,staff_number,campus_id,employment_status,start_date,end_date)
+          VALUES(?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET staff_number=excluded.staff_number,campus_id=excluded.campus_id,
+          employment_status=excluded.employment_status,start_date=excluded.start_date,end_date=excluded.end_date,updated_at=CURRENT_TIMESTAMP`)
+          .bind(b.userId,b.staffNumber||null,b.campusId||null,b.employmentStatus||'unknown',b.startDate||null,b.endDate||null).run();
+        await audit(env.DB,user,'personnel.profile.update','personnel_profile',b.userId,{campusId:b.campusId||null,status:b.employmentStatus||'unknown'});
+        return json({ok:true});
+      }
+      if (method==='GET' && path==='/api/admin/students') {
+        const [students,years,classes]=await Promise.all([
+          env.DB.prepare(`SELECT s.id,s.student_number,s.first_name,s.last_name,s.preferred_name,s.status,
+            e.school_year_id,e.class_id,c.class_code,cp.name AS campus_name
+            FROM students s LEFT JOIN student_enrolments e ON e.student_id=s.id AND e.status='active'
+            LEFT JOIN classes c ON c.id=e.class_id LEFT JOIN campuses cp ON cp.id=c.campus_id
+            ORDER BY s.last_name,s.first_name`).all(),
+          env.DB.prepare('SELECT id,label,start_date,end_date,active FROM school_years ORDER BY start_date DESC').all(),
+          env.DB.prepare(`SELECT c.id,c.class_code,c.display_name,c.school_year_id,cp.name AS campus_name
+            FROM classes c JOIN campuses cp ON cp.id=c.campus_id WHERE c.active=1 ORDER BY c.school_year_id DESC,cp.name,c.class_code`).all()
+        ]);
+        return json({count:students.results.length,students:students.results,school_years:years.results,classes:classes.results});
+      }
+      if (method==='POST' && path==='/api/admin/students') {
+        const b=await bodyJson(request);
+        const number=String(b?.studentNumber||'').trim(), first=String(b?.firstName||'').trim(), last=String(b?.lastName||'').trim();
+        if (!number||!first||!last) return json({error:'Leerlingnummer, voornaam en familienaam zijn verplicht.'},400);
+        const studentId=id();
+        try {
+          await env.DB.prepare('INSERT INTO students(id,student_number,first_name,last_name,preferred_name) VALUES(?,?,?,?,?)')
+            .bind(studentId,number,first,last,String(b.preferredName||'').trim()).run();
+        } catch { return json({error:'Dit leerlingnummer bestaat al.'},409); }
+        await audit(env.DB,user,'student.create','student',studentId,{studentNumber:number});
+        return json({ok:true,id:studentId},201);
+      }
+      if (method==='POST' && path==='/api/admin/student-enrolments') {
+        const b=await bodyJson(request);
+        if (!b?.studentId||!b?.schoolYearId||!b?.classId) return json({error:'Leerling, schooljaar en klas zijn verplicht.'},400);
+        const [student,year,klass]=await Promise.all([
+          env.DB.prepare('SELECT id FROM students WHERE id=?').bind(b.studentId).first(),
+          env.DB.prepare('SELECT id FROM school_years WHERE id=?').bind(b.schoolYearId).first(),
+          env.DB.prepare('SELECT id,school_year_id FROM classes WHERE id=?').bind(b.classId).first()
+        ]);
+        if (!student||!year||!klass||klass.school_year_id!==b.schoolYearId) return json({error:'Leerling, schooljaar of klas is ongeldig.'},404);
+        await env.DB.prepare(`INSERT INTO student_enrolments(id,student_id,school_year_id,class_id,start_date,status)
+          VALUES(?,?,?,?,?,'active') ON CONFLICT(student_id,school_year_id) DO UPDATE SET class_id=excluded.class_id,start_date=excluded.start_date,status='active',end_date=NULL`)
+          .bind(id(),b.studentId,b.schoolYearId,b.classId,b.startDate||null).run();
+        await audit(env.DB,user,'student.enrolment.update','student',b.studentId,{schoolYearId:b.schoolYearId,classId:b.classId});
+        return json({ok:true});
+      }
       if (method==='GET' && path==='/api/admin/audit') {
         const result=await env.DB.prepare('SELECT * FROM audit_events ORDER BY created_at DESC LIMIT 200').all();
         return json({events:result.results});
