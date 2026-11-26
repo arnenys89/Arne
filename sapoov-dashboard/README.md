@@ -60,16 +60,10 @@ De centrale gebruikers- en rollenwerkruimte en API zijn voorbereid. Een website 
 
 ## Dashboard performance and administration API
 
-The dashboard loads the identity, application catalogue, users, roles and recent audit events first. The larger education, personnel and student panels are fetched on demand when their section approaches the viewport. This avoids loading all administrative datasets during the initial dashboard render.
+The dashboard loads the identity, application catalogue, users, roles and teams first. The larger education, personnel and student panels are fetched on demand when their section approaches the viewport. The active SAPOOV dashboard Worker also defers central user-management data until the superadministrator opens that workspace, and loads the audit log only when it comes into view.
 
 The Pages API router forwards the dashboard endpoints (`/api/me`, `/api/admin/*` and `/api/access/*`) to the identity Worker. The identity Worker remains responsible for validating the Cloudflare Access JWT and enforcing the superadministrator check.
 
-Migration `0005_admin_data.sql` adds the central tables for campuses, school years, classes, personnel profiles, students and class enrolments. It seeds the Ninove and Zottegem campuses and the 2026–2027 and 2027–2028 school years. Class records are intentionally not fabricated: they must be imported from the verified school administration source before student enrolments can be assigned.
+The existing `sapoov-central-identity` D1 database already contains the campuses, school years, classes, personnel profiles, students and enrolments tables. The current database has campus records for Ninove and Zottegem and 90 class records for school year 2026–2027. The API uses that existing schema directly; no additional table migration is required for these endpoints.
 
-After deploying the identity Worker, apply the new migration to the same D1 database used by that Worker:
-
-```bash
-npx wrangler d1 migrations apply sapoov-central-identity --remote
-```
-
-Do not apply the migration to a different D1 database or deploy the new API before the migration has succeeded.
+The Wrangler migration scripts target the existing D1 database name `sapoov-central-identity`. Do not create a second database or run a duplicate schema migration for these existing tables.
