@@ -56,3 +56,14 @@ if (!allowed) return new Response("Onvoldoende rechten", { status: 403 });
 
 ## Migratie van bestaande websites
 De centrale gebruikers- en rollenwerkruimte en API zijn voorbereid. Een website is pas werkelijk centraal gekoppeld nadat haar eigen backend de API raadpleegt en haar lokale rolcontrole vervangt door de centrale rol- en permissioncontrole. Dat moet per toepassing worden getest, met behoud van bestaande gebruikersgegevens en functionele rechten. Tot die migratie blijft de bestaande lokale rechtencontrole van die website leidend.
+
+
+## Dashboard performance and administration API
+
+The dashboard loads the identity, application catalogue, users, roles and teams first. The larger education, personnel and student panels are fetched on demand when their section approaches the viewport. The active SAPOOV dashboard Worker also defers central user-management data until the superadministrator opens that workspace, and loads the audit log only when it comes into view.
+
+The Pages API router forwards the dashboard endpoints (`/api/me`, `/api/admin/*` and `/api/access/*`) to the identity Worker. The identity Worker remains responsible for validating the Cloudflare Access JWT and enforcing the superadministrator check.
+
+The existing `sapoov-central-identity` D1 database already contains the campuses, school years, classes, personnel profiles, students and enrolments tables. The current database has campus records for Ninove and Zottegem and 90 class records for school year 2026–2027. The API uses that existing schema directly; no additional table migration is required for these endpoints.
+
+The current production D1 database does not have a Wrangler `d1_migrations` ledger. Its schema is already provisioned and contains the required tables. Do not run the repository's historical migrations against this production database until those migrations have been reconciled with the live schema. Do not create a second database or re-create existing tables.
