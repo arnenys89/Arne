@@ -66,4 +66,4 @@ The Pages API router forwards the dashboard endpoints (`/api/me`, `/api/admin/*`
 
 The existing `sapoov-central-identity` D1 database already contains the campuses, school years, classes, personnel profiles, students and enrolments tables. The current database has campus records for Ninove and Zottegem and 90 class records for school year 2026–2027. The API uses that existing schema directly; no additional table migration is required for these endpoints.
 
-The Wrangler migration scripts target the existing D1 database name `sapoov-central-identity`. Do not create a second database or run a duplicate schema migration for these existing tables.
+The current production D1 database does not have a Wrangler `d1_migrations` ledger. Its schema is already provisioned and contains the required tables. Do not run the repository's historical migrations against this production database until those migrations have been reconciled with the live schema. Do not create a second database or re-create existing tables.
