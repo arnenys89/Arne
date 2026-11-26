@@ -307,9 +307,9 @@ export default {
       }
       if (method==='GET' && path==='/api/admin/education') {
         const [campuses,years,classes]=await Promise.all([
-          env.DB.prepare('SELECT id,name,short_name FROM campuses ORDER BY name').all(),
-          env.DB.prepare('SELECT id,label,start_date,end_date,active FROM school_years ORDER BY start_date DESC').all(),
-          env.DB.prepare(`SELECT c.id,c.class_code,c.display_name,c.campus_id,c.school_year_id,c.active,cp.name AS campus_name,cp.short_name AS campus_short_name
+          env.DB.prepare('SELECT id,name,code AS short_name FROM campuses WHERE active=1 ORDER BY name').all(),
+          env.DB.prepare('SELECT id,label,start_date,end_date,CASE WHEN status='active' THEN 1 ELSE 0 END AS active FROM school_years ORDER BY start_date DESC').all(),
+          env.DB.prepare(`SELECT c.id,c.class_code,c.display_name,c.campus_id,c.school_year_id,c.active,cp.name AS campus_name,cp.code AS campus_short_name
             FROM classes c JOIN campuses cp ON cp.id=c.campus_id ORDER BY cp.name,c.class_code`).all()
         ]);
         return json({campuses:campuses.results,school_years:years.results,classes:classes.results});
