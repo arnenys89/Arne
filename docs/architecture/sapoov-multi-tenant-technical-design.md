@@ -296,6 +296,12 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - De zoekfilters mogen gecombineerd worden: een beheerder kan bijvoorbeeld zoeken op naam én e-mailextensie om een personeelsgroep af te bakenen.
 - De gebruikersrijen zijn niet open- of dichtklapbaar. Er wordt dus geen boomstructuur van gebruikersrijen gebruikt.
 - De geneste kolomkoppen blijven zichtbaar en maken de organisatie- en modulecontext van elk rechtenprofiel duidelijk.
+- Elke hiërarchische kolomkop kan afzonderlijk worden **samengevouwen of opengevouwen**: koepel, schoolbestuur, school/onderwijsinstelling en module.
+- Bij samenvouwen worden alle onderliggende kopgroepen en rechtenprofielkolommen van die tak verborgen; bij openvouwen worden ze opnieuw zichtbaar. De onderliggende toekenningen blijven ongewijzigd.
+- Het samenvouwen van één tak heeft geen invloed op andere takken. Zo kan de beheerder bijvoorbeeld één schoolbestuur openlaten en de andere besturen samenvouwen.
+- De kop toont duidelijk een uitklap-/inklappictogram en de naam van de groep. De interactie werkt ook met toetsenbord en heeft een toegankelijke statusaanduiding.
+- De gekozen weergavestatus is uitsluitend een presentatiefilter en verandert nooit de moduletoegang, rechtenprofielen of autorisatie.
+- Zoeken op gebruikers blijft werken ongeacht welke kolomgroepen samengevouwen zijn. Een zoekresultaat mag een relevante kolomgroep desgewenst tijdelijk openzetten om de gevonden toekenning zichtbaar te maken, zonder de rechten zelf te wijzigen.
 - Bij brede tabellen moeten de kolomkoppen tijdens horizontaal scrollen herkenbaar blijven; de gebruikerskolom blijft bij voorkeur vastgezet.
 - De matrix moet ook bruikbaar blijven wanneer een gebruiker geen rechten heeft in bepaalde kolommen: een lege cel betekent geen toekenning, niet een impliciete weigering die als aparte rol wordt opgeslagen.
 
