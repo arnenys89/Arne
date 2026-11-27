@@ -156,3 +156,32 @@ De Vlaamse overheid biedt een live Instellingen-API voor actuele instellinggegev
 6. Logo-assets ophalen en controleren, daarna naar R2 kopiëren.
 7. Geautomatiseerde tests uitvoeren op hiërarchie, unieke instellingsnummers, locatiekoppelingen, rechten, auditlog en herhaalbare imports.
 8. Pas na acceptatie een aparte migratie- en deploymentprocedure naar productie opstellen.
+
+
+## 10. Implementatiestatus op 27 november 2026
+
+De volgende onderdelen zijn op de ontwikkelbranch toegevoegd:
+
+- `migrations/0006_multi_tenant_core.sql`: expliciete organisatietypes, eigen metadata voor koepel/schoolbestuur/instelling, aparte `organization_locations`, teamtabellen, teamlidmaatschappen en expliciete moduletoegang per organisatiecontext.
+- `migrations/0007_seed_organization_registry.sql`: herhaalbare conceptimport voor de koepel, het schoolbestuur, de acht instellingen en de 19 opgegeven locaties.
+- `data/organization-registry.seed.json`: leesbare brondata met stabiele sleutels, ouderrelaties, locatiegegevens, officiële bron-URL's en logo-bronpagina's.
+- `src/index.js`: beveiligde superadmin-API voor organisatiebeheer, locaties, teams, teamlidmaatschappen en moduletoegang.
+- `public/index.html`, `public/app.js` en `public/styles.css`: eerste beheerschermen voor organisatiegegevens en de hiërarchische, inklapbare teammatrix.
+
+De seed bevat 10 organisatieknopen (1 koepel, 1 schoolbestuur en 8 onderwijsinstellingen) en 19 fysieke locaties. De CVO-locaties zijn beperkt tot de elf campussen met secretariaat uit het centrumreglement 2025-2026; externe of tijdelijke lesplaatsen worden niet automatisch aangemaakt.
+
+### Nog niet uitgevoerd
+
+- Geen enkele D1-migratie is toegepast.
+- Geen records zijn in de centrale database ingevoerd.
+- Geen logo-bestanden zijn naar R2 gekopieerd.
+- Geen Cloudflare Pages- of Worker-deployment uitgevoerd.
+- Geen DNS-, Access- of productieconfiguratie aangepast.
+
+De nieuwe beheerinterface toont daarom een melding dat migratie 0006 nog moet worden toegepast wanneer de nieuwe tabellen ontbreken. Dat voorkomt dat de bestaande gebruikersbeheerinterface afhankelijk wordt van een nog niet uitgevoerde migratie.
+
+### Technische controle
+
+- De JavaScript-syntax van `public/app.js` is gecontroleerd.
+- De Worker-module is gecontroleerd na omzetting van de `export default`-wrapper naar een parseerbare vorm.
+- De D1-migraties zijn nog niet op een echte ontwikkel-database uitgevoerd; daarvoor moet eerst een geïsoleerde testdatabase worden gebruikt en moeten de migraties en seed-import volledig worden gevalideerd.
