@@ -66,3 +66,25 @@ html,body{height:100%;overflow:hidden}
 .rights-matrix thead tr:nth-child(4) th{top:102px}
 .rights-matrix thead tr:nth-child(5) th{top:136px}
 .matrix-panel .muted{max-width:1000px}
+
+/* Rechtenmatrix: vaste, niet-inklappende hiërarchische kruistabel */
+.context-picker{display:grid;grid-template-columns:minmax(220px,420px);gap:6px;margin:12px 0 18px;padding:14px;background:#fff;border:1px solid #e8e7e1}
+.context-picker label{font-size:12px;font-weight:600}.context-picker small{font-size:11px;color:#777}
+.matrix-actions,.matrix-collapse{display:none!important}
+.rights-matrix thead th{position:sticky;white-space:nowrap;height:32px;max-height:32px;padding:5px 7px;overflow:hidden;text-overflow:ellipsis}
+.rights-matrix thead tr:nth-child(1) th{top:0}
+.rights-matrix thead tr:nth-child(2) th{top:32px}
+.rights-matrix thead tr:nth-child(3) th{top:64px}
+.rights-matrix thead tr:nth-child(4) th{top:96px}
+.rights-matrix thead tr:nth-child(5) th{top:128px}
+.rights-matrix thead tr:nth-child(6) th{top:160px}
+.rights-matrix thead tr:nth-child(7) th{top:192px}
+.rights-matrix thead tr:nth-child(8) th{top:224px}
+.rights-matrix thead tr:nth-child(9) th{top:256px}
+.rights-matrix .matrix-org-head{background:#e8e4d8;font-weight:700;min-width:120px}
+.rights-matrix .matrix-org-head small{display:block;font-size:9px;color:#777;font-weight:400}
+.rights-matrix .matrix-app-head{background:#f1eee6;min-width:85px}
+.rights-matrix .matrix-subhead{min-width:48px;max-width:90px;white-space:normal;font-size:9px}
+.rights-matrix .matrix-check{min-width:34px;padding:5px 4px}
+.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:190px}
+@media(max-width:700px){.context-picker{grid-template-columns:1fr}.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:145px}}

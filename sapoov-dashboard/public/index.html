@@ -12,13 +12,14 @@
 <main class="wrap">
 <section class="intro"><h1>Welkom bij <abbr title="Smart Apps voor Provinciaal Onderwijs Oost-Vlaanderen" tabindex="0">SAPOOV</abbr></h1></section>
 <div id="message" class="message">Je beveiligde sessie wordt gecontroleerd…</div><div id="notice" class="notice" role="status"></div>
+<section id="context-picker" class="context-picker hidden"><label for="organization-context">Actieve organisatiecontext</label><select id="organization-context" class="field"><option value="">Kies een organisatiecontext…</option></select><small>Toegang wordt per organisatiecontext afzonderlijk gecontroleerd.</small></section>
 <section id="apps" class="apps"></section>
 <section id="admin" class="admin hidden">
  <div class="section-head"><div><p class="eyebrow">CENTRAAL BEHEER</p><h2>Gebruikersbeheer</h2><p class="muted">Beheer centraal wie toegang heeft tot welke toepassing en welke rechten daarbij horen.</p></div></div>
  <div class="workspace-nav"><button id="admin-nav" class="workspace-tab hidden">Gebruikersbeheer</button><span class="workspace-note">Alleen de centrale superadministrator kan rechten wijzigen.</span></div>
  <section class="panel matrix-panel">
-  <div class="panel-heading"><div><p class="eyebrow">CENTRALE TOEGANGSCONTROLE</p><h3>Rechtenmatrix</h3></div><div class="matrix-actions"><button id="matrix-collapse-all" class="secondary-btn" type="button">Alles inklappen</button><button id="matrix-expand-all" class="secondary-btn" type="button">Alles uitklappen</button></div></div>
-  <p class="muted">Elke rij is een gebruiker. De kolommen volgen Koepel → Schoolbestuur → School → Toepassing. Locaties staan bij de school vermeld. Rechten op een hoger organisatieniveau gelden voor onderliggende scholen; een instelling op schoolniveau kan daarvan afwijken. Platformtoegang en rollen blijven afzonderlijk beheerd.</p>
+  <div class="panel-heading"><div><p class="eyebrow">CENTRALE TOEGANGSCONTROLE</p><h3>Rechtenmatrix</h3></div></div>
+  <p class="muted">Elke rij is een gebruiker. De kolommen volgen Koepel → Schoolbestuur → School → Campus/vestiging → Module → Rechtenprofiel. Elk vinkje kent een recht uitsluitend toe op het aangeduide organisatieniveau. Er is geen automatische overerving naar onderliggende niveaus. Zoek op naam, e-mailadres of e-maildomein.</p>
   <div class="matrix-toolbar"><input id="matrix-search" class="field" type="search" placeholder="Zoek op naam, e-mailadres of e-maildomein…" autocomplete="off"></div>
   <div class="matrix-scroll"><table id="rights-matrix" class="rights-matrix" aria-label="SAPOOV-rechtenmatrix"></table></div>
  </section>
