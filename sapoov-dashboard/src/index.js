@@ -195,23 +195,7 @@ export default {
         return json({ok:true,enabled:b.enabled});
       }
       
-        const [userRows,appRows,roleRows,assignmentRows,accessRows]=await Promise.all([
-          env.DB.prepare("SELECT id,email,display_name,status,created_at FROM users ORDER BY email").all(),
-          env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
-          env.DB.prepare("SELECT * FROM roles WHERE application_id IS NOT NULL ORDER BY application_id,name").all(),
-          env.DB.prepare(`SELECT uar.user_id,uar.application_id,uar.role_id,uar.scope_json,r.name AS role_name,a.name AS application_name
-            FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id JOIN applications a ON a.id=uar.application_id`).all(),
-          env.DB.prepare("SELECT user_id,application_id,enabled FROM user_application_access").all()
-        ]);
-        return json({
-          users:userRows.results,
-          applications:appRows.results,
-          roles:roleRows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')})),
-          assignments:assignmentRows.results,
-          access:accessRows.results
-        });
-      }
-      if (method==='POST' && path==='/api/admin/access') {
+        if (method==='POST' && path==='/api/admin/access') {
         const b=await bodyJson(request);
         if (!b?.userId || !b?.applicationId || typeof b.enabled!=='boolean') return json({error:'Gebruiker, toepassing en toegang (aan/uit) zijn verplicht.'},400);
         const [target,app]=await Promise.all([
