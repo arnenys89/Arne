@@ -195,6 +195,81 @@ export default {
         const result=await env.DB.prepare('SELECT * FROM audit_events ORDER BY created_at DESC LIMIT 200').all();
         return json({events:result.results});
       }
+      if (method==='GET' && path==='/api/admin/organizations') {
+        const [organizations,campuses,sources]=await Promise.all([
+          env.DB.prepare('SELECT * FROM organizations ORDER BY sort_order,display_name').all(),
+          env.DB.prepare('SELECT * FROM campuses ORDER BY organization_id,sort_order,display_name').all(),
+          env.DB.prepare('SELECT * FROM organization_sources ORDER BY checked_at DESC').all()
+        ]);
+        return json({organizations:organizations.results,campuses:campuses.results,sources:sources.results});
+      }
+      if (method==='POST' && path==='/api/admin/organizations') {
+        const b=await bodyJson(request);
+        const organizationId=id(), slugValue=slug(b?.slug||b?.displayName);
+        if (!b || !slugValue || !String(b.officialName||'').trim() || !String(b.displayName||'').trim()) return json({error:'Officiële naam en publieksnaam zijn verplicht.'},400);
+        const institutionNumber=String(b.institutionNumber||'').trim();
+        if (institutionNumber && !/^\\d{4,8}$/.test(institutionNumber)) return json({error:'Controleer het instellingsnummer. Gebruik uitsluitend de officiële cijfers.'},400);
+        try {
+          await env.DB.prepare(`INSERT INTO organizations(id,slug,official_name,display_name,institution_number,enterprise_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,official_source_url,status,sort_order)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(organizationId,slugValue,String(b.officialName).trim(),String(b.displayName).trim(),institutionNumber||null,String(b.enterpriseNumber||'').trim(),String(b.educationType||''),String(b.educationNetwork||'Provinciaal Onderwijs Oost-Vlaanderen'),b.parentOrganizationId||null,String(b.email||'').trim(),String(b.phone||'').trim(),String(b.website||'').trim(),String(b.logoSourceUrl||'').trim(),String(b.sourceUrl||'').trim(),'draft',Number.isInteger(b.sortOrder)?b.sortOrder:100).run();
+        } catch { return json({error:'Organisatie bestaat al of de bovenliggende organisatie is ongeldig.'},409); }
+        await audit(env.DB,user,'organization.create','organization',organizationId,{slug:slugValue,displayName:b.displayName});
+        return json({ok:true,id:organizationId,status:'draft'},201);
+      }
+      if (method==='PATCH' && path==='/api/admin/organizations') {
+        const b=await bodyJson(request);
+        if (!b?.id) return json({error:'Organisatie-ID ontbreekt.'},400);
+        const allowed=['officialName','displayName','institutionNumber','enterpriseNumber','educationType','educationNetwork','parentOrganizationId','email','phone','website','logoObjectKey','logoSourceUrl','logoAlt','logoLicenseNote','sourceUrl','status','sortOrder'];
+        const columns={officialName:'official_name',displayName:'display_name',institutionNumber:'institution_number',enterpriseNumber:'enterprise_number',educationType:'education_type',educationNetwork:'education_network',parentOrganizationId:'parent_organization_id',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',logoAlt:'logo_alt',logoLicenseNote:'logo_license_note',sourceUrl:'official_source_url',status:'status',sortOrder:'sort_order'};
+        const sets=[],values=[];
+        for (const key of allowed) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(columns[key]+'=?'); values.push(b[key]===null?'':b[key]); }
+        if (!sets.length) return json({error:'Geen wijzigbare velden ontvangen.'},400);
+        if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige organisatiestatus.'},400);
+        if (b.institutionNumber && !/^\\d{4,8}$/.test(String(b.institutionNumber))) return json({error:'Ongeldig instellingsnummer.'},400);
+        sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
+        try {
+          const result=await env.DB.prepare('UPDATE organizations SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
+          if (!result.meta.changes) return json({error:'Organisatie niet gevonden.'},404);
+        } catch { return json({error:'Wijziging conflicteert met bestaande gegevens of een ongeldige bovenliggende organisatie.'},409); }
+        await audit(env.DB,user,'organization.update','organization',b.id,{fields:allowed.filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
+        return json({ok:true});
+      }
+      if (method==='POST' && path==='/api/admin/campuses') {
+        const b=await bodyJson(request), campusId=id(), campusSlug=slug(b?.slug||b?.displayName);
+        if (!b?.organizationId || !campusSlug || !String(b.officialName||'').trim() || !String(b.displayName||'').trim()) return json({error:'Organisatie, officiële naam en campusnaam zijn verplicht.'},400);
+        const organization=await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.organizationId).first();
+        if (!organization) return json({error:'Onderwijsinstelling niet gevonden.'},404);
+        try {
+          await env.DB.prepare(`INSERT INTO campuses(id,organization_id,slug,official_name,display_name,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,website_url,logo_source_url,official_source_url,is_main_campus,status,sort_order)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',?)`).bind(campusId,b.organizationId,campusSlug,String(b.officialName).trim(),String(b.displayName).trim(),String(b.street||''),String(b.houseNumber||''),String(b.bus||''),String(b.postalCode||''),String(b.municipality||''),String(b.countryCode||'BE'),String(b.email||''),String(b.phone||''),String(b.website||''),String(b.logoSourceUrl||''),String(b.sourceUrl||''),b.isMainCampus?1:0,Number.isInteger(b.sortOrder)?b.sortOrder:100).run();
+        } catch { return json({error:'Campus bestaat al binnen deze instelling of bevat ongeldige gegevens.'},409); }
+        await audit(env.DB,user,'campus.create','campus',campusId,{organizationId:b.organizationId,displayName:b.displayName});
+        return json({ok:true,id:campusId,status:'draft'},201);
+      }
+      if (method==='PATCH' && path==='/api/admin/campuses') {
+        const b=await bodyJson(request);
+        if (!b?.id) return json({error:'Campus-ID ontbreekt.'},400);
+        const columns={officialName:'official_name',displayName:'display_name',street:'street',houseNumber:'house_number',bus:'bus',postalCode:'postal_code',municipality:'municipality',countryCode:'country_code',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',sourceUrl:'official_source_url',isMainCampus:'is_main_campus',status:'status',sortOrder:'sort_order'};
+        const sets=[],values=[];
+        for (const [key,column] of Object.entries(columns)) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(column+'=?'); values.push(key==='isMainCampus'?(b[key]?1:0):b[key]); }
+        if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige campusstatus.'},400);
+        if (!sets.length) return json({error:'Geen wijzigbare velden ontvangen.'},400);
+        sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
+        const result=await env.DB.prepare('UPDATE campuses SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
+        if (!result.meta.changes) return json({error:'Campus niet gevonden.'},404);
+        await audit(env.DB,user,'campus.update','campus',b.id,{fields:Object.keys(columns).filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
+        return json({ok:true});
+      }
+      if (method==='POST' && path==='/api/admin/organization-sources') {
+        const b=await bodyJson(request);
+        if (!b?.fieldName || !b?.sourceName || !b?.sourceUrl || (!!b.organizationId===!!b.campusId)) return json({error:'Veld, bron, bron-URL en precies één organisatie of campus zijn verplicht.'},400);
+        const sourceId=id();
+        try {
+          await env.DB.prepare('INSERT INTO organization_sources(id,organization_id,campus_id,field_name,source_name,source_url,source_record_id,notes) VALUES(?,?,?,?,?,?,?,?)').bind(sourceId,b.organizationId||null,b.campusId||null,String(b.fieldName),String(b.sourceName),String(b.sourceUrl),String(b.sourceRecordId||''),String(b.notes||'')).run();
+        } catch { return json({error:'Bronregistratie kon niet worden opgeslagen.'},409); }
+        await audit(env.DB,user,'organization.source.add','organization_source',sourceId,{fieldName:b.fieldName,sourceName:b.sourceName});
+        return json({ok:true,id:sourceId},201);
+      }
       return json({error:'Beheereindpunt niet gevonden.'},404);
     }
     if (env.ASSETS) return env.ASSETS.fetch(request);
