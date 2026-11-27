@@ -140,8 +140,9 @@ function renderTeamMatrix(){
  const nameTerm=$('team-filter-name').value.trim().toLowerCase();
  const emailTerm=$('team-filter-email').value.trim().toLowerCase();
  const domainTerm=$('team-filter-domain').value.trim().toLowerCase().replace(/^@/,'');
- const filteredUsers=users.filter(u=>{
-  const name=(u.display_name||'').toLowerCase(),email=(u.email||'').toLowerCase(),domain=email.split('@')[1]||'';
+ const staffRows=personnel.length?personnel:users;
+ const filteredUsers=staffRows.filter(u=>{
+  const name=(u.display_name||u.name||'').toLowerCase(),email=(u.email||'').toLowerCase(),domain=email.split('@')[1]||'';
   return (!nameTerm||name.includes(nameTerm))&&(!emailTerm||email.includes(emailTerm))&&(!domainTerm||domain.includes(domainTerm));
  });
  const roots=buildTeamTree(),headerRows=[[],[],[],[]],visibleColumns=[];
@@ -160,12 +161,13 @@ function renderTeamMatrix(){
  $('team-matrix-head').innerHTML='<tr><th class="staff-heading" rowspan="4">Personeelslid</th>'+headerRows[0].join('')+'</tr>'+headerRows.slice(1).map(row=>'<tr>'+row.join('')+'</tr>').join('');
  const membershipMap=new Map(teamMemberships.map(m=>[m.user_id+':'+m.team_id,m]));
  $('team-matrix-body').innerHTML=filteredUsers.map(u=>{
+  const userId=u.user_id||u.id;
   const cells=visibleColumns.map(col=>{
    if(col.type==='collapsed')return '<td class="collapsed-cell">…</td>';
-   const team=col.team,m=membershipMap.get(u.id+':'+team.id),value=m?.membership_type||'';
-   return '<td><select class="team-membership-select" data-team="'+esc(team.id)+'" data-user="'+esc(u.id)+'" aria-label="'+esc((u.display_name||u.email)+' – '+team.name)+'"><option value="">Geen lid</option><option value="active_member" '+(value==='active_member'?'selected':'')+'>Actief lid</option><option value="passive_member" '+(value==='passive_member'?'selected':'')+'>Passief lid</option><option value="team_leader" '+(value==='team_leader'?'selected':'')+'>Teamleider (actief lid)</option></select></td>';
+   const team=col.team,m=membershipMap.get(userId+':'+team.id),value=m?.membership_type||'';
+   return '<td><select class="team-membership-select" data-team="'+esc(team.id)+'" data-user="'+esc(userId)+'" aria-label="'+esc((u.display_name||u.name||u.email)+' – '+team.name)+'"><option value="">Geen lid</option><option value="active_member" '+(value==='active_member'?'selected':'')+'>Actief lid</option><option value="passive_member" '+(value==='passive_member'?'selected':'')+'>Passief lid</option><option value="team_leader" '+(value==='team_leader'?'selected':'')+'>Teamleider (actief lid)</option></select></td>';
   }).join('');
-  return '<tr><td class="staff-cell"><b>'+esc(u.display_name||u.email)+'</b><small>'+esc(u.email)+'</small></td>'+cells+'</tr>';
+  return '<tr><td class="staff-cell"><b>'+esc(u.display_name||u.name||u.email)+'</b><small>'+esc(u.email)+'</small></td>'+cells+'</tr>';
  }).join('')||'<tr><td colspan="'+(visibleColumns.length+1)+'" class="empty-row">Geen personeelsleden gevonden of er zijn nog geen teams aangemaakt.</td></tr>';
 }
 async function loadStructureAdmin(){
