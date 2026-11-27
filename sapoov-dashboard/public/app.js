@@ -68,7 +68,7 @@ function renderRightsMatrix(){
   for(const child of kids)addNodeHeader(child,level+1);
  };
  for(const root of roots)addNodeHeader(root,0);
- const header='<thead><tr><th class="matrix-user-head" rowspan="'+totalRows+'">Gebruiker</th>'+headerRows.map(row=>'<tr>'+row.join('')+'</tr>').join('')+'</thead>';
+ const header='<thead>'+headerRows.map((row,i)=>'<tr>'+(i===0?'<th class="matrix-user-head" rowspan="'+totalRows+'">Gebruiker</th>':'')+row.join('')+'</tr>').join('')+'</thead>';
  const renderCells=(node,user)=>{
   let cells='';
   for(const a of appList){

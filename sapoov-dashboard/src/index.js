@@ -119,16 +119,19 @@ export default {
       const available=access.results.filter(x=>Number(x.enabled)===1).map(x=>x.organization_unit_id);
       let unitId=url.searchParams.get('organizationUnitId')||'';
       if(!unitId&&available.length===1)unitId=available[0];
-      if(!unitId&&!superadmin) return json({error:'Kies eerst een organisatiecontext.'},400);
+      const candidateUnits=superadmin?units.results:units.results.filter(x=>available.includes(x.id));
+      if(!unitId&&candidateUnits.length===1)unitId=candidateUnits[0].id;
+      if(!unitId&&candidateUnits.length>1)return json({error:'Kies eerst een organisatiecontext.',requiresOrganizationContext:true,organizationUnits:candidateUnits.map(x=>({id:x.id,name:x.name,type:x.unit_type}))},409);
+      if(!unitId)return json({error:'Je hebt geen expliciete toegang tot deze toepassing.'},403);
       const selectedUnit=units.results.find(x=>x.id===unitId);
-      if(!selectedUnit) return json({error:'De gekozen organisatiecontext bestaat niet.'},404);
-      if(!superadmin&&!explicitScopeEnabled(access.results,unitId)) return json({error:'Je hebt geen expliciete toegang tot deze toepassing binnen deze organisatiecontext.'},403);
+      if(!selectedUnit)return json({error:'De gekozen organisatiecontext bestaat niet.'},404);
+      if(!superadmin&&!explicitScopeEnabled(access.results,unitId))return json({error:'Je hebt geen expliciete toegang tot deze toepassing binnen deze organisatiecontext.'},403);
       const roles=roleRows.results.filter(row=>row.organization_unit_id===unitId&&Number(row.enabled)===1)
         .map(row=>({id:row.role_id,name:row.name,description:row.description,permissions:JSON.parse(row.permissions_json||'[]')}));
       return json({
         user:{id:user.id,email:user.email,display_name:user.display_name},
         application:{id:app.id,name:app.name},organizationUnit:{id:selectedUnit.id,name:selectedUnit.name,type:selectedUnit.unit_type},
-        roles,authorized:true
+        organizationUnits:[{id:selectedUnit.id,name:selectedUnit.name}],roles,authorized:true
       });
     }
 
