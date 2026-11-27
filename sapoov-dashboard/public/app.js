@@ -1,11 +1,11 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iconSvg = icon => { const paths = {"shopping-cart":"<path d=\"M3 4h2l2.5 12h11L21 8H6\"/><circle cx=\"10\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M9 11h9\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18M7 14h3m3 0h4m-10 3h3\"/>","graduation-cap":"<path d=\"m2 9 10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 3 9 3 12 0v-5m4-2v7\"/>","calendar-check":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18m4 5 2 2 4-5\"/>","book-open":"<path d=\"M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2zM21 5c-4-1-7 0-9 2v13c2-2 5-3 9-2z\"/>","layout-dashboard":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"5\" rx=\"1\"/><rect x=\"13\" y=\"10\" width=\"8\" height=\"11\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","network":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"4\" r=\"2\"/><circle cx=\"4\" cy=\"20\" r=\"2\"/><circle cx=\"20\" cy=\"20\" r=\"2\"/><path d=\"m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4\"/>","clipboard-list":"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4V2h6v2M9 10h6m-6 4h6m-6 4h4\"/>","compass":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2.5 6-6 2.5 2.5-6z\"/>"}; const path = paths[icon] || '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'; return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>'; };
-let me=null, users=[], apps=[], roles=[], assignments=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
+let me=null, users=[], apps=[], roles=[], assignments=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null, activeContextId='';
 let organizations=[], organizationLocations=[], teams=[], teamMemberships=[], moduleAccessAssignments=[], scopedRoleAssignments=[], selectedOrganizationId='';
 const collapsedTeamGroups=new Set(), collapsedRightsGroups=new Set();
 async function api(path,options={}) {
- const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});
+ const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(activeContextId?{'x-sapoov-context':activeContextId}:{}),...(options.headers||{})}});
  const data=await response.json().catch(()=>({}));
  if(!response.ok) throw new Error(data.error||`HTTP ${response.status}`);
  return data;
@@ -63,7 +63,14 @@ function renderStudents(){
 }
 function updateEnrolClasses(){const y=$('enrol-year').value;$('enrol-class').innerHTML='<option value="">Selecteer klas</option>'+(students.classes||[]).filter(c=>c.school_year_id===y).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.campus_name+' · '+c.class_code)+'</option>').join('');}
 function renderApps(){
- $('apps').innerHTML=apps.filter(a=>me.superadmin||assignments.some(x=>x.application_id===a.id)).map(a=>{const internal=['werkplekreservatie','beleidskompas'].includes(a.id);const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');return `<a class="app" href="${esc(target)}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Er zijn nog geen toepassingen aan je account toegewezen.</div>';
+ $('apps').innerHTML=apps.map(a=>{
+  const internal=['werkplekreservatie','beleidskompas'].includes(a.id);
+  let target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');
+  if(activeContextId){
+   try{const u=new URL(target,window.location.origin);u.searchParams.set('sapoov_context',activeContextId);target=u.origin===window.location.origin?(u.pathname+u.search+u.hash):u.href;}catch{}
+  }
+  return `<a class="app" href="${esc(target)}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`;
+ }).join('')||'<div class="message">Er zijn in deze organisatiecontext nog geen toepassingen aan je account toegewezen.</div>';
 }
 function organizationPath(orgId){
  const byId=new Map(organizations.map(o=>[o.id,o]));
@@ -296,11 +303,30 @@ async function saveTeam(){
 }
 async function start(){
  try{
-  const data=await api('/api/me');me=data;$('identity').textContent=data.user.display_name||data.user.email;
-  $('message').textContent=`Aangemeld als ${data.user.email}.`;apps=data.applications;assignments=data.assignments;renderApps();
+  if(!activeContextId){try{activeContextId=sessionStorage.getItem('sapoov.activeContext')||'';}catch{}}
+  let data=await api('/api/me');
+  const contexts=data.contexts||[],selector=$('context-select');
+  if(contexts.length){
+   selector.classList.remove('hidden');
+   selector.innerHTML='<option value="">Kies organisatiecontext…</option>'+contexts.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.display_name)+'</option>').join('');
+   if(activeContextId&&!contexts.some(c=>c.id===activeContextId))activeContextId='';
+   if(data.activeContext){activeContextId=data.activeContext.id;try{sessionStorage.setItem('sapoov.activeContext',activeContextId);}catch{}}
+   selector.value=activeContextId;
+  }else{
+   selector.classList.add('hidden');activeContextId='';try{sessionStorage.removeItem('sapoov.activeContext');}catch{}
+  }
+  me=data;$('identity').textContent=data.user.display_name||data.user.email;
+  assignments=data.assignments||[];
+  if(data.requiresContextSelection){
+   apps=[];renderApps();$('message').textContent='Je account heeft toegang tot meerdere scholen. Kies eerst de organisatiecontext bovenaan.';
+  }else{
+   apps=data.applications||[];renderApps();
+   $('message').textContent=data.activeContext?'Aangemeld als '+data.user.email+' · '+data.activeContext.display_name+'.':'Aangemeld als '+data.user.email+'.';
+  }
   if(data.superadmin){$('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');await loadAdmin();await loadStructureAdmin();}
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
+$('context-select').addEventListener('change',e=>{activeContextId=e.target.value;try{if(activeContextId)sessionStorage.setItem('sapoov.activeContext',activeContextId);else sessionStorage.removeItem('sapoov.activeContext');}catch{}start();});
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
 $('user-list').addEventListener('click',e=>{const b=e.target.closest('[data-user]');if(b){selectedUser=b.dataset.user;renderAdmin();}});
 $('app-select').addEventListener('change',e=>{selectedApp=e.target.value;editingRole=null;renderAdmin();});
