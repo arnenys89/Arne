@@ -202,8 +202,20 @@ export default {
       const selected=units.results.find(x=>x.id===unitId);
       if(!selected)return json({error:'De gekozen organisatiecontext bestaat niet.'},404);
       if(!superadmin&&!explicitScopeEnabled(access.results,unitId))return json({error:'Je hebt geen expliciete toegang tot deze toepassing binnen deze organisatiecontext.'},403);
+      let allowedTeamCampuses=[];
+      if(appSlug==='bestelplatform'){
+        allowedTeamCampuses=selected.unit_type==='locatie'?[selected.name]:selected.unit_type==='school'?units.results.filter(x=>x.parent_id===selected.id&&x.unit_type==='locatie').map(x=>x.name):[];
+        if(!allowedTeamCampuses.length)return json({error:'Bestelplatform is alleen beschikbaar binnen een expliciet toegekende school- of campuscontext.'},403);
+      }
       const roles=roleRows.results.filter(x=>x.organization_unit_id===unitId&&Number(x.enabled)===1).map(x=>({id:x.role_id,name:x.name,description:x.description,permissions:JSON.parse(x.permissions_json||'[]'),scope:{organizationUnitId:unitId,organizationUnitName:selected.name}}));
-      const teamData=appSlug==='bestelplatform'?await Promise.all([env.DB.prepare('SELECT id,name,campus,description,active,custom_campus FROM teams WHERE active=1 ORDER BY campus,name').all(),env.DB.prepare('SELECT team_id,member_role FROM team_members WHERE user_id=?').bind(user.id).all(),env.DB.prepare('SELECT tm.team_id,tm.member_role,u.email FROM team_members tm JOIN users u ON u.id=tm.user_id').all()]):[{results:[]},{results:[]},{results:[]}];
+      let teamData=[{results:[]},{results:[]},{results:[]}];
+      if(appSlug==='bestelplatform'){
+        const placeholders=allowedTeamCampuses.map(()=>'?').join(',');
+        const teams=await env.DB.prepare("SELECT id,name,campus,description,active,custom_campus FROM teams WHERE active=1 AND (campus IN ("+placeholders+")"+(selected.unit_type==='school'?" OR campus='Beide campussen'":'')+") ORDER BY campus,name").bind(...allowedTeamCampuses).all();
+        const teamIds=new Set(teams.results.map(x=>x.id));
+        const [members,allMembers]=await Promise.all([env.DB.prepare('SELECT team_id,member_role FROM team_members WHERE user_id=?').bind(user.id).all(),env.DB.prepare('SELECT tm.team_id,tm.member_role,u.email FROM team_members tm JOIN users u ON u.id=tm.user_id').all()]);
+        teamData=[teams,{results:members.results.filter(x=>teamIds.has(x.team_id))},{results:allMembers.results.filter(x=>teamIds.has(x.team_id))}];
+      }
       return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},organizationUnit:{id:selected.id,name:selected.name,type:selected.unit_type},organizationUnits:[{id:selected.id,name:selected.name}],roles,teams:teamData[0].results,teamMemberships:teamData[1].results,teamMembers:teamData[2].results,authorized:superadmin||explicitScopeEnabled(access.results,unitId)});
     }
 
