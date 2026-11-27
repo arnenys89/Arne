@@ -121,40 +121,6 @@ function renderRightsMatrix(){
  $('rights-matrix').innerHTML=header+'<tbody>'+body+'</tbody>';
 }
 
- const term=$('matrix-search').value.trim().toLowerCase();
- const filtered=users.filter(u=>(u.display_name+' '+u.email).toLowerCase().includes(term));
- const appList=apps.filter(a=>a.status!=='hidden');
- const accessSet=new Set(matrixAccess.filter(x=>x.enabled===1).map(x=>x.user_id+'::'+x.application_id));
- const roleSet=new Set(assignments.map(x=>x.user_id+'::'+x.application_id+'::'+x.role_id));
- let head='<thead><tr><th class="matrix-user-head" rowspan="2">Gebruiker</th>';
- for(const app of appList){
-   const appRoles=roles.filter(r=>r.application_id===app.id);
-   const collapsed=collapsedApps.has(app.id);
-   head+=`<th class="matrix-app-head" colspan="${collapsed?1:1+appRoles.length}"><button type="button" class="matrix-collapse" data-collapse-app="${esc(app.id)}" aria-label="${collapsed?'Kolommen uitklappen':'Kolommen inklappen'}">${collapsed?'+':'−'}</button>${esc(app.name)}</th>`;
- }
- head+='</tr><tr>';
- for(const app of appList){
-   const collapsed=collapsedApps.has(app.id);
-   head+='<th class="matrix-subhead">Toegang</th>';
-   if(!collapsed) for(const role of roles.filter(r=>r.application_id===app.id)) head+=`<th class="matrix-subhead" title="${esc(role.description||role.name)}">${esc(role.name)}</th>`;
- }
- head+='</tr></thead><tbody>';
- for(const user of filtered){
-   head+=`<tr><th scope="row" class="matrix-user"><b>${esc(user.display_name||user.email)}</b><small>${esc(user.email)}</small>${user.status!=='active'?'<span class="matrix-status">'+esc(user.status)+'</span>':''}</th>`;
-   for(const app of appList){
-     const key=user.id+'::'+app.id, enabled=accessSet.has(key), collapsed=collapsedApps.has(app.id);
-     head+=`<td class="matrix-check"><input type="checkbox" data-matrix-access data-user="${esc(user.id)}" data-app="${esc(app.id)}" aria-label="Platformtoegang ${esc(app.name)} voor ${esc(user.email)}" ${enabled?'checked':''}></td>`;
-     if(!collapsed) for(const role of roles.filter(r=>r.application_id===app.id)){
-       const assigned=roleSet.has(key+'::'+role.id);
-       head+=`<td class="matrix-check"><input type="checkbox" data-matrix-role data-user="${esc(user.id)}" data-app="${esc(app.id)}" data-role="${esc(role.id)}" aria-label="Rol ${esc(role.name)} voor ${esc(user.email)} in ${esc(app.name)}" ${assigned?'checked':''}></td>`;
-     }
-   }
-   head+='</tr>';
- }
- if(!filtered.length) head+='<tr><td class="matrix-empty" colspan="'+(1+appList.reduce((n,a)=>n+1+(collapsedApps.has(a.id)?0:roles.filter(r=>r.application_id===a.id).length),0))+'">Geen gebruikers gevonden.</td></tr>';
- head+='</tbody>';
- $('rights-matrix').innerHTML=head;
-}
 function renderEducation(){
  const classes=education.classes||[], campuses=education.campuses||[], years=education.school_years||[];
  $('class-count').textContent=classes.length;
