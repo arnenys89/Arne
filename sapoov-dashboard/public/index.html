@@ -8,7 +8,7 @@
 </head>
 <body id="top">
 <aside class="sapoov-side" aria-label="SAPOOV-navigatie"><a class="sapoov-side-brand" href="#top"><span class="sapoov-mark">S</span><span><b>SAPOOV</b><small>SMART APPS · POOV</small></span></a><div class="sapoov-side-label">WERKRUIMTE</div><a class="sapoov-side-link active" href="#apps">Dashboard</a><a class="sapoov-side-link" href="#admin">Gebruikersbeheer</a><div class="sapoov-side-label">TOEPASSINGEN</div><a class="sapoov-side-link" href="https://richtpunt-professionalisering.arne-nys.workers.dev">Professionalisering</a><a class="sapoov-side-link" href="https://calendar-bridge.arne-nys.workers.dev">Calendar Bridge</a><a class="sapoov-side-link" href="/activiteitenplatform">Activiteitenplatform</a><a class="sapoov-side-link" href="https://richtpunt-examenmaker.arne-nys.workers.dev">Examenmaker</a><a class="sapoov-side-link" href="/werkplekreservatie">Werkplekreservatie</a><a class="sapoov-side-link" href="/doelennetwerk/">SAPO Doelennetwerk</a><a class="sapoov-side-link" href="/bestelplatform">Bestelplatform</a><a class="sapoov-side-link" href="https://schoolwerkplan-poov.pages.dev">Schoolwerkplan</a><a class="sapoov-side-link" href="/beleidskompas">Beleidskompas</a><div class="sapoov-side-foot">PROVINCIAAL ONDERWIJS<br>OOST-VLAANDEREN</div></aside>
-<header class="top"><a class="brand" href="/" aria-label="Provinciaal Onderwijs Oost-Vlaanderen"><img class="brand-logo" src="/poov-logo.svg" alt="Provinciaal Onderwijs Oost-Vlaanderen"></a><div id="identity" class="identity">Beveiligde omgeving</div></header>
+<header class="top"><a class="brand" href="/" aria-label="Provinciaal Onderwijs Oost-Vlaanderen"><img class="brand-logo" src="/poov-logo.svg" alt="Provinciaal Onderwijs Oost-Vlaanderen"></a><div class="top-session"><select id="context-select" class="context-select hidden" aria-label="Actieve organisatiecontext"></select><div id="identity" class="identity">Beveiligde omgeving</div></div></header>
 <main class="wrap">
 <section class="intro"><h1>Welkom bij <abbr title="Smart Apps voor Provinciaal Onderwijs Oost-Vlaanderen" tabindex="0">SAPOOV</abbr></h1></section>
 <div id="message" class="message">Je beveiligde sessie wordt gecontroleerd…</div><div id="notice" class="notice" role="status"></div>
@@ -21,12 +21,91 @@
   <div class="workspace-main">
    <section class="panel"><div class="panel-heading"><div><p class="eyebrow">TOEPASSING</p><h3>Rechten per website</h3></div><select id="app-select" class="field"></select></div>
     <div class="access-config"><label for="access-audience">Cloudflare Access audience voor deze website</label><div class="assign-line"><input id="access-audience" class="field" placeholder="Application AUD-tag"><button id="save-audience" class="secondary-btn">Koppeling opslaan</button></div><small class="muted">Deze waarde koppelt de aanmeldsessie van de website veilig aan de centrale rechtencontrole.</small></div><div class="management-grid">
-     <div><div class="panel-heading"><h3>Rollen beheren</h3><button id="new-role" class="primary-btn">Nieuwe rol</button></div><p class="muted">Maak toepassingsspecifieke rollen aan, zoals administrator, aankoper, teamleider of lezer. Rechten zijn technische sleutels die de website controleert.</p><div id="role-list" class="role-list"></div></div>
+     <div><div class="panel-heading"><h3>Rollen beheren <span id="role-count" class="count">0</span></h3><button id="new-role" class="primary-btn">Nieuwe rol</button></div><p class="muted">Maak toepassingsspecifieke rollen aan, zoals administrator, aankoper, teamleider of lezer. Rechten zijn technische sleutels die de website controleert.</p><div id="role-list" class="role-list"></div></div>
      <div class="role-editor hidden" id="role-editor"><h3 id="role-editor-title">Nieuwe rol</h3><label for="role-name">Rolnaam</label><input id="role-name" class="field" placeholder="Bijv. Teamleider"><label for="role-description">Omschrijving</label><input id="role-description" class="field" placeholder="Wat mag deze rol?"><label for="role-permissions">Rechtensleutels</label><textarea id="role-permissions" class="field" rows="4" placeholder="reservations.manage_team, reservations.view_all"></textarea><small class="muted">Komma-gescheiden. Gebruik * uitsluitend voor volledige toegang.</small><div class="button-row"><button id="save-role" class="primary-btn">Opslaan</button><button id="cancel-role" class="secondary-btn">Annuleren</button></div></div>
     </div>
    </section>
    <section class="panel assignment-panel"><p class="eyebrow">GEBRUIKERSTOEGANG</p><h3 id="selected-user">Selecteer een gebruiker</h3><p id="selected-email" class="muted"></p><div class="assign-line"><select id="assign-role" class="field"><option>Kies een rol…</option></select><button id="assign-button" class="primary-btn" disabled>Recht toekennen</button></div><div class="scope-editor"><label for="assign-scope">Aanvullende beperking (optioneel, JSON)</label><textarea id="assign-scope" class="field" rows="2" placeholder="{}"></textarea><small class="muted">Bijvoorbeeld campus, team of categorie. De websitebackend moet deze beperking toepassen.</small></div><div id="assigned-list" class="assigned-list"></div></section>
    <section class="panel"><div class="panel-heading"><h3>Auditlog</h3></div><div id="audit" class="audit-list"></div></section>
+   <section class="panel organization-panel">
+    <div class="panel-heading"><div><p class="eyebrow">ORGANISATIESTRUCTUUR</p><h3>Koepels, schoolbesturen, scholen en locaties</h3></div><span id="organization-count" class="count">0</span></div>
+    <p class="muted">Beheer de centrale hiërarchie. Fysieke vestigingen worden als locaties geregistreerd. Nieuwe records starten als concept en worden niet automatisch geactiveerd.</p>
+    <div id="organization-status" class="inline-status" role="status">Organisatiegegevens worden geladen…</div>
+    <div class="organization-layout">
+     <div class="organization-list-panel">
+      <label for="organization-search">Zoek organisatie of locatie</label><input id="organization-search" class="field" type="search" placeholder="Naam, instellingsnummer of gemeente">
+      <div id="organization-rows" class="organization-rows"></div>
+     </div>
+     <div class="organization-editor">
+      <h4 id="organization-editor-title">Nieuwe organisatie</h4>
+      <input id="organization-id" type="hidden">
+      <div class="editor-grid">
+       <label>Organisatietype<select id="organization-type" class="field"><option value="umbrella">Koepel</option><option value="school_board">Schoolbestuur</option><option value="institution" selected>Onderwijsinstelling</option></select></label>
+       <label>Bovenliggende organisatie<select id="organization-parent" class="field"><option value="">Geen</option></select></label>
+       <label>Officiële naam<input id="organization-official-name" class="field" required></label>
+       <label>Weergavenaam<input id="organization-display-name" class="field" required></label>
+       <label>Afkorting<input id="organization-abbreviation" class="field"></label>
+       <label>Instellingsnummer<input id="organization-number" class="field" inputmode="numeric"></label>
+       <label>Algemeen e-mailadres<input id="organization-email" class="field" type="email"></label>
+       <label>Telefoon<input id="organization-phone" class="field"></label>
+       <label>Website<input id="organization-website" class="field" type="url"></label>
+       <label>Straat<input id="organization-street" class="field"></label>
+       <label>Huisnummer<input id="organization-house" class="field"></label>
+       <label>Bus<input id="organization-bus" class="field"></label>
+       <label>Postcode<input id="organization-postcode" class="field"></label>
+       <label>Gemeente<input id="organization-municipality" class="field"></label>
+       <label>Landcode<input id="organization-country" class="field" value="BE"></label>
+       <label>Bronfiche<input id="organization-source" class="field" type="url"></label>
+       <label>Logo-bronpagina<input id="organization-logo-source" class="field" type="url"></label>
+      </div>
+      <div class="button-row"><button id="save-organization" class="primary-btn">Organisatie opslaan</button><button id="new-organization" class="secondary-btn">Nieuw</button></div>
+      <p class="muted">Een instellingsnummer is een extern administratief kenmerk. De interne koppeling gebruikt altijd een UUID.</p>
+      <div class="location-editor">
+       <div class="panel-heading"><h4>Locaties van de geselecteerde school</h4><span id="location-count" class="count">0</span></div>
+       <div id="location-rows" class="location-rows"></div>
+       <div class="editor-grid">
+        <label>Locatienaam<input id="location-name" class="field"></label><label>Locatiecode<input id="location-code" class="field"></label>
+        <label>Straat<input id="location-street" class="field"></label><label>Huisnummer<input id="location-house" class="field"></label>
+        <label>Bus<input id="location-bus" class="field"></label><label>Postcode<input id="location-postcode" class="field"></label>
+        <label>Gemeente<input id="location-municipality" class="field"></label><label>Locatietype<select id="location-type" class="field"><option value="school_site">Schoollocatie</option><option value="adult_education_campus">Campus volwassenenonderwijs</option><option value="lesson_place">Lesplaats</option><option value="administrative_office">Administratieve zetel</option><option value="other">Andere</option></select></label>
+        <label>E-mailadres<input id="location-email" class="field" type="email"></label><label>Telefoon<input id="location-phone" class="field"></label>
+        <label>Bronfiche<input id="location-source" class="field" type="url"></label>
+       </div>
+       <button id="save-location" class="secondary-btn" disabled>Locatie toevoegen</button>
+      </div>
+     </div>
+    </div>
+   </section>
+   <section class="panel team-admin-panel">
+    <div class="panel-heading"><div><p class="eyebrow">TEAMSTRUCTUUR</p><h3>Teams beheren</h3></div><span id="team-count" class="count">0</span></div>
+    <p class="muted">Eén personeelslid per rij. De kolommen volgen koepel → schoolbestuur → school → team. Teamleider wordt als actief lid beschouwd.</p>
+    <div id="team-status" class="inline-status" role="status">Teamgegevens worden geladen…</div>
+    <div class="team-filter-grid">
+     <label>Naam<input id="team-filter-name" class="field" type="search" placeholder="Zoek op naam"></label>
+     <label>E-mailadres<input id="team-filter-email" class="field" type="search" placeholder="Zoek op e-mailadres"></label>
+     <label>E-mailextensie / domein<input id="team-filter-domain" class="field" type="search" placeholder="@richtpunt.be"></label>
+     <label>School<select id="team-school-filter" class="field"><option value="">Alle scholen</option></select></label>
+    </div>
+    <div class="team-matrix-scroll"><table class="team-matrix"><thead id="team-matrix-head"></thead><tbody id="team-matrix-body"></tbody></table></div>
+    <div class="team-create-row">
+     <label>School<select id="new-team-school" class="field"><option value="">Kies een school…</option></select></label>
+     <label>Teamnaam<input id="new-team-name" class="field" placeholder="Bijv. Team Nederlands"></label>
+     <label>Teamcode<input id="new-team-code" class="field"></label>
+     <button id="save-team" class="primary-btn">Team toevoegen</button>
+    </div>
+   </section>
+   <section class="panel rights-matrix-panel">
+    <div class="panel-heading"><div><p class="eyebrow">CENTRAAL RECHTENBEHEER</p><h3>Rechtenmatrix per school en module</h3></div><span id="rights-column-count" class="count">0</span></div>
+    <p class="muted">De kolommen volgen koepel → schoolbestuur → school → module → rechtenprofiel. Platformtoegang is een afzonderlijke schakelaar per gebruiker, module en school. Een rol op een hoger niveau wordt niet automatisch doorgegeven.</p>
+    <div id="rights-status" class="inline-status" role="status">Rechtenmatrix wordt geladen…</div>
+    <div class="team-filter-grid">
+     <label>Naam<input id="rights-filter-name" class="field" type="search" placeholder="Zoek op naam"></label>
+     <label>E-mailadres<input id="rights-filter-email" class="field" type="search" placeholder="Zoek op e-mailadres"></label>
+     <label>E-mailextensie / domein<input id="rights-filter-domain" class="field" type="search" placeholder="@richtpunt.be"></label>
+     <label>School<select id="rights-school-filter" class="field"><option value="">Alle scholen</option></select></label>
+    </div>
+    <div class="team-matrix-scroll"><table class="team-matrix rights-matrix"><thead id="rights-matrix-head"></thead><tbody id="rights-matrix-body"></tbody></table></div>
+   </section>
    <section class="panel education-panel"><div class="panel-heading"><div><p class="eyebrow">CENTRALE ONDERWIJSGEGEVENS</p><h3>Campussen, schooljaren en klassen</h3></div><span id="class-count" class="count">0</span></div><div id="education-summary" class="education-summary"></div><div class="education-filters"><input id="class-search" class="field" type="search" placeholder="Zoek een klas…"><select id="campus-filter" class="field"><option value="">Alle campussen</option></select><select id="year-filter" class="field"><option value="">Alle schooljaren</option></select></div><div class="table-scroll"><table class="education-table"><thead><tr><th>Klas</th><th>Campus</th><th>Schooljaar</th><th>Status</th></tr></thead><tbody id="class-rows"></tbody></table></div><p class="muted education-note">Deze gegevens worden centraal uit SAPOOV geladen. Wijzigingen aan de bron gebeuren pas na controle van de officiële klasgegevens.</p></section>
    <section class="panel"><div class="panel-heading"><div><p class="eyebrow">CENTRALE PERSONEELSGEGEVENS</p><h3>Personeelsprofielen</h3></div><span id="personnel-count" class="count">0</span></div><p class="muted">Koppel bestaande SAPOOV-gebruikers aan een personeelsprofiel. Accounts worden niet automatisch als personeelslid beschouwd.</p><div class="table-scroll"><table class="education-table"><thead><tr><th>Personeelsaccount</th><th>Campus</th><th>Status</th><th>Actie</th></tr></thead><tbody id="personnel-rows"></tbody></table></div><div id="personnel-editor" class="inline-editor hidden"><h4>Personeelsprofiel aanpassen</h4><input id="personnel-user-id" type="hidden"><div class="editor-grid"><label>Stamnummer<input id="personnel-number" class="field"></label><label>Campus<select id="personnel-campus" class="field"><option value="">Niet toegewezen</option></select></label><label>Status<select id="personnel-status" class="field"><option value="unknown">Onbekend</option><option value="active">Actief</option><option value="leave">Afwezig / verlof</option><option value="inactive">Niet actief</option></select></label><label>Startdatum<input id="personnel-start" type="date" class="field"></label><label>Einddatum<input id="personnel-end" type="date" class="field"></label></div><div class="button-row"><button id="save-personnel" class="primary-btn">Profiel opslaan</button><button id="cancel-personnel" class="secondary-btn">Annuleren</button></div></div></section>
    <section class="panel"><div class="panel-heading"><div><p class="eyebrow">LEERLINGENADMINISTRATIE</p><h3>Leerlingen en klasinschrijvingen</h3></div><span id="student-count" class="count">0</span></div><p class="muted">De leerlingentabel is momenteel leeg. Voeg pas leerlingen toe op basis van een gecontroleerde officiële gegevensbron.</p><div class="inline-editor"><h4>Leerling toevoegen</h4><div class="editor-grid"><label>Leerlingnummer<input id="student-number" class="field"></label><label>Voornaam<input id="student-first" class="field"></label><label>Familienaam<input id="student-last" class="field"></label><label>Roepnaam (optioneel)<input id="student-preferred" class="field"></label></div><div class="button-row"><button id="save-student" class="primary-btn">Leerling toevoegen</button></div></div><div class="inline-editor"><h4>Klasinschrijving toevoegen</h4><div class="editor-grid"><label>Leerling<select id="enrol-student" class="field"><option value="">Selecteer leerling</option></select></label><label>Schooljaar<select id="enrol-year" class="field"><option value="">Selecteer schooljaar</option></select></label><label>Klas<select id="enrol-class" class="field"><option value="">Selecteer klas</option></select></label><label>Startdatum<input id="enrol-start" type="date" class="field"></label></div><div class="button-row"><button id="save-enrolment" class="primary-btn">Inschrijving opslaan</button></div></div><div class="table-scroll"><table class="education-table"><thead><tr><th>Leerling</th><th>Leerlingnummer</th><th>Klas</th><th>Schooljaar</th><th>Status</th></tr></thead><tbody id="student-rows"></tbody></table></div></section>

@@ -1,0 +1,247 @@
+PRAGMA foreign_keys = ON;
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000001','pov','Provinciaal Onderwijs Vlaanderen','Provinciaal Onderwijs Vlaanderen',NULL,'POV','Provinciaal Onderwijs Vlaanderen',NULL,'provinciaalonderwijsvlaanderen@pov.be','+32 486 79 00 01','https://pov.be','https://pov.be','Provinciaal Onderwijs Vlaanderen','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://pov.be/over-ons-contacteer-ons/','2026-11-27','draft','0','umbrella','POV','Groendreef','1','','1000','Brussel','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000002','provincie-oost-vlaanderen','Provincie Oost-Vlaanderen','Provinciebestuur Oost-Vlaanderen',NULL,'','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000001','provinciaalonderwijs@oost-vlaanderen.be','+32 9 267 74 45','https://oost-vlaanderen.be','https://oost-vlaanderen.be','Provinciebestuur Oost-Vlaanderen','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','draft','10','school_board','','Charles de Kerchovelaan','189','','9000','Gent','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000003','richtpunt-campus-ninove-zottegem','Richtpunt campus Ninove Zottegem','Richtpunt campus Ninove Zottegem','145722','secondary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@richtpuntninovezottegem.be','','https://www.richtpuntninovezottegem.be','https://richtpunt.be/ninovezottegem/','Richtpunt campus Ninove Zottegem','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722','2026-11-27','draft','20','institution','','','','','','','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000004','richtpunt-campus-eeklo','Richtpunt campus Eeklo','Richtpunt campus Eeklo','36467','secondary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@richtpunteeklo.be','+32 9 370 73 73','https://www.richtpunteeklo.be','https://www.richtpunteeklo.be','Richtpunt campus Eeklo','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:16414','2026-11-27','draft','30','institution','','Roze','131','','9900','Eeklo','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000005','richtpunt-campus-hamme','Richtpunt campus Hamme','Richtpunt campus Hamme','37275','secondary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@richtpunthamme.be','+32 52 47 83 54','https://www.richtpunthamme.be','https://www.richtpunthamme.be','Richtpunt campus Hamme','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:22594','2026-11-27','draft','40','institution','','Meulenbroekstraat','15','','9220','Hamme','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000006','richtpunt-campus-gent-henleykaai','Richtpunt campus Gent Henleykaai','Richtpunt campus Gent Henleykaai','36624','secondary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','infocampushenley@richtpuntgent.be','+32 9 267 12 10','https://www.richtpuntgenthenley.be','https://www.richtpuntgenthenley.be','Richtpunt campus Gent Henleykaai','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-henleykaai','2026-11-27','draft','50','institution','','Henleykaai','83','','9000','Gent','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000007','richtpunt-campus-gent-godshuizenlaan','Richtpunt campus Gent Godshuizenlaan','Richtpunt campus Gent Godshuizenlaan','36699','secondary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','infocampusgodshuizen@richtpuntgent.be','+32 9 267 12 60','https://www.richtpuntgent.be','https://www.richtpuntgent.be','Richtpunt campus Gent Godshuizenlaan','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-godshuizenlaan','2026-11-27','draft','60','institution','','Godshuizenlaan','65-75','','9000','Gent','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000008','kiempunt-campus-assenede','Kiempunt campus Assenede','Kiempunt campus Assenede','130237','special_primary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@kiempuntassenede.be','+32 9 344 98 69','https://www.kiempunt.be','https://www.kiempunt.be','Kiempunt campus Assenede','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=130237','2026-11-27','draft','70','institution','','Stoepestraat','40','','9960','Assenede','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000009','kiempunt-campus-eeklo','Kiempunt campus Eeklo','Kiempunt campus Eeklo','116079','special_primary','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@kiempunteeklo.be','+32 9 377 32 82','https://www.kiempunt.be','https://www.kiempunt.be','Kiempunt campus Eeklo','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=116079','2026-11-27','draft','80','institution','','Gentsesteenweg','82-84','','9900','Eeklo','BE');
+
+INSERT OR IGNORE INTO organizations(id,slug,official_name,display_name,institution_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,logo_alt,logo_license_note,official_source_url,source_verified_at,status,sort_order,organization_type,abbreviation,postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code)
+VALUES('10000000-0000-4000-8000-000000000010','cvo-groeipunt','CVO Groeipunt','CVO Groeipunt','131888','adult_education','Provinciaal Onderwijs Oost-Vlaanderen','10000000-0000-4000-8000-000000000002','info@groeipunt.be','+32 5 431 78 60','https://www.groeipunt.be','https://www.groeipunt.be','CVO Groeipunt','Originele logo-asset nog niet naar R2 gekopieerd; bron en gebruiksvoorwaarden eerst controleren.','https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:72024L1785BEL_202606567','2026-11-27','draft','90','institution','','Charles de Kerchovelaan','189','','9000','Gent','BE');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000003','richtpunt-ninove','Locatie Ninove','Ninove','school_site','Centrumlaan','160','','9400','Ninove','BE','info@richtpuntninove.be','+32 54 31 78 50','https://richtpunt.be/ninovezottegem/contact/','2026-11-27','0','draft','0');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000003','richtpunt-zottegem','Locatie Zottegem','Zottegem','school_site','Sabina van Beierenlaan','35','','9620','Zottegem','BE','info@richtpuntzottegem.be','+32 9 360 19 93','https://richtpunt.be/ninovezottegem/contact/','2026-11-27','0','draft','10');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000004','richtpunt-eeklo','Richtpunt campus Eeklo','Eeklo','school_site','Roze','131','','9900','Eeklo','BE','info@richtpunteeklo.be','+32 9 370 73 73','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','20');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000005','richtpunt-hamme','Richtpunt campus Hamme','Hamme','school_site','Meulenbroekstraat','15','','9220','Hamme','BE','info@richtpunthamme.be','+32 52 47 83 54','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','30');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000005','10000000-0000-4000-8000-000000000006','richtpunt-gent-henleykaai','Richtpunt campus Gent Henleykaai','Gent – Henleykaai','school_site','Henleykaai','83','','9000','Gent','BE','infocampushenley@richtpuntgent.be','+32 9 267 12 10','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','40');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000006','10000000-0000-4000-8000-000000000007','richtpunt-gent-godshuizenlaan','Richtpunt campus Gent Godshuizenlaan','Gent – Godshuizenlaan','school_site','Godshuizenlaan','65-75','','9000','Gent','BE','infocampusgodshuizen@richtpuntgent.be','+32 9 267 12 60','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','50');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000008','kiempunt-assenede','Kiempunt campus Assenede','Assenede','school_site','Stoepestraat','40','','9960','Assenede','BE','info@kiempuntassenede.be','+32 9 344 98 69','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','60');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000008','10000000-0000-4000-8000-000000000009','kiempunt-eeklo','Kiempunt campus Eeklo','Eeklo','school_site','Gentsesteenweg','82-84','','9900','Eeklo','BE','info@kiempunteeklo.be','+32 9 377 32 82','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','2026-11-27','1','draft','70');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000009','10000000-0000-4000-8000-000000000010','groeipunt-gent-leopoldskazerne','Campus Gent Leopoldskazerne','Gent – Leopoldskazerne','adult_education_campus','Charles de Kerchovelaan','189','','9000','Gent','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',1,'draft','80');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000010','10000000-0000-4000-8000-000000000010','groeipunt-gent-henleykaai','Campus Gent Henleykaai','Gent – Henleykaai','adult_education_campus','Henleykaai','83','','9000','Gent','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','90');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000011','10000000-0000-4000-8000-000000000010','groeipunt-gent-gouvernementstraat','Campus Gent Gouvernementstraat','Gent – Gouvernementstraat','adult_education_campus','Gouvernementstraat','22-24','','9000','Gent','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','100');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000012','10000000-0000-4000-8000-000000000010','groeipunt-gent-sint-amandsberg','Campus Gent Sint-Amandsberg','Gent – Sint-Amandsberg','adult_education_campus','E. Tinelstraat','92','','9040','Sint-Amandsberg','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','110');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000013','10000000-0000-4000-8000-000000000010','groeipunt-eeklo','Campus Eeklo','Eeklo','adult_education_campus','Roze','131','','9900','Eeklo','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','120');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000014','10000000-0000-4000-8000-000000000010','groeipunt-deinze','Campus Deinze','Deinze','adult_education_campus','Brielstraat','25','','9800','Deinze','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','130');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000015','10000000-0000-4000-8000-000000000010','groeipunt-ninove','Campus Ninove','Ninove','adult_education_campus','Centrumlaan','160','','9400','Ninove','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','140');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000016','10000000-0000-4000-8000-000000000010','groeipunt-lokeren','Campus Lokeren','Lokeren','adult_education_campus','Durmelaan','34A','','9160','Lokeren','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','150');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000017','10000000-0000-4000-8000-000000000010','groeipunt-wetteren','Campus Wetteren','Wetteren','adult_education_campus','Nieuwstraat','11','','9230','Wetteren','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','160');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000018','10000000-0000-4000-8000-000000000010','groeipunt-zele-koevliet','Campus Zele Koevliet','Zele – Koevliet','adult_education_campus','Koevliet','2C','','9240','Zele','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','170');
+
+INSERT OR IGNORE INTO organization_locations(id,organization_id,stable_key,official_name,display_name,location_type,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,official_source_url,source_verified_at,is_main_location,status,sort_order)
+VALUES('20000000-0000-4000-8000-000000000019','10000000-0000-4000-8000-000000000010','groeipunt-zottegem','Campus Zottegem','Zottegem','adult_education_campus','Sabina van Beierenlaan','35','','9620','Zottegem','BE','','','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','2026-11-27',0,'draft','180');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','organization_record','Officiële school- of organisatiebron','https://pov.be/over-ons-contacteer-ons/','','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','organization_record','Officiële school- of organisatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000003','organization_record','Officiële school- of organisatiebron','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722','145722','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000004','organization_record','Officiële school- of organisatiebron','https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:16414','36467','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000005','10000000-0000-4000-8000-000000000005','organization_record','Officiële school- of organisatiebron','https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:22594','37275','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000006','10000000-0000-4000-8000-000000000006','organization_record','Officiële school- of organisatiebron','https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-henleykaai','36624','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000007','organization_record','Officiële school- of organisatiebron','https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-godshuizenlaan','36699','SAPOOV gebruikt bewust alleen de Gentse locatie; extra vestigingen uit provinciale bron worden niet geïmporteerd.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000008','10000000-0000-4000-8000-000000000008','organization_record','Officiële school- of organisatiebron','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=130237','130237','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000009','10000000-0000-4000-8000-000000000009','organization_record','Officiële school- of organisatiebron','https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=116079','116079','Broncontrole 27 november 2026.');
+
+INSERT OR IGNORE INTO organization_sources(id,organization_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('30000000-0000-4000-8000-000000000010','10000000-0000-4000-8000-000000000010','organization_record','Officiële school- of organisatiebron','https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:72024L1785BEL_202606567','131888','Nummer 131888 gevonden in Vlaamse regelgeving 2026; ouder nummer 131482 niet als tweede organisatie importeren.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','location_record','Officiële locatiebron','https://richtpunt.be/ninovezottegem/contact/','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002','location_record','Officiële locatiebron','https://richtpunt.be/ninovezottegem/contact/','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000003','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000004','20000000-0000-4000-8000-000000000004','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000005','20000000-0000-4000-8000-000000000005','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000006','20000000-0000-4000-8000-000000000006','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000007','20000000-0000-4000-8000-000000000007','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000008','20000000-0000-4000-8000-000000000008','location_record','Officiële locatiebron','https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000009','20000000-0000-4000-8000-000000000009','location_record','Officiële locatiebron','1','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000010','20000000-0000-4000-8000-000000000010','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000011','20000000-0000-4000-8000-000000000011','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000012','20000000-0000-4000-8000-000000000012','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000013','20000000-0000-4000-8000-000000000013','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000014','20000000-0000-4000-8000-000000000014','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000015','20000000-0000-4000-8000-000000000015','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000016','20000000-0000-4000-8000-000000000016','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000017','20000000-0000-4000-8000-000000000017','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000018','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes)
+VALUES('40000000-0000-4000-8000-000000000019','20000000-0000-4000-8000-000000000019','location_record','Officiële locatiebron','0','','Adres/contactgegevens overgenomen uit de vermelde officiële bron.');
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=1 WHERE id='20000000-0000-4000-8000-000000000009';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000010';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000011';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000012';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000013';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000014';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000015';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000016';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000017';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000018';
+
+UPDATE organization_locations SET general_email='',general_phone='',official_source_url='https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf',is_main_location=0 WHERE id='20000000-0000-4000-8000-000000000019';
+
+DELETE FROM organization_location_sources WHERE location_id IN ('20000000-0000-4000-8000-000000000009','20000000-0000-4000-8000-000000000010','20000000-0000-4000-8000-000000000011','20000000-0000-4000-8000-000000000012','20000000-0000-4000-8000-000000000013','20000000-0000-4000-8000-000000000014','20000000-0000-4000-8000-000000000015','20000000-0000-4000-8000-000000000016','20000000-0000-4000-8000-000000000017','20000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000019');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000009','20000000-0000-4000-8000-000000000009','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000010','20000000-0000-4000-8000-000000000010','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000011','20000000-0000-4000-8000-000000000011','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000012','20000000-0000-4000-8000-000000000012','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000013','20000000-0000-4000-8000-000000000013','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000014','20000000-0000-4000-8000-000000000014','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000015','20000000-0000-4000-8000-000000000015','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000016','20000000-0000-4000-8000-000000000016','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000017','20000000-0000-4000-8000-000000000017','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000018','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+INSERT OR IGNORE INTO organization_location_sources(id,location_id,field_name,source_name,source_url,source_record_id,notes) VALUES('40000000-0000-4000-8000-000000000019','20000000-0000-4000-8000-000000000019','location_record','CVO Groeipunt centrumreglement 2025-2026','https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf','','Adres uit lijst van campussen met secretariaat; individuele locatiecontactgegevens niet ingevuld.');
+
+UPDATE organizations SET general_phone='' WHERE id='10000000-0000-4000-8000-000000000010';
+
+UPDATE organization_locations SET general_phone='09 267 12 90',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000009';
+
+UPDATE organization_locations SET general_phone='09 267 12 90',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000010';
+
+UPDATE organization_locations SET general_phone='09 267 12 90',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000011';
+
+UPDATE organization_locations SET general_phone='09 218 89 30',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde',street='Edgard Tinelstraat' WHERE id='20000000-0000-4000-8000-000000000012';
+
+UPDATE organization_locations SET general_phone='09 370 74 12',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000013';
+
+UPDATE organization_locations SET general_phone='09 220 11 08',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde',official_name='Campus Deinze RAC' WHERE id='20000000-0000-4000-8000-000000000014';
+
+UPDATE organization_locations SET general_phone='054 31 78 60',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000015';
+
+UPDATE organization_locations SET general_phone='09 340 51 10',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000016';
+
+UPDATE organization_locations SET general_phone='09 369 05 93',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000017';
+
+UPDATE organization_locations SET general_phone='052 45 92 80',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000018';
+
+UPDATE organization_locations SET general_phone='09 345 46 58',official_source_url='https://www.groeipunt.be/lesplaats/dendermonde' WHERE id='20000000-0000-4000-8000-000000000019';
+
+UPDATE organization_location_sources SET source_url='https://www.groeipunt.be/lesplaats/dendermonde',source_name='CVO Groeipunt actuele lesplaatsenpagina',notes='Adres en telefoonnummer gecontroleerd op de actuele officiële lesplaatsenpagina.' WHERE location_id IN ('20000000-0000-4000-8000-000000000009','20000000-0000-4000-8000-000000000010','20000000-0000-4000-8000-000000000011','20000000-0000-4000-8000-000000000012','20000000-0000-4000-8000-000000000013','20000000-0000-4000-8000-000000000014','20000000-0000-4000-8000-000000000015','20000000-0000-4000-8000-000000000016','20000000-0000-4000-8000-000000000017','20000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000019');
