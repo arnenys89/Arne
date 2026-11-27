@@ -121,8 +121,9 @@ export default {
       if (!app.access_audience || !identity.audiences.includes(app.access_audience)) return json({error:'De aanmeldsessie hoort niet bij deze toepassing.'},403);
       const requestedContext=request.headers.get('x-sapoov-context')||url.searchParams.get('sapoov_context')||'';
       if (!superadmin && requestedContext) {
-        const gate=await env.DB.prepare(`SELECT 1 AS ok FROM user_module_access
-          WHERE user_id=? AND application_id=? AND organization_id=? AND enabled=1`).bind(user.id,app.id,requestedContext).first();
+        const gate=await env.DB.prepare(`SELECT 1 AS ok FROM user_module_access uma
+          JOIN organizations o ON o.id=uma.organization_id
+          WHERE uma.user_id=? AND uma.application_id=? AND uma.organization_id=? AND uma.enabled=1 AND o.status='active'`).bind(user.id,app.id,requestedContext).first();
         if (!gate) return json({error:'Je hebt geen platformtoegang in deze organisatiecontext.'},403);
         const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json
           FROM user_scoped_role_assignments s JOIN roles r ON r.id=s.role_id
