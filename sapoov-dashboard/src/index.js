@@ -263,7 +263,12 @@ export default {
         const organizationType=types.includes(b.organizationType)?b.organizationType:'institution';
         const institutionNumber=String(b.institutionNumber||'').trim();
         if (institutionNumber && !/^\d{4,8}$/.test(institutionNumber)) return json({error:'Controleer het instellingsnummer. Gebruik uitsluitend de officiële cijfers.'},400);
-        if (b.parentOrganizationId && !await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.parentOrganizationId).first()) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
+        let parent=null;
+        if (b.parentOrganizationId) {
+          parent=await env.DB.prepare('SELECT id,organization_type FROM organizations WHERE id=?').bind(b.parentOrganizationId).first();
+          if (!parent) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
+        }
+        if ((organizationType==='umbrella'&&parent)||(organizationType==='school_board'&&parent?.organization_type!=='umbrella')||(organizationType==='institution'&&parent?.organization_type!=='school_board')) return json({error:'De organisatiestructuur moet koepel → schoolbestuur → onderwijsinstelling volgen.'},400);
         try {
           await env.DB.prepare(`INSERT INTO organizations(
             id,slug,official_name,display_name,institution_number,enterprise_number,education_type,
@@ -295,7 +300,22 @@ export default {
         if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige organisatiestatus.'},400);
         if (b.organizationType && !['umbrella','school_board','institution'].includes(b.organizationType)) return json({error:'Ongeldig organisatietype.'},400);
         if (b.institutionNumber && !/^\d{4,8}$/.test(String(b.institutionNumber))) return json({error:'Ongeldig instellingsnummer.'},400);
-        if (b.parentOrganizationId && !await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.parentOrganizationId).first()) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
+        const currentOrg=await env.DB.prepare('SELECT id,organization_type,parent_organization_id FROM organizations WHERE id=?').bind(b.id).first();
+        if (!currentOrg) return json({error:'Organisatie niet gevonden.'},404);
+        const nextType=b.organizationType||currentOrg.organization_type;
+        const nextParent=Object.prototype.hasOwnProperty.call(b,'parentOrganizationId')?b.parentOrganizationId:currentOrg.parent_organization_id;
+        let parent=null;
+        if (nextParent) {
+          if (nextParent===b.id) return json({error:'Een organisatie kan niet haar eigen bovenliggende organisatie zijn.'},409);
+          parent=await env.DB.prepare('SELECT id,organization_type FROM organizations WHERE id=?').bind(nextParent).first();
+          if (!parent) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
+          const cycle=await env.DB.prepare(`WITH RECURSIVE descendants(id) AS (
+            SELECT id FROM organizations WHERE parent_organization_id=?
+            UNION ALL SELECT o.id FROM organizations o JOIN descendants d ON o.parent_organization_id=d.id
+          ) SELECT 1 AS found FROM descendants WHERE id=? LIMIT 1`).bind(b.id,nextParent).first();
+          if (cycle) return json({error:'Deze wijziging zou een cirkel in de organisatiestructuur veroorzaken.'},409);
+        }
+        if ((nextType==='umbrella'&&nextParent)||(nextType==='school_board'&&parent?.organization_type!=='umbrella')||(nextType==='institution'&&parent?.organization_type!=='school_board')) return json({error:'De organisatiestructuur moet koepel → schoolbestuur → onderwijsinstelling volgen.'},400);
         sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
         try {
           const result=await env.DB.prepare('UPDATE organizations SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
