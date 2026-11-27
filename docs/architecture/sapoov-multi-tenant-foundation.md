@@ -90,11 +90,30 @@ De huidige context met Ninove en Zottegem blijft behouden. Een tweede context vo
 
 ## Nog te bevestigen vóór productiemigratie
 
-- De formele koepel-, schoolbestuur-, school- en campusrelaties voor beide groepen.
-- Of Hamme, Gent en Eeklo campussen van één school zijn of afzonderlijke scholen.
-- Of Ninove en Zottegem in de officiële organisatiestructuur campussen van één school zijn of aparte scholen.
-- Welke bestaande gebruikersrollen op welke organisatie-ID's moeten worden gemapt.
+- De formele naam en ID van de koepel en het schoolbestuur waartoe de vier scholen behoren.
+- Welke bestaande gebruikers en applicatierollen expliciet toegang krijgen tot elk van de vier schoolcontexten.
+- De exacte campusgebonden operationele filters die binnen de school Richtpunt Ninove-Zottegem nodig zijn.
 
 ## Veiligheidsgrens van deze fase
 
 Dit document is de eerste ontwerp-/inventarisatiefase op een aparte GitHub-branch. Er zijn geen productiedatabases, Workers, Pages-projecten, DNS-records, Access-policies of R2-objecten aangepast.
+
+## Bevestigde organisatorische beslissingen (27 november 2026)
+
+1. Richtpunt campus Ninove en Richtpunt campus Zottegem zijn twee campussen van één school.
+2. Richtpunt campus Hamme, Richtpunt campus Gent en Richtpunt campus Eeklo zijn drie afzonderlijke scholen.
+3. De aankopenmodule wordt op schoolniveau beheerd. De bestaande school met campussen Ninove en Zottegem krijgt dus één moduleconfiguratie en één gegevenscontext, met campusonderscheid waar de werking dat vereist.
+4. Rechten van koepel- en schoolbestuurbeheerders worden niet automatisch overgeërfd. Toegang tot onderliggende organisaties vereist telkens expliciete toekenning.
+5. Na aanmelden kiest een gebruiker zelf de actieve organisatiecontext uit de contexten waarvoor die gebruiker expliciete rechten heeft. Er wordt geen automatische standaardcontext gekozen.
+
+### Gevolg voor de eerste organisatie-inrichting
+
+- Eén schoolrecord voor Richtpunt campus Ninove-Zottegem, met twee campusrecords: Ninove en Zottegem.
+- Drie afzonderlijke schoolrecords voor Richtpunt campus Hamme, Richtpunt campus Gent en Richtpunt campus Eeklo.
+- De bovenliggende koepel en het schoolbestuur worden als aparte organisatie-entiteiten geregistreerd zodra hun formele namen en relaties zijn bevestigd; ze worden niet uit de campusnamen afgeleid.
+- Elke van de vier schoolcontexten krijgt een eigen aankopen-D1-database en afzonderlijke R2-opslag.
+- De aankopenmodule heeft per school één configuratie op schoolniveau. De campuskeuze binnen de school mag uitsluitend operationele filtering zijn en geeft geen zelfstandige rechtenovererving.
+
+### Nog open
+
+De formele koepel en schoolbestuur voor deze vier scholen moeten nog bevestigd worden. Ook moeten de bestaande gebruikers en rollen expliciet aan de juiste schoolcontexten worden toegewezen voordat productieautorisatie kan worden omgeschakeld.
