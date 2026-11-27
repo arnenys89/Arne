@@ -72,13 +72,15 @@ export default {
     const method = request.method, path = url.pathname;
 
     if (method==='GET' && path==='/api/me') {
-      const [apps, assignments] = await Promise.all([
+      const [apps, assignments, access] = await Promise.all([
         env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
         env.DB.prepare(`SELECT a.id AS application_id,a.name AS application_name,a.url,r.id AS role_id,r.name AS role,r.permissions_json
           FROM user_app_roles uar JOIN applications a ON a.id=uar.application_id JOIN roles r ON r.id=uar.role_id
-          WHERE uar.user_id=? AND a.status!='hidden' ORDER BY a.sort_order,a.name,r.name`).bind(user.id).all()
+          WHERE uar.user_id=? AND a.status!='hidden' ORDER BY a.sort_order,a.name,r.name`).bind(user.id).all(),
+        env.DB.prepare("SELECT application_id FROM user_application_access WHERE user_id=? AND enabled=1").bind(user.id).all()
       ]);
-      const visible = superadmin ? apps.results : apps.results.filter(a=>assignments.results.some(x=>x.application_id===a.id));
+      const enabled = new Set(access.results.map(x=>x.application_id));
+      const visible = superadmin ? apps.results : apps.results.filter(a=>enabled.has(a.id));
       return json({user:{id:user.id,email:user.email,display_name:user.display_name},superadmin,applications:visible,assignments:assignments.results});
     }
 
@@ -87,6 +89,8 @@ export default {
       const app=await env.DB.prepare('SELECT * FROM applications WHERE id=? AND status="active"').bind(appSlug).first();
       if (!app) return json({error:'Onbekende toepassing.'},404);
       if (!app.access_audience || !identity.audiences.includes(app.access_audience)) return json({error:'De aanmeldsessie hoort niet bij deze toepassing.'},403);
+      const access=await env.DB.prepare('SELECT enabled FROM user_application_access WHERE user_id=? AND application_id=?').bind(user.id,app.id).first();
+      if (!access || access.enabled!==1) return json({error:'Je hebt geen toegang tot deze toepassing.'},403);
       const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json,uar.scope_json FROM user_app_roles uar
         JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id=? ORDER BY r.name`).bind(user.id,app.id).all();
       return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:rows.results.length>0});
@@ -95,13 +99,44 @@ export default {
     if (method==='GET' && ['/beleidskompas','/beleidskompas/','/beleidskompas.html'].includes(path)) {
       const app=await env.DB.prepare("SELECT id FROM applications WHERE id='beleidskompas' AND status='active'").first();
       if (!app) return new Response('Beleidskompas is nog niet geconfigureerd.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
-      const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles WHERE user_id=? AND application_id='beleidskompas' LIMIT 1").bind(user.id).first();
+      const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles uar WHERE uar.user_id=? AND uar.application_id='beleidskompas' AND EXISTS (SELECT 1 FROM user_application_access uaa WHERE uaa.user_id=? AND uaa.application_id='beleidskompas' AND uaa.enabled=1) LIMIT 1").bind(user.id,user.id).first();
       if (!superadmin && !grant) return new Response('Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Beleidskompas-lezer toe te kennen.',{status:403,headers:{'content-type':'text/plain; charset=utf-8'}});
       return env.ASSETS.fetch(new Request(new URL('/beleidskompas.html',url),{method:'GET',headers:request.headers}));
     }
 
     if (path.startsWith('/api/admin/')) {
       if (!superadmin) return json({error:'Alleen de centrale superadministrator mag gebruikers en rechten beheren.'},403);
+      if (method==='GET' && path==='/api/admin/rights-matrix') {
+        const [userRows,appRows,roleRows,assignmentRows,accessRows]=await Promise.all([
+          env.DB.prepare("SELECT id,email,display_name,status,created_at FROM users ORDER BY email").all(),
+          env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
+          env.DB.prepare("SELECT * FROM roles WHERE application_id IS NOT NULL ORDER BY application_id,name").all(),
+          env.DB.prepare(`SELECT uar.user_id,uar.application_id,uar.role_id,uar.scope_json,r.name AS role_name,a.name AS application_name
+            FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id JOIN applications a ON a.id=uar.application_id`).all(),
+          env.DB.prepare("SELECT user_id,application_id,enabled FROM user_application_access").all()
+        ]);
+        return json({
+          users:userRows.results,
+          applications:appRows.results,
+          roles:roleRows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')})),
+          assignments:assignmentRows.results,
+          access:accessRows.results
+        });
+      }
+      if (method==='POST' && path==='/api/admin/access') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !b?.applicationId || typeof b.enabled!=='boolean') return json({error:'Gebruiker, toepassing en toegang (aan/uit) zijn verplicht.'},400);
+        const [target,app]=await Promise.all([
+          env.DB.prepare('SELECT id,email FROM users WHERE id=?').bind(b.userId).first(),
+          env.DB.prepare('SELECT id FROM applications WHERE id=?').bind(b.applicationId).first()
+        ]);
+        if (!target || !app) return json({error:'Gebruiker of toepassing niet gevonden.'},404);
+        await env.DB.prepare(`INSERT INTO user_application_access(user_id,application_id,enabled,updated_by)
+          VALUES(?,?,?,?) ON CONFLICT(user_id,application_id) DO UPDATE SET enabled=excluded.enabled,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+          .bind(b.userId,b.applicationId,b.enabled?1:0,user.email).run();
+        await audit(env.DB,user,'application.access.update','user_application_access',b.userId,{applicationId:b.applicationId,enabled:b.enabled,retainedRoles:true});
+        return json({ok:true,enabled:b.enabled});
+      }
       if (method==='GET' && path==='/api/admin/users') {
         const result=await env.DB.prepare(`SELECT u.id,u.email,u.display_name,u.status,u.created_at,
           COUNT(DISTINCT uar.application_id) AS application_count FROM users u

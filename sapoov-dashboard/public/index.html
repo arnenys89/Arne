@@ -16,6 +16,12 @@
 <section id="admin" class="admin hidden">
  <div class="section-head"><div><p class="eyebrow">CENTRAAL BEHEER</p><h2>Gebruikersbeheer</h2><p class="muted">Beheer centraal wie toegang heeft tot welke toepassing en welke rechten daarbij horen.</p></div></div>
  <div class="workspace-nav"><button id="admin-nav" class="workspace-tab hidden">Gebruikersbeheer</button><span class="workspace-note">Alleen de centrale superadministrator kan rechten wijzigen.</span></div>
+ <section class="panel matrix-panel">
+  <div class="panel-heading"><div><p class="eyebrow">CENTRALE TOEGANGSCONTROLE</p><h3>Rechtenmatrix</h3></div><div class="matrix-actions"><button id="matrix-collapse-all" class="secondary-btn" type="button">Alles inklappen</button><button id="matrix-expand-all" class="secondary-btn" type="button">Alles uitklappen</button></div></div>
+  <p class="muted">Elke rij is een gebruiker. Per toepassing beheer je de platformtoegang en de afzonderlijke rollen. Platformtoegang uitschakelen verwijdert de toegekende rollen niet.</p>
+  <div class="matrix-toolbar"><input id="matrix-search" class="field" type="search" placeholder="Zoek op naam, e-mailadres of e-maildomein…" autocomplete="off"></div>
+  <div class="matrix-scroll"><table id="rights-matrix" class="rights-matrix" aria-label="SAPOOV-rechtenmatrix"></table></div>
+ </section>
  <div class="admin-workspace">
   <aside class="panel users-panel"><div class="panel-heading"><h3>Gebruikers</h3><span id="user-count" class="count">0</span></div><div id="user-list" class="user-list"></div></aside>
   <div class="workspace-main">

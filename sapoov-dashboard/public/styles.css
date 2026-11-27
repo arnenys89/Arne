@@ -22,3 +22,35 @@ html,body{height:100%;overflow:hidden}
 
 
 .inline-editor{border:1px solid #e7e4da;border-radius:10px;padding:14px;margin:14px 0;background:#fbfaf7}.inline-editor h4{margin:0 0 12px;font-size:14px;font-weight:600}.editor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.editor-grid label{display:grid;gap:5px;font-size:12px;color:#555}.editor-grid .field{width:100%;min-width:0}.inline-editor .button-row{margin-top:12px}@media(max-width:700px){.editor-grid{grid-template-columns:1fr}}
+
+/* Centrale rechtenmatrix */
+#admin .admin-workspace{grid-template-columns:1fr}
+#admin .users-panel,#admin .assignment-panel,
+#admin .workspace-main>.panel:has(#class-count),
+#admin .workspace-main>.panel:has(#personnel-count),
+#admin .workspace-main>.panel:has(#student-count){display:none!important}
+.matrix-panel{margin:18px 0 22px}
+.matrix-panel>.panel-heading{align-items:center;gap:12px}
+.matrix-actions{display:flex;gap:8px;flex-wrap:wrap}
+.matrix-toolbar{display:flex;gap:10px;margin:14px 0}
+.matrix-toolbar .field{max-width:420px;width:100%}
+.matrix-scroll{max-height:68vh;overflow:auto;border:1px solid #e8e7e1;border-radius:9px;background:#fff}
+.rights-matrix{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:11px}
+.rights-matrix th,.rights-matrix td{border-right:1px solid #eceae4;border-bottom:1px solid #eceae4;padding:8px 7px;text-align:center;white-space:nowrap;background:#fff}
+.rights-matrix thead th{position:sticky;z-index:3;background:#f7f6f1}
+.rights-matrix thead tr:first-child th{top:0;background:#eeeae0;font-size:12px;font-weight:700}
+.rights-matrix thead tr:nth-child(2) th{top:36px}
+.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{position:sticky;left:0;z-index:4;text-align:left;min-width:205px;max-width:240px;white-space:normal;background:#faf9f6}
+.rights-matrix .matrix-user-head{z-index:6;background:#eeeae0}
+.rights-matrix .matrix-user b{display:block;font-size:11px}
+.rights-matrix .matrix-user small{display:block;color:#777;font-size:10px;font-weight:400;overflow-wrap:anywhere;margin-top:3px}
+.matrix-status{display:inline-block;margin-top:4px;padding:2px 6px;border-radius:10px;background:#f5e8e8;color:#8a3030;font-size:9px}
+.rights-matrix .matrix-app-head{min-width:94px}
+.matrix-collapse{border:0;border-radius:4px;background:#fff;color:#555;font-weight:700;width:22px;height:22px;margin-right:5px;cursor:pointer}
+.rights-matrix .matrix-subhead{min-width:62px;max-width:100px;white-space:normal;font-size:10px;font-weight:600}
+.rights-matrix .matrix-check{min-width:42px}
+.rights-matrix input[type=checkbox]{width:17px;height:17px;accent-color:#d7ad01;cursor:pointer;vertical-align:middle}
+.rights-matrix input[type=checkbox]:disabled{opacity:.55;cursor:wait}
+.rights-matrix tbody tr:hover td,.rights-matrix tbody tr:hover .matrix-user{background:#fffbee}
+.rights-matrix .matrix-empty{text-align:center;color:#777;padding:28px}
+@media(max-width:700px){.matrix-actions{width:100%}.matrix-panel>.panel-heading{align-items:flex-start;flex-direction:column}.matrix-scroll{max-height:60vh}.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:155px}.matrix-toolbar .field{max-width:none}}

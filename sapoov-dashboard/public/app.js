@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iconSvg = icon => { const paths = {"shopping-cart":"<path d=\"M3 4h2l2.5 12h11L21 8H6\"/><circle cx=\"10\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M9 11h9\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18M7 14h3m3 0h4m-10 3h3\"/>","graduation-cap":"<path d=\"m2 9 10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 3 9 3 12 0v-5m4-2v7\"/>","calendar-check":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18m4 5 2 2 4-5\"/>","book-open":"<path d=\"M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2zM21 5c-4-1-7 0-9 2v13c2-2 5-3 9-2z\"/>","layout-dashboard":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"5\" rx=\"1\"/><rect x=\"13\" y=\"10\" width=\"8\" height=\"11\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","network":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"4\" r=\"2\"/><circle cx=\"4\" cy=\"20\" r=\"2\"/><circle cx=\"20\" cy=\"20\" r=\"2\"/><path d=\"m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4\"/>","clipboard-list":"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4V2h6v2M9 10h6m-6 4h6m-6 4h4\"/>","compass":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2.5 6-6 2.5 2.5-6z\"/>"}; const path = paths[icon] || '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'; return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>'; };
-let me=null, users=[], apps=[], roles=[], assignments=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
+let me=null, users=[], apps=[], roles=[], assignments=[], matrixAccess=[], collapsedApps=new Set(), education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
 async function api(path,options={}) {
  const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});
  const data=await response.json().catch(()=>({}));
@@ -10,13 +10,20 @@ async function api(path,options={}) {
 }
 function notice(message,error=false){$('notice').textContent=message;$('notice').classList.toggle('error',error);}
 async function loadAdmin(){
- const [u,a,audit,ed,pe,st]=await Promise.all([api('/api/admin/users'),api('/api/admin/applications'),api('/api/admin/audit'),api('/api/admin/education'),api('/api/admin/personnel'),api('/api/admin/students')]);
- personnel=pe.personnel||[];students=st;
- education=ed;
- users=u.users;assignments=u.assignments.map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));apps=a.applications;roles=a.roles;
+ const [matrix,audit]=await Promise.all([api('/api/admin/rights-matrix'),api('/api/admin/audit')]);
+ users=matrix.users;
+ apps=matrix.applications;
+ roles=matrix.roles;
+ assignments=matrix.assignments.map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
+ matrixAccess=matrix.access||[];
+ const accessCounts=new Map();
+ for(const x of matrixAccess){if(x.enabled===1)accessCounts.set(x.user_id,(accessCounts.get(x.user_id)||0)+1);}
+ users=users.map(u=>({...u,application_count:accessCounts.get(u.id)||0}));
  if(!selectedApp||!apps.some(x=>x.id===selectedApp))selectedApp=apps[0]?.id||'';
  if(!selectedUser||!users.some(x=>x.id===selectedUser))selectedUser=users[0]?.id||'';
- renderAdmin();renderEducation();renderPersonnel();renderStudents();$('audit').innerHTML=audit.events.map(e=>`<div class="audit-row"><b>${esc(e.action)}</b><span>${esc(e.actor_email)}</span><small>${esc(e.created_at)}</small></div>`).join('')||'<p class="muted">Nog geen wijzigingen.</p>';
+ renderAdmin();
+ renderRightsMatrix();
+ $('audit').innerHTML=audit.events.map(e=>`<div class="audit-row"><b>${esc(e.action)}</b><span>${esc(e.actor_email)}</span><small>${esc(e.created_at)}</small></div>`).join('')||'<p class="muted">Nog geen wijzigingen.</p>';
 }
 function renderAdmin(){
  $('user-count').textContent=users.length;
@@ -35,6 +42,41 @@ function renderAdmin(){
  $('assign-button').disabled=!user||!appRoles.some(r=>!userRoles.some(x=>x.role_id===r.id));
  $('role-editor').classList.toggle('hidden',!editingRole);
  if(editingRole){$('role-name').value=editingRole.id?editingRole.name:'';$('role-description').value=editingRole.id?editingRole.description:'';$('role-permissions').value=editingRole.id?(editingRole.permissions||[]).join(', '):'';$('role-editor-title').textContent=editingRole.id?'Rol aanpassen':'Nieuwe rol';}
+}
+function renderRightsMatrix(){
+ const term=$('matrix-search').value.trim().toLowerCase();
+ const filtered=users.filter(u=>(u.display_name+' '+u.email).toLowerCase().includes(term));
+ const appList=apps.filter(a=>a.status!=='hidden');
+ const accessSet=new Set(matrixAccess.filter(x=>x.enabled===1).map(x=>x.user_id+'::'+x.application_id));
+ const roleSet=new Set(assignments.map(x=>x.user_id+'::'+x.application_id+'::'+x.role_id));
+ let head='<thead><tr><th class="matrix-user-head" rowspan="2">Gebruiker</th>';
+ for(const app of appList){
+   const appRoles=roles.filter(r=>r.application_id===app.id);
+   const collapsed=collapsedApps.has(app.id);
+   head+=`<th class="matrix-app-head" colspan="${collapsed?1:1+appRoles.length}"><button type="button" class="matrix-collapse" data-collapse-app="${esc(app.id)}" aria-label="${collapsed?'Kolommen uitklappen':'Kolommen inklappen'}">${collapsed?'+':'−'}</button>${esc(app.name)}</th>`;
+ }
+ head+='</tr><tr>';
+ for(const app of appList){
+   const collapsed=collapsedApps.has(app.id);
+   head+='<th class="matrix-subhead">Toegang</th>';
+   if(!collapsed) for(const role of roles.filter(r=>r.application_id===app.id)) head+=`<th class="matrix-subhead" title="${esc(role.description||role.name)}">${esc(role.name)}</th>`;
+ }
+ head+='</tr></thead><tbody>';
+ for(const user of filtered){
+   head+=`<tr><th scope="row" class="matrix-user"><b>${esc(user.display_name||user.email)}</b><small>${esc(user.email)}</small>${user.status!=='active'?'<span class="matrix-status">'+esc(user.status)+'</span>':''}</th>`;
+   for(const app of appList){
+     const key=user.id+'::'+app.id, enabled=accessSet.has(key), collapsed=collapsedApps.has(app.id);
+     head+=`<td class="matrix-check"><input type="checkbox" data-matrix-access data-user="${esc(user.id)}" data-app="${esc(app.id)}" aria-label="Platformtoegang ${esc(app.name)} voor ${esc(user.email)}" ${enabled?'checked':''}></td>`;
+     if(!collapsed) for(const role of roles.filter(r=>r.application_id===app.id)){
+       const assigned=roleSet.has(key+'::'+role.id);
+       head+=`<td class="matrix-check"><input type="checkbox" data-matrix-role data-user="${esc(user.id)}" data-app="${esc(app.id)}" data-role="${esc(role.id)}" aria-label="Rol ${esc(role.name)} voor ${esc(user.email)} in ${esc(app.name)}" ${assigned?'checked':''}></td>`;
+     }
+   }
+   head+='</tr>';
+ }
+ if(!filtered.length) head+='<tr><td class="matrix-empty" colspan="'+(1+appList.reduce((n,a)=>n+1+(collapsedApps.has(a.id)?0:roles.filter(r=>r.application_id===a.id).length),0))+'">Geen gebruikers gevonden.</td></tr>';
+ head+='</tbody>';
+ $('rights-matrix').innerHTML=head;
 }
 function renderEducation(){
  const classes=education.classes||[], campuses=education.campuses||[], years=education.school_years||[];
@@ -61,7 +103,7 @@ function renderStudents(){
 }
 function updateEnrolClasses(){const y=$('enrol-year').value;$('enrol-class').innerHTML='<option value="">Selecteer klas</option>'+(students.classes||[]).filter(c=>c.school_year_id===y).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.campus_name+' · '+c.class_code)+'</option>').join('');}
 function renderApps(){
- $('apps').innerHTML=apps.filter(a=>me.superadmin||assignments.some(x=>x.application_id===a.id)).map(a=>{const internal=['werkplekreservatie','beleidskompas'].includes(a.id);const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');return `<a class="app" href="${esc(target)}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Er zijn nog geen toepassingen aan je account toegewezen.</div>';
+ $('apps').innerHTML=apps.map(a=>{const internal=['werkplekreservatie','beleidskompas'].includes(a.id);const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');return `<a class="app" href="${esc(target)}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Er zijn nog geen toepassingen aan je account toegewezen.</div>';
 }
 async function start(){
  try{
@@ -71,6 +113,27 @@ async function start(){
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
+$('matrix-search').addEventListener('input',renderRightsMatrix);
+$('matrix-collapse-all').addEventListener('click',()=>{collapsedApps=new Set(apps.map(a=>a.id));renderRightsMatrix();});
+$('matrix-expand-all').addEventListener('click',()=>{collapsedApps.clear();renderRightsMatrix();});
+$('rights-matrix').addEventListener('click',e=>{const b=e.target.closest('[data-collapse-app]');if(!b)return;const id=b.dataset.collapseApp;if(collapsedApps.has(id))collapsedApps.delete(id);else collapsedApps.add(id);renderRightsMatrix();});
+$('rights-matrix').addEventListener('change',async e=>{
+ const input=e.target.closest('input[data-matrix-access],input[data-matrix-role]');if(!input)return;
+ const userId=input.dataset.user,applicationId=input.dataset.app,checked=input.checked;
+ input.disabled=true;
+ try{
+  if(input.hasAttribute('data-matrix-access')){
+   await api('/api/admin/access',{method:'POST',body:JSON.stringify({userId,applicationId,enabled:checked})});
+  }else{
+   const roleId=input.dataset.role;
+   if(checked) await api('/api/admin/assignments',{method:'POST',body:JSON.stringify({userId,applicationId,roleId,scope:{}})});
+   else await api('/api/admin/assignments?userId='+encodeURIComponent(userId)+'&applicationId='+encodeURIComponent(applicationId)+'&roleId='+encodeURIComponent(roleId),{method:'DELETE'});
+  }
+  await loadAdmin();
+  notice(checked?'Recht of toegang ingeschakeld.':'Recht of toegang uitgeschakeld.');
+ }catch(err){input.checked=!checked;input.disabled=false;notice(err.message,true);}
+});
+
 $('user-list').addEventListener('click',e=>{const b=e.target.closest('[data-user]');if(b){selectedUser=b.dataset.user;renderAdmin();}});
 $('app-select').addEventListener('change',e=>{selectedApp=e.target.value;editingRole=null;renderAdmin();});
 $('save-audience').addEventListener('click',async()=>{try{await api('/api/admin/applications',{method:'POST',body:JSON.stringify({id:selectedApp,accessAudience:$('access-audience').value.trim()})});await loadAdmin();notice('Cloudflare Access-koppeling opgeslagen.');}catch(e){notice(e.message,true);}});
