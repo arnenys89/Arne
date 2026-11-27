@@ -194,3 +194,28 @@ De nieuwe beheerinterface toont daarom een melding dat migratie 0006 nog moet wo
 
 
 De officiële logo-downloadpagina van Provincie Oost-Vlaanderen vermeldt expliciet dat toestemming nodig is voor gebruik van het provincielogo. Voor dit logo wordt dus geen bestand in R2 geplaatst vóór toestemming via info@oost-vlaanderen.be. Voor de overige merken worden de officiële bronpagina's gebruikt; ook daar worden pas assets opgeslagen nadat het juiste bestand en de toepasselijke gebruiksvoorwaarden zijn gecontroleerd. Bron: https://oost-vlaanderen.be/bestuur-en-regio/wat-doet-het-provinciebestuur/logo.html.
+
+
+### 10.1 Rechtenmatrix, contextkeuze en moduletoegang
+
+- Na aanmelden kan een gebruiker met toegang tot meerdere instellingen zelf de actieve organisatiecontext kiezen.
+- Het dashboard toont binnen die context uitsluitend modules waarvoor `user_module_access.enabled = 1`.
+- De moduletoegang is een afzonderlijke toegangspoort; een rechtenprofiel alleen maakt de module niet zichtbaar.
+- De rechtenmatrix toont per gebruiker, school, module een aparte checkbox voor platformtoegang en daarnaast de afzonderlijke rechtenprofielen.
+- Roltoewijzingen worden opgeslagen in `user_scoped_role_assignments` met een expliciete schoolscope. Dezelfde rol kan dus aan dezelfde gebruiker in verschillende scholen afzonderlijk worden toegekend.
+- `include_descendants` staat standaard uit. De huidige matrix kent uitsluitend directe schooltoewijzingen toe; automatische overerving is niet actief.
+- De actieve context wordt meegestuurd als contextheader naar de centrale API en als `sapoov_context`-parameter naar de modulelink. Elke module moet die context aan de centrale autorisatiecontrole aanbieden; de context-ID op zichzelf verleent geen toegang.
+- Zonder actieve moduletoegang weigert de centrale autorisatie-API de modulecontext, ook als er nog een roltoewijzing bestaat.
+
+### 10.2 Veiligheids- en validatiecontroles
+
+- Organisatierelaties worden server-side beperkt tot koepel → schoolbestuur → onderwijsinstelling.
+- De API weigert zelfverwijzingen en hiërarchische cycli.
+- Locaties en teams kunnen alleen aan een onderwijsinstelling worden gekoppeld.
+- Teamlidmaatschappen zijn uniek per team/gebruiker en kennen precies één status: actief lid, passief lid of teamleider.
+- De teammatrix gebruikt personeelsprofielen wanneer die bestaan; zonder personeelsprofielen toont ze de centrale gebruikerslijst als terugval.
+- De JavaScript-syntax van de frontend en Worker is gecontroleerd; alle door de frontend gebruikte element-ID's bestaan in de HTML.
+- De seed is gecontroleerd op 10 organisatieknopen, 8 onderwijsinstellingen, 19 locaties, unieke instellingsnummers, geldige ouderverwijzingen, twee locaties voor Ninove-Zottegem, één locatie voor Gent Godshuizenlaan en uitsluiting van Buggenhout.
+- De 69 INSERT-statements in de seedmigratie hebben een gelijk aantal kolommen en waarden.
+
+Deze controles zijn broncode-/structuurcontroles. Ze vervangen geen uitvoering van de migraties tegen een geïsoleerde D1-testdatabase of een volledige browser- en autorisatietest.
