@@ -191,3 +191,6 @@ De nieuwe beheerinterface toont daarom een melding dat migratie 0006 nog moet wo
 - `src/index.js`: API voor organisatiegebonden roltoewijzingen, met aparte moduletoegangsschakelaar.
 - De beheerinterface bevat nu ook de eerste hiërarchische rechtenmatrix met inklapbare koepel-, bestuurs-, school- en modulekoppen. De matrix gebruikt één gebruikersrij per persoon en afzonderlijke selectievakjes voor platformtoegang en rechtenprofielen.
 - De teammatrix haalt personeelsrijen bij voorkeur uit de bestaande personeelsprofielen; wanneer die lijst leeg is, gebruikt ze de centrale gebruikerslijst.
+
+
+De officiële logo-downloadpagina van Provincie Oost-Vlaanderen vermeldt expliciet dat toestemming nodig is voor gebruik van het provincielogo. Voor dit logo wordt dus geen bestand in R2 geplaatst vóór toestemming via info@oost-vlaanderen.be. Voor de overige merken worden de officiële bronpagina's gebruikt; ook daar worden pas assets opgeslagen nadat het juiste bestand en de toepasselijke gebruiksvoorwaarden zijn gecontroleerd. Bron: https://oost-vlaanderen.be/bestuur-en-regio/wat-doet-het-provinciebestuur/logo.html.
