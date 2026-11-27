@@ -1,0 +1,21 @@
+name = "richtpunt-bestelplatform"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-11-16"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "richtpunt-bestelplatform"
+database_id = "e75a0ded-3245-4465-b609-e44838262f60"
+migrations_dir = "db/migrations"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "richtpunt-bestelplatform-images"
+
+[vars]
+APP_NAME = "Schooleigen Bestelplatform – Richtpunt campus Ninove-Zottegem"
+APP_ORIGIN = "https://richtpunt-bestelplatform.pages.dev"
+CF_ACCESS_TEAM_DOMAIN = "sapoov.cloudflareaccess.com"
+CF_ACCESS_AUD = "054dbe1a5080009991cecfb82474037a7efb146c6815ade0ccc5c8919183ee98,c76aa7483c5c89e436cb4ddf2ad0d545f79e612d9701ed357aa8921ab77dea73"
+KBO_ENDPOINT = "https://kbopub.economie.fgov.be/kbopubws180000/services/wsKBOPub"

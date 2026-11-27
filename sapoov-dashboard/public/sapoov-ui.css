@@ -1,0 +1,68 @@
+/* SAPOOV Design System — centrale visuele basis voor alle toepassingen */
+:root{
+  --sapoov-gold:#d7ad01;--sapoov-grey:#555555;--sapoov-white:#ffffff;--sapoov-black:#171717;
+  --sapoov-bg:#f7f7f5;--sapoov-line:#e7e4da;--sapoov-soft:#fbf5dc;
+  --sapoov-sidebar-width:248px;--sapoov-header-height:72px;
+  --sapoov-font: "Meta Pro Light","Meta Pro",Arial,sans-serif;
+  --sapoov-radius:7px;--sapoov-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+html{color-scheme:light}
+body{font-family:var(--sapoov-font);color:var(--sapoov-black);background:var(--sapoov-bg)}
+.sapoov-shell{min-height:100vh;background:var(--sapoov-bg);color:var(--sapoov-black);font-family:var(--sapoov-font)}
+.sapoov-sidebar{position:fixed;z-index:1000;inset:0 auto 0 0;width:var(--sapoov-sidebar-width);display:flex;flex-direction:column;gap:5px;overflow-y:auto;padding:25px 16px;background:var(--sapoov-white);border-right:1px solid var(--sapoov-line)}
+.sapoov-brand{display:flex;align-items:center;gap:10px;padding:0 7px 20px;margin-bottom:8px;border-bottom:1px solid var(--sapoov-line);color:inherit;text-decoration:none}
+.sapoov-brand-mark{width:36px;height:36px;display:grid;place-items:center;background:var(--sapoov-gold);color:var(--sapoov-black);font-weight:800;font-size:19px;border-radius:6px}
+.sapoov-brand b{display:block;font-size:13px;letter-spacing:.8px}.sapoov-brand small{display:block;color:#888;font-size:9px;letter-spacing:1px}
+.sapoov-nav-label{margin:14px 10px 4px;color:#999;font-size:9px;font-weight:700;letter-spacing:1.4px}
+.sapoov-nav-link{display:block;padding:9px 12px;border-radius:var(--sapoov-radius);color:var(--sapoov-grey);text-decoration:none;font-size:12px}
+.sapoov-nav-link:hover,.sapoov-nav-link[aria-current=page]{background:var(--sapoov-soft);color:var(--sapoov-black)}
+.sapoov-header{position:fixed;z-index:999;top:0;left:var(--sapoov-sidebar-width);right:0;height:var(--sapoov-header-height);display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:#fff;border-bottom:1px solid var(--sapoov-line)}
+.sapoov-main{min-height:100vh;margin-left:var(--sapoov-sidebar-width);padding:calc(var(--sapoov-header-height) + 30px) 36px 50px}
+.sapoov-card{background:#fff;border:1px solid var(--sapoov-line);border-radius:var(--sapoov-radius);box-shadow:var(--sapoov-shadow)}
+.sapoov-button-primary{background:var(--sapoov-gold);border:1px solid var(--sapoov-gold);border-radius:var(--sapoov-radius);color:var(--sapoov-black);font:inherit;font-weight:600;cursor:pointer}
+.sapoov-button-secondary{background:#fff;border:1px solid var(--sapoov-line);border-radius:var(--sapoov-radius);color:var(--sapoov-grey);font:inherit;cursor:pointer}
+.sapoov-field{width:100%;border:1px solid #dcd9d0;border-radius:var(--sapoov-radius);background:#fff;color:var(--sapoov-black);font:inherit}
+@media(max-width:760px){
+ :root{--sapoov-header-height:54px}
+ .sapoov-sidebar{position:relative;inset:auto;width:100%;max-height:27dvh;overflow:auto;padding:9px 12px}
+ .sapoov-brand{padding-bottom:8px;margin-bottom:2px}
+ .sapoov-nav-label{display:none}
+ .sapoov-nav-link{display:inline-block;white-space:nowrap;padding:7px 9px}
+ .sapoov-header{position:relative;inset:auto;height:var(--sapoov-header-height);padding:0 12px}
+ .sapoov-main{height:calc(100dvh - 27dvh - var(--sapoov-header-height));min-height:0;margin:0;padding:22px 14px 35px;overflow:auto}
+}
+
+/* Bestaande applicaties: gemeenschappelijke afwerking zonder hun functionaliteit te wijzigen */
+body{font-family:var(--sapoov-font)!important}
+.sapoov-side{background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.sapoov-side-brand,.sapoov-side-link{font-family:var(--sapoov-font)!important}
+.sapoov-side-link{border-radius:var(--sapoov-radius)!important}
+.sapoov-side-link:hover,.sapoov-side-link.active{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.sapoov-mark{background:var(--sapoov-gold)!important}
+.sapoov-dashboard .app,.app{border-radius:var(--sapoov-radius)!important;box-shadow:var(--sapoov-shadow)}
+/* Bestelplatform — bestaande React-shell */
+.shell>aside{background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.shell>aside .page-nav button{border-radius:var(--sapoov-radius)!important;font-family:var(--sapoov-font)!important}
+.shell>aside .page-nav button.active,.shell>aside .page-nav button:hover{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.shell>aside .poov-brand{border-bottom:1px solid var(--sapoov-line)!important;padding-bottom:18px!important}
+.shell>aside .sidebar-dashboard a{color:var(--sapoov-grey)!important}
+.shell>main>header{background:#fff!important;border-bottom:1px solid var(--sapoov-line)!important;font-family:var(--sapoov-font)!important}
+.shell>main>section .stats article,.shell>main>section .panel,.shell>main>section .order,.shell>main>section .empty{border-radius:var(--sapoov-radius)!important;box-shadow:var(--sapoov-shadow)!important}
+.shell>main>section .primary{background:var(--sapoov-gold)!important;border-color:var(--sapoov-gold)!important;color:var(--sapoov-black)!important}
+/* Beleidskompas — dezelfde typografie, navigatiebreedte en componentvormen */
+.layout>.side{width:auto!important;background:#fff!important;border-right:1px solid var(--sapoov-line)!important}
+.layout>.side .nav a{border-radius:var(--sapoov-radius)!important}
+.layout>.side .nav a.active,.layout>.side .nav a:hover{background:var(--sapoov-soft)!important;color:var(--sapoov-black)!important}
+.layout>main>.top{height:var(--sapoov-header-height)!important;border-bottom:1px solid var(--sapoov-line)!important}
+.layout>main>.content{max-width:1440px}
+.layout .sd,.layout .od,.layout .action{border-radius:var(--sapoov-radius)!important}
+.layout .btn{border-radius:var(--sapoov-radius)!important}
+@media(max-width:850px){.layout>.side{width:auto!important}}
+/* Centrale SAPOOV-toepassingsnavigatie in geïntegreerde applicaties */
+.sapoov-global-nav{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-top:1px solid var(--sapoov-line);border-bottom:1px solid var(--sapoov-line)}
+.sapoov-global-nav .sapoov-nav-label{margin:3px 10px 5px}
+.sapoov-global-nav .sapoov-nav-link{font-size:12px;padding:8px 10px}
+.shell>aside .sapoov-global-nav{margin:4px 0}
+.shell>aside .sapoov-global-nav .sapoov-nav-link{display:block;text-decoration:none;color:var(--sapoov-grey)}
+.shell>aside .sapoov-global-nav .sapoov-nav-link:hover{background:var(--sapoov-soft);color:var(--sapoov-black)}
+@media(max-width:760px){.sapoov-global-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}.sapoov-global-nav .sapoov-nav-label{grid-column:1/-1}}
