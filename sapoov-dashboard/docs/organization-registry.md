@@ -42,6 +42,19 @@ De primaire bron voor instellingsnummers en formele onderwijsgegevens is de onde
 
 De provinciale overzichtspagina en het POV-document zijn geschikt om de officiële lijst van entiteiten te controleren; de onderwijsdatabank blijft leidend voor het instellingsnummer en de formele contactgegevens.
 
+## Door de gebruiker bevestigde indeling
+
+De gebruiker heeft de volgende afbakening bevestigd voor de beoogde SAPOOV-registratie:
+
+- De selectie omvat vijf Richtpunt-instellingen, twee Kiempunt-instellingen en CVO Groeipunt.
+- Kiempunt Buggenhout wordt volledig uitgesloten: niet als instelling en niet als afzonderlijke campus of locatie.
+- **Richtpunt campus Gent Godshuizenlaan** is de definitieve naam voor de eerder foutief aangeduide "Richtpunt campus Gent-Oudenaarde".
+- Richtpunt campus Gent Godshuizenlaan heeft volgens de gebruiker nog precies één locatie: **Gent (Godshuizenlaan)**. Er mag geen tweede locatie in Oudenaarde worden aangemaakt of geïmporteerd.
+- Richtpunt campus Gent Henleykaai blijft een afzonderlijke instelling en mag niet met Gent Godshuizenlaan worden samengevoegd.
+- Richtpunt campus Ninove-Zottegem blijft één instelling met de locaties Ninove en Zottegem.
+
+Deze gebruikersbevestigingen bepalen de gewenste SAPOOV-structuur. De formele instellingsnummers, officiële juridische namen, adressen en overige contactgegevens moeten nog afzonderlijk aan de actuele officiële onderwijsdatabank worden getoetst vóór definitieve activatie.
+
 ## Belangrijke gegevenscontrole
 
 De publiek beschikbare provinciale lijst 2025-2026 bevat meerdere campusvermeldingen en tien onderwijsentiteiten in Oost-Vlaanderen (waaronder Richtpunt, Kiempunt en CVO Groeipunt). Dat aantal is niet zonder meer gelijk aan de acht instellingen die eerder in dit project werden genoemd. Daarom worden er in deze migratie bewust geen acht records op basis van een gok ingevoerd. De eerder opgegeven lijst moet één-op-één worden gematcht met de actuele officiële registraties vóór import.
