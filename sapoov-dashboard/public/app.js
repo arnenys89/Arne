@@ -135,7 +135,6 @@ async function start(){
   const data=await api('/api/me');me=data;$('identity').textContent=data.user.display_name||data.user.email;availableContexts=data.contexts||[];
   $('organization-context').innerHTML='<option value="">Kies een organisatiecontext…</option>'+availableContexts.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(({koepel:'Koepel',schoolbestuur:'Schoolbestuur',school:'School',locatie:'Campus/vestiging'}[x.unit_type]||x.unit_type))+'</option>').join('');
   $('context-picker').classList.toggle('hidden',availableContexts.length===0);
-  if(data.superadmin){$('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');await loadAdmin();}
   if(availableContexts.length===1){$('context-picker').classList.remove('hidden');await selectOrganizationContext(availableContexts[0].id);}
   else if(availableContexts.length>1){
    selectedOrganizationUnit=null;
@@ -145,6 +144,13 @@ async function start(){
   }
   else if(data.superadmin){selectedOrganizationUnit=null;apps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules zijn zichtbaar. Kies een organisatiecontext om een module te openen.';renderApps();}
   else{$('message').textContent='Er is nog geen organisatiecontext met expliciet toegekende toepassingstoegang aan je account gekoppeld.';apps=[];renderApps();}
+  if(data.superadmin){
+   $('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');
+   try{await loadAdmin();}
+   catch(adminError){notice('Het dashboard is geladen, maar het gebruikersbeheer kon niet volledig worden geladen: '+adminError.message,true);}
+   if(Array.isArray(data.applications))apps=data.applications;
+   renderApps();
+  }
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
 $('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){apps=me.applications||apps;}else{apps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
