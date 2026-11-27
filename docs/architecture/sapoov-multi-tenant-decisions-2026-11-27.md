@@ -1,19 +1,27 @@
 # SAPOOV multi-tenant — bevestigde ontwerpbeslissingen
 
 Datum: 27 november 2026
-Status: beslissingen vastgelegd; technische implementatie nog niet gestart.
+Status: organisatorische beslissingen vastgelegd; technische implementatie nog niet gestart.
 Branch: feature/sapoov-multi-tenant-foundation
 
 ## 1. Organisatiestructuur
 SAPOOV moet meerdere koepels ondersteunen, met meerdere schoolbesturen per koepel, meerdere scholen per bestuur en meerdere campussen per school. De hiërarchie is koepel → schoolbestuur → school → campus.
 
-## 2. Bevestigde schoolindeling
-- Richtpunt campus Ninove en Richtpunt campus Zottegem zijn twee campussen van één school.
-- Richtpunt campus Hamme is een afzonderlijke school.
-- Richtpunt campus Gent is een afzonderlijke school.
-- Richtpunt campus Eeklo is een afzonderlijke school.
+De huidige bevestigde bovenliggende structuur is:
+- **Koepel:** Provinciaal Onderwijs Vlaanderen.
+- **Schoolbestuur:** Provinciebestuur Oost-Vlaanderen.
 
-De formele koepel- en schoolbestuurrelaties en de officiële codes/namen moeten nog bevestigd worden; ze worden niet afgeleid uit de schoolnamen.
+De organisatiestructuur moet later bijkomende koepels en schoolbesturen kunnen bevatten. De huidige namen mogen dus niet als vaste waarden in de applicatiecode worden ingebakken.
+
+## 2. Bevestigde school- en campusindeling
+- **Richtpunt campus Ninove-Zottegem:** één schoolcontext met twee campussen: Ninove en Zottegem.
+- **Richtpunt campus Eeklo:** afzonderlijke schoolcontext.
+- **Richtpunt campus Hamme:** afzonderlijke schoolcontext.
+- **Richtpunt Gent:** één schoolcontext met twee campussen:
+  - Gent – Henlikai (officiële schrijfwijze nog te bevestigen).
+  - Gent – Hotwijselaan.
+
+Dit betekent voorlopig vier schoolcontexten: Ninove-Zottegem, Eeklo, Hamme en Gent. De campuslocaties worden afzonderlijk geregistreerd onder de juiste school. De formele juridische/administratieve schoolnamen en officiële identificatiecodes moeten nog worden bevestigd.
 
 ## 3. Bevestigde functionele keuzes
 1. De aankopenmodule wordt beheerd op schoolniveau.
@@ -35,19 +43,19 @@ De formele koepel- en schoolbestuurrelaties en de officiële codes/namen moeten 
 - Rechtenwijzigingen, contextwissels en gevoelige mutaties worden auditbaar geregistreerd.
 
 ## 5. Migratievolgorde
-1. Formele koepel- en schoolbestuurrelaties bevestigen.
+1. Officiële namen, campusnamen en identificatiecodes bevestigen.
 2. Centraal organisatieschema en lidmaatschappen implementeren.
 3. Module- en rollenmatrix met expliciete scopes implementeren.
 4. Contextkeuze na aanmelden bouwen.
 5. API-autorisatie en beveiligingstests uitvoeren.
 6. Bestaande school met campussen Ninove en Zottegem gecontroleerd migreren.
-7. Afzonderlijke schoolcontexten Hamme, Gent en Eeklo configureren met eigen D1- en R2-opslag.
+7. Afzonderlijke schoolcontexten Eeklo, Hamme en Gent configureren met eigen D1- en R2-opslag.
 8. Gegevensisolatie, rechten en bestaande werking valideren.
 
 ## 6. Nog te bevestigen
-- Officiële koepel- en schoolbestuurrelatie van de school Ninove/Zottegem.
-- Officiële koepel- en schoolbestuurrelatie van de afzonderlijke scholen Hamme, Gent en Eeklo.
-- Exacte officiële school- en campusnamen en codes.
+- Officiële schrijfwijze van campus Gent “Henlikai”.
+- Formele schoolnamen en identificatiecodes voor de vier schoolcontexten.
+- Officiële campusnamen en identificatiecodes.
 - Mapping van bestaande gebruikersrollen naar de school Ninove/Zottegem.
 
 ## 7. Veiligheidsgrens
