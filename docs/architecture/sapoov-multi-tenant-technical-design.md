@@ -292,14 +292,18 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - De tabel mag gebruikers niet automatisch dupliceren per school of per lidmaatschap.
 
 **Zoeken en navigeren:**
-- Gebruikers moeten via een zoekveld op naam en e-mailadres doorzoekbaar zijn.
+- Gebruikers moeten doorzoekbaar zijn op volledige naam, e-mailadres en e-mailextensie/domein (het gedeelte na de @, bijvoorbeeld `@richtpunt.be`). De zoekfunctie ondersteunt gedeeltelijke overeenkomsten en hoofdletterongevoelig zoeken.
+- De zoekfilters mogen gecombineerd worden: een beheerder kan bijvoorbeeld zoeken op naam én e-mailextensie om een personeelsgroep af te bakenen.
 - De gebruikersrijen zijn niet open- of dichtklapbaar. Er wordt dus geen boomstructuur van gebruikersrijen gebruikt.
 - De geneste kolomkoppen blijven zichtbaar en maken de organisatie- en modulecontext van elk rechtenprofiel duidelijk.
 - Bij brede tabellen moeten de kolomkoppen tijdens horizontaal scrollen herkenbaar blijven; de gebruikerskolom blijft bij voorkeur vastgezet.
 - De matrix moet ook bruikbaar blijven wanneer een gebruiker geen rechten heeft in bepaalde kolommen: een lege cel betekent geen toekenning, niet een impliciete weigering die als aparte rol wordt opgeslagen.
 
 **Beheer via de cellen:**
-- Een bevoegde beheerder kan een rechtenprofiel voor een gebruiker toekennen of intrekken vanuit de overeenkomstige cel.
+- Elke cel op het kruispunt van een gebruiker en een rechtenprofiel bevat een aanvinkvakje (checkbox).
+- Aangevinkt betekent dat het betreffende rechtenprofiel aan die gebruiker wordt toegekend binnen de kolomcontext; uitgevinkt betekent dat die toekenning niet bestaat of wordt ingetrokken.
+- De beheerder vinkt dus per gebruiker en per rechtenprofiel expliciet aan of de gebruiker die rechten krijgt. Er worden geen rechten toegekend enkel omdat iemand in de gebruikerslijst voorkomt of tot een school behoort.
+- Een bevoegde beheerder kan een rechtenprofiel voor een gebruiker toekennen of intrekken door het vakje in de overeenkomstige cel aan of uit te vinken.
 - Elke wijziging wordt server-side gevalideerd tegen de eigen bevoegdheden van de beheerder, de organisatiehiërarchie, de module en het rechtenprofiel.
 - De interface toont bij een toekenning de scope, status en eventuele geldigheidsperiode.
 - Een profiel op een hoger organisatieniveau wordt niet stilzwijgend naar onderliggende scholen doorgetrokken. Indien descendant-toegang expliciet wordt ondersteund, moet die afzonderlijk en ondubbelzinnig zichtbaar zijn.
@@ -307,7 +311,7 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 
 **Technische representatie:**
 - De kolomgroepen worden opgebouwd uit de organisatiestructuur, modules en actieve rechtenprofielen; namen en kolomposities zijn geen identifiers.
-- Elke cel verwijst naar een expliciete roltoewijzing met gebruiker, profiel/rol, module en organisatiescope.
+- Elk aangevinkt vakje verwijst naar een expliciete roltoewijzing met gebruiker, profiel/rol, module en organisatiescope. Een niet-aangevinkt vakje maakt geen roltoewijzing aan.
 - De matrix mag geen eigen alternatieve rechtenlogica introduceren naast `user_role_assignments`, `role_permissions` en de server-side autorisatieservice.
 - Leg wijzigingen vast in `audit_events`, inclusief actor, gebruiker, profiel, scope, actie en tijdstip.
 
