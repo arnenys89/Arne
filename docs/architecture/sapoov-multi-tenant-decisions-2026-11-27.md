@@ -44,6 +44,8 @@ Elke koepel, elk schoolbestuur en elke onderwijsinstelling/school krijgt eigen b
 
 - **Logo:** verwijzing naar het eigen logo-bestand of de beheerde logo-asset. Bewaar het bestand in de daarvoor voorziene opslag; sla in de organisatietabel een stabiele assetverwijzing op.
 - **Website:** officiële website-URL.
+- **E-mailadres:** algemeen contact- of secretariaatsadres van de entiteit; dit staat los van persoonlijke gebruikersaccounts.
+- **Fysiek adres:** officieel correspondentie- of vestigingsadres van de entiteit. De afzonderlijke locaties behouden daarnaast elk hun eigen fysiek adres.
 - **Afkorting:** officiële of door het bestuur vastgelegde korte naam.
 - **Instellingsnummer:** het officiële administratieve identificatienummer, als dat voor de betreffende entiteit bestaat en van toepassing is.
 
@@ -92,7 +94,7 @@ Gebruik een generiek organisatietype voor de onderliggende onderwijsinstelling, 
 
 ## 9. Nog te bevestigen
 - Formele juridische/administratieve namen en officiële instellingsnummers van koepel, schoolbestuur en alle onderwijsinstellingen.
-- Officiële afkortingen en website-URL's per entiteit.
+- Officiële afkortingen, website-URL's, contact-e-mailadressen en correspondentieadressen per entiteit.
 - De juiste logo's en de goedgekeurde logo-bestanden per entiteit.
 - Officiële schrijfwijze van “Kimpunt” en de volledige namen van de basisscholen Assenede en Eeklo.
 - Officiële locatienamen en locatiecodes.
