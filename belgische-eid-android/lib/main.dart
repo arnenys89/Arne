@@ -95,7 +95,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           if (!mounted) return;
           setState(() {
             _progress = fraction.clamp(0.0, 1.0);
-            _message = 'Chip uitlezen… \${(_progress * 100).round()}%';
+            _message = 'Chip uitlezen… ${(_progress * 100).round()}%';
           });
         },
       );
@@ -153,7 +153,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     try {
       final directory = await getTemporaryDirectory();
       final file = File(
-        '\${directory.path}/belgische_eid_\${DateTime.now().millisecondsSinceEpoch}.json',
+        '${directory.path}/belgische_eid_${DateTime.now().millisecondsSinceEpoch}.json',
       );
       const encoder = JsonEncoder.withIndent('  ');
       await file.writeAsString(encoder.convert(_exportData()));
@@ -176,13 +176,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
         pw.MultiPage(
           build: (context) => [
             pw.Header(level: 0, child: pw.Text('Belgische eID - chipuitlezing')),
-            pw.Text('Naam: \${mrz.firstNames} \${mrz.lastName}'),
-            pw.Text('Geboortedatum: \${mrz.birthDate}'),
-            pw.Text('Documentnummer: \${mrz.documentNumber}'),
-            pw.Text('Geldig tot: \${mrz.expiryDate}'),
-            pw.Text('Nationaliteit: \${mrz.nationality}'),
+            pw.Text('Naam: ${mrz.firstNames} ${mrz.lastName}'),
+            pw.Text('Geboortedatum: ${mrz.birthDate}'),
+            pw.Text('Documentnummer: ${mrz.documentNumber}'),
+            pw.Text('Geldig tot: ${mrz.expiryDate}'),
+            pw.Text('Nationaliteit: ${mrz.nationality}'),
             pw.SizedBox(height: 16),
-            pw.Text('Chipcontrole: \${data['chipAuthenticity'] ?? 'Niet beschikbaar'}'),
+            pw.Text('Chipcontrole: ${data['chipAuthenticity'] ?? 'Niet beschikbaar'}'),
             pw.SizedBox(height: 20),
             pw.Text(
               'Opmerking: deze export is een weergave van gegevens die van de NFC-chip zijn gelezen. '
@@ -191,7 +191,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.SizedBox(height: 8),
-            pw.Text('Gemaakt op: \${DateTime.now().toLocal()}',
+            pw.Text('Gemaakt op: ${DateTime.now().toLocal()}',
                 style: const pw.TextStyle(fontSize: 8)),
           ],
         ),
