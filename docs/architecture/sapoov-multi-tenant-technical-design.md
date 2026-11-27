@@ -270,6 +270,47 @@ Het server-side contextregister koppelt een instelling-UUID aan interne D1- en R
 - Waarschuw prominent bij brede koepel- of bestuursscope.
 - Ondersteun onmiddellijke intrekking en auditregistratie.
 
+### Rechtenmatrix — kruistabel
+
+Het centrale rechtenbeheer krijgt als primaire beheerweergave een **kruistabel**. Dit is de hoofdweergave om snel te zien en te beheren welke gebruikers welk rechtenprofiel binnen welke module en organisatiecontext hebben.
+
+**Kolomstructuur met vijf geneste kopniveaus:**
+
+1. **Koepel** — bovenste groepskop.
+2. **Schoolbestuur** — gegroepeerd onder de bijbehorende koepel.
+3. **School/onderwijsinstelling** — gegroepeerd onder het bijbehorende schoolbestuur.
+4. **Module** — gegroepeerd onder de school.
+5. **Rechtenprofiel** — de concrete kolom op het laagste niveau, gegroepeerd onder de module.
+
+De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provinciaal Onderwijs Vlaanderen → Provinciebestuur Oost-Vlaanderen → Richtpunt campus Ninove Zottegem → Aankopen → Goedkeurder.
+
+**Rijen:**
+- Elke rij vertegenwoordigt één centrale gebruiker.
+- De gebruiker blijft één rij, ook wanneer die toegang heeft tot meerdere scholen, besturen, koepels of modules.
+- De cellen op de kruising van gebruiker en rechtenprofiel tonen of dat profiel aan die gebruiker is toegekend binnen de kolomcontext.
+- Een gebruiker kan dus op meerdere kolommen een toekenning hebben, telkens met de bijbehorende organisatiescope.
+- De tabel mag gebruikers niet automatisch dupliceren per school of per lidmaatschap.
+
+**Zoeken en navigeren:**
+- Gebruikers moeten via een zoekveld op naam en e-mailadres doorzoekbaar zijn.
+- De gebruikersrijen zijn niet open- of dichtklapbaar. Er wordt dus geen boomstructuur van gebruikersrijen gebruikt.
+- De geneste kolomkoppen blijven zichtbaar en maken de organisatie- en modulecontext van elk rechtenprofiel duidelijk.
+- Bij brede tabellen moeten de kolomkoppen tijdens horizontaal scrollen herkenbaar blijven; de gebruikerskolom blijft bij voorkeur vastgezet.
+- De matrix moet ook bruikbaar blijven wanneer een gebruiker geen rechten heeft in bepaalde kolommen: een lege cel betekent geen toekenning, niet een impliciete weigering die als aparte rol wordt opgeslagen.
+
+**Beheer via de cellen:**
+- Een bevoegde beheerder kan een rechtenprofiel voor een gebruiker toekennen of intrekken vanuit de overeenkomstige cel.
+- Elke wijziging wordt server-side gevalideerd tegen de eigen bevoegdheden van de beheerder, de organisatiehiërarchie, de module en het rechtenprofiel.
+- De interface toont bij een toekenning de scope, status en eventuele geldigheidsperiode.
+- Een profiel op een hoger organisatieniveau wordt niet stilzwijgend naar onderliggende scholen doorgetrokken. Indien descendant-toegang expliciet wordt ondersteund, moet die afzonderlijk en ondubbelzinnig zichtbaar zijn.
+- De matrix is een beheerscherm en geen autorisatiebron: de API blijft bij iedere aanvraag de effectieve rechten berekenen en controleren.
+
+**Technische representatie:**
+- De kolomgroepen worden opgebouwd uit de organisatiestructuur, modules en actieve rechtenprofielen; namen en kolomposities zijn geen identifiers.
+- Elke cel verwijst naar een expliciete roltoewijzing met gebruiker, profiel/rol, module en organisatiescope.
+- De matrix mag geen eigen alternatieve rechtenlogica introduceren naast `user_role_assignments`, `role_permissions` en de server-side autorisatieservice.
+- Leg wijzigingen vast in `audit_events`, inclusief actor, gebruiker, profiel, scope, actie en tijdstip.
+
 ### Contextbeheer
 - Toon de contexten waartoe een gebruiker toegang heeft.
 - Laat de gebruiker zelf de actieve context kiezen bij meerdere opties.
