@@ -153,8 +153,9 @@ async function start(){
   }
  }catch(error){notice(error.message,true);$('message').textContent='Dashboardinitialisatie onvolledig: '+error.message;if(dashboardApps.length)renderApps();}
 }
-$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){dashboardApps=me.applications||dashboardApps;}else{dashboardApps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
-$('apps').addEventListener('click',e=>{const card=e.target.closest('[data-app-target]');if(!card||selectedOrganizationUnit)return;e.preventDefault();$('message').textContent='Kies eerst de school, campus of het bestuur waarin je deze module wilt openen.';$('organization-context').focus();});
+let pendingAppTarget='';
+$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){dashboardApps=me.applications||dashboardApps;}else{dashboardApps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);if(pendingAppTarget){const target=pendingAppTarget;pendingAppTarget='';window.location.assign(contextUrl(target));}}catch(error){notice(error.message,true);}});
+$('apps').addEventListener('click',e=>{const card=e.target.closest('[data-app-target]');if(!card||selectedOrganizationUnit)return;e.preventDefault();pendingAppTarget=card.dataset.appTarget;$('context-picker').classList.remove('hidden');$('message').textContent='Kies de school, campus of het bestuur waarin je deze toepassing wilt openen. Daarna opent de gekozen toepassing automatisch.';$('context-picker').scrollIntoView({behavior:'smooth',block:'center'});$('organization-context').focus();});
 
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
 $('matrix-search').addEventListener('input',renderRightsMatrix);
