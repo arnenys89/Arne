@@ -19,6 +19,13 @@ De ICAO-bibliotheek controleert de integriteit van de gelezen gegevens en kan de
 
 Vingerafdrukken en irisscans worden niet gelezen.
 
+## Camerascan zonder CAN-code
+- Fotografeer de voor- en achterkant met de ingebouwde camera.
+- Herkent tekst lokaal met Google ML Kit (Latin OCR), zonder serverupload.
+- Probeert naam, voornamen, geboortedatum, geslacht, nationaliteit, kaartnummer en vervaldatum uit de MRZ te halen.
+- Exporteert herkende velden en tekst naar JSON of PDF op uitdrukkelijk verzoek.
+- OCR kan fouten maken; de scan leest de NFC-chip niet en bewijst de echtheid niet.
+
 ## APK bouwen
 De GitHub Actions-workflow `.github/workflows/build-eid-apk.yml` bouwt de release-APK automatisch bij een wijziging in deze map. De APK wordt als workflow-artifact gepubliceerd.
 
