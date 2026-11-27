@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iconSvg = icon => { const paths = {"shopping-cart":"<path d=\"M3 4h2l2.5 12h11L21 8H6\"/><circle cx=\"10\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M9 11h9\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18M7 14h3m3 0h4m-10 3h3\"/>","graduation-cap":"<path d=\"m2 9 10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 3 9 3 12 0v-5m4-2v7\"/>","calendar-check":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18m4 5 2 2 4-5\"/>","book-open":"<path d=\"M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2zM21 5c-4-1-7 0-9 2v13c2-2 5-3 9-2z\"/>","layout-dashboard":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"5\" rx=\"1\"/><rect x=\"13\" y=\"10\" width=\"8\" height=\"11\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","network":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"4\" r=\"2\"/><circle cx=\"4\" cy=\"20\" r=\"2\"/><circle cx=\"20\" cy=\"20\" r=\"2\"/><path d=\"m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4\"/>","clipboard-list":"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4V2h6v2M9 10h6m-6 4h6m-6 4h4\"/>","compass":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2.5 6-6 2.5 2.5-6z\"/>"}; const path = paths[icon] || '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'; return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>'; };
-let me=null, users=[], apps=[], roles=[], assignments=[], organizationUnits=[], accessScopes=[], roleScopes=[], selectedOrganizationUnit=null, availableContexts=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
+let me=null, users=[], dashboardApps=[], adminApps=[], roles=[], assignments=[], organizationUnits=[], accessScopes=[], roleScopes=[], selectedOrganizationUnit=null, availableContexts=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
 async function api(path,options={}) {
  const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});
  const data=await response.json().catch(()=>({}));
@@ -12,7 +12,7 @@ function notice(message,error=false){$('notice').textContent=message;$('notice')
 async function loadAdmin(){
  const [matrix,audit]=await Promise.all([api('/api/admin/rights-matrix'),api('/api/admin/audit')]);
  users=matrix.users;
- apps=matrix.applications;
+ adminApps=matrix.applications;
  roles=matrix.roles;
  assignments=(matrix.assignments||[]).map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
  organizationUnits=matrix.organizationUnits||[];
@@ -21,7 +21,7 @@ async function loadAdmin(){
  const accessCounts=new Map();
  for(const x of accessScopes){if(Number(x.enabled)===1)accessCounts.set(x.user_id,(accessCounts.get(x.user_id)||0)+1);}
  users=users.map(u=>({...u,application_count:accessCounts.get(u.id)||0}));
- if(!selectedApp||!apps.some(x=>x.id===selectedApp))selectedApp=apps[0]?.id||'';
+ if(!selectedApp||!adminApps.some(x=>x.id===selectedApp))selectedApp=adminApps[0]?.id||'';
  if(!selectedUser||!users.some(x=>x.id===selectedUser))selectedUser=users[0]?.id||'';
  renderAdmin();
  renderRightsMatrix();
@@ -30,8 +30,8 @@ async function loadAdmin(){
 function renderAdmin(){
  $('user-count').textContent=users.length;
  $('user-list').innerHTML=users.map(u=>`<button class="user-item ${u.id===selectedUser?'selected':''}" data-user="${esc(u.id)}"><b>${esc(u.display_name||u.email)}</b><small>${esc(u.email)}</small><span>${u.application_count} toepassingen</span></button>`).join('')||'<p class="muted">Er zijn nog geen gebruikers geregistreerd. Een gebruiker verschijnt na de eerste beveiligde aanmelding.</p>';
- $('app-select').innerHTML=apps.map(a=>`<option value="${esc(a.id)}" ${a.id===selectedApp?'selected':''}>${esc(a.name)}</option>`).join('');
- const app=apps.find(a=>a.id===selectedApp), appRoles=roles.filter(r=>r.application_id===selectedApp);
+ $('app-select').innerHTML=adminApps.map(a=>`<option value="${esc(a.id)}" ${a.id===selectedApp?'selected':''}>${esc(a.name)}</option>`).join('');
+ const app=adminApps.find(a=>a.id===selectedApp), appRoles=roles.filter(r=>r.application_id===selectedApp);
  $('access-audience').value=app?.access_audience||'';
  $('role-count').textContent=appRoles.length;
  $('role-list').innerHTML=appRoles.map(r=>`<div class="role-item"><div><b>${esc(r.name)}</b><p>${esc(r.description)}</p><small>${esc((r.permissions||[]).join(' · ')||'Geen rechten gedefinieerd')}</small></div><div class="role-actions"><button class="small-btn" data-edit-role="${esc(r.id)}">Aanpassen</button><button class="small-btn danger" data-delete-role="${esc(r.id)}">Verwijderen</button></div></div>`).join('')||'<p class="muted">Nog geen rollen voor deze toepassing.</p>';
@@ -49,7 +49,7 @@ function renderRightsMatrix(){
  const term=$('matrix-search').value.trim().toLowerCase();
  const filtered=users.filter(u=>{const email=String(u.email||'').toLowerCase(),domain=email.includes('@')?email.split('@').pop():'';return (String(u.display_name||'')+' '+email+' '+domain).toLowerCase().includes(term);});
  const children=new Map();for(const unit of organizationUnits){const key=unit.parent_id||'';if(!children.has(key))children.set(key,[]);children.get(key).push(unit);}
- const roots=children.get('')||[],appList=apps.filter(a=>a.status!=='hidden'),rolesFor=app=>roles.filter(r=>r.application_id===app.id);
+ const roots=children.get('')||[],appList=adminApps.filter(a=>a.status!=='hidden'),rolesFor=app=>roles.filter(r=>r.application_id===app.id);
  const accessMap=new Map(accessScopes.map(x=>[x.user_id+'|'+x.application_id+'|'+x.organization_unit_id,Number(x.enabled)===1]));
  const roleMap=new Map(roleScopes.map(x=>[x.user_id+'|'+x.application_id+'|'+x.role_id+'|'+x.organization_unit_id,Number(x.enabled)===1]));
  const ownWidth=appList.reduce((sum,a)=>sum+1+rolesFor(a).length,0);
@@ -118,7 +118,7 @@ function renderApps(){
  if(needsContext&&!me?.superadmin){
   $('apps').innerHTML='<div class="message">Kies eerst de organisatiecontext waarin je wilt werken.</div>';applyContextToLinks();return;
  }
- $('apps').innerHTML=apps.map(a=>{
+ $('apps').innerHTML=dashboardApps.map(a=>{
   const internal=['werkplekreservatie','beleidskompas'].includes(a.id);
   const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');
   return `<a class="app" data-app-target="${esc(target)}" href="${needsContext?'#':esc(contextUrl(target))}" ${needsContext?'aria-label="'+esc(a.name)+' — kies eerst een organisatiecontext"':(internal?'':'target="_blank" rel="noopener noreferrer"')}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p>${needsContext?'<small>Kies een school of bestuur om te openen</small>':''}</a>`;
@@ -127,7 +127,7 @@ function renderApps(){
 }
 async function selectOrganizationContext(unitId){
  const data=await api('/api/me?organizationUnitId='+encodeURIComponent(unitId));
- me=data;selectedOrganizationUnit=data.selectedOrganizationUnit;apps=data.applications;assignments=data.assignments;
+ me=data;selectedOrganizationUnit=data.selectedOrganizationUnit;dashboardApps=data.applications;assignments=data.assignments;
  $('organization-context').value=unitId;$('message').textContent='Actieve organisatiecontext: '+selectedOrganizationUnit.name+'.';renderApps();
 }
 async function start(){
@@ -138,22 +138,22 @@ async function start(){
   if(availableContexts.length===1){$('context-picker').classList.remove('hidden');await selectOrganizationContext(availableContexts[0].id);}
   else if(availableContexts.length>1){
    selectedOrganizationUnit=null;
-   if(data.superadmin){apps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules van alle besturen en scholen zijn zichtbaar. Kies een organisatiecontext om een module te openen.';}
-   else{$('message').textContent='Kies de organisatiecontext waarin je wilt werken. Je ziet alleen toepassingen waarvoor je daar expliciet toegang hebt.';apps=[];}
+   if(data.superadmin){dashboardApps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules van alle besturen en scholen zijn zichtbaar. Kies een organisatiecontext om een module te openen.';}
+   else{$('message').textContent='Kies de organisatiecontext waarin je wilt werken. Je ziet alleen toepassingen waarvoor je daar expliciet toegang hebt.';dashboardApps=[];}
    renderApps();
   }
-  else if(data.superadmin){selectedOrganizationUnit=null;apps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules zijn zichtbaar. Kies een organisatiecontext om een module te openen.';renderApps();}
-  else{$('message').textContent='Er is nog geen organisatiecontext met expliciet toegekende toepassingstoegang aan je account gekoppeld.';apps=[];renderApps();}
+  else if(data.superadmin){selectedOrganizationUnit=null;dashboardApps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules zijn zichtbaar. Kies een organisatiecontext om een module te openen.';renderApps();}
+  else{$('message').textContent='Er is nog geen organisatiecontext met expliciet toegekende toepassingstoegang aan je account gekoppeld.';dashboardApps=[];renderApps();}
   if(data.superadmin){
    $('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');
    try{await loadAdmin();}
    catch(adminError){notice('Het dashboard is geladen, maar het gebruikersbeheer kon niet volledig worden geladen: '+adminError.message,true);}
-   if(Array.isArray(data.applications))apps=data.applications;
+   if(Array.isArray(data.applications))dashboardApps=data.applications;
    renderApps();
   }
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
-$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){apps=me.applications||apps;}else{apps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
+$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){dashboardApps=me.applications||dashboardApps;}else{dashboardApps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
 $('apps').addEventListener('click',e=>{const card=e.target.closest('[data-app-target]');if(!card||selectedOrganizationUnit)return;e.preventDefault();$('message').textContent='Kies eerst de school, campus of het bestuur waarin je deze module wilt openen.';$('organization-context').focus();});
 
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
