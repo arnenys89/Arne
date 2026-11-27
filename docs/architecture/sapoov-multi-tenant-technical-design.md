@@ -337,7 +337,93 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - Toon in de interface steeds de actieve instelling en, waar relevant, locatie.
 - Wisselen van context mag geen rechten verruimen.
 
-## 9. Migratie- en implementatievolgorde
+## 9. Teambeheer — hiërarchische kruistabel
+
+Naast de rechtenmatrix krijgt het teambeheer een eigen instellingsdashboard met dezelfde visuele logica: een hiërarchische kruistabel met personeelsleden in de rijen en teams in de kolommen.
+
+### 9.1 Kolomstructuur
+
+De kolomkoppen volgen deze niveaus:
+
+1. **Koepel**
+2. **Schoolbestuur**
+3. **School/onderwijsinstelling**
+4. **Team**
+
+De teamkolommen worden gegroepeerd onder de school waartoe het team behoort. Zo kan de beheerder de volledige teamstructuur bekijken op het niveau van één school, meerdere scholen, een schoolbestuur of een volledige koepel.
+
+Een voorbeeld van een kolompad:
+Provinciaal Onderwijs Vlaanderen → Provinciebestuur Oost-Vlaanderen → Richtpunt campus Ninove Zottegem → Team wetenschappen-wiskunde.
+
+Teams zijn organisatorisch gekoppeld aan één onderwijsinstelling. Een team is niet automatisch een koepel- of bestuursteam. Indien later centrale teams nodig zijn, moeten die als afzonderlijk teamtype met een expliciete organisatiescope worden gemodelleerd.
+
+### 9.2 Rijen en personeelsfilters
+
+- Elke rij vertegenwoordigt één centrale personeelsgebruiker.
+- Een personeelslid blijft één rij, ook wanneer die in meerdere scholen of teams actief is.
+- Zoek/filter op volledige naam, e-mailadres en e-mailextensie/domein; gedeeltelijke en hoofdletterongevoelige overeenkomsten worden ondersteund.
+- Filters kunnen gecombineerd worden, bijvoorbeeld personeelsleden met een bepaald e-maildomein binnen één schoolbestuur.
+- Bied scopefilters aan om te kiezen tussen één school, een selectie van scholen, een volledig schoolbestuur of een volledige koepel.
+- Bied optioneel filters op team en lidmaatschapstype.
+- De rijen zijn niet boomvormig of open-/dichtklapbaar. De personeelslijst blijft een vlakke, doorzoekbare lijst.
+
+### 9.3 Lidmaatschap per cel
+
+Op de kruising van een personeelslid en een team staat de lidmaatschapsstatus. De beheerder kan per cel één van deze drie onderling uitsluitende statussen instellen:
+
+- **Geen lid:** geen actief teamlidmaatschap.
+- **Actief lid:** het personeelslid behoort actief tot het team.
+- **Passief lid:** het personeelslid is aan het team verbonden, maar is geen actief lid.
+- **Teamleider:** het personeelslid is teamleider van het team.
+
+De drie lidmaatschapstypes actief lid, passief lid en teamleider zijn onderling exclusief per personeelslid en team. Een teamleider moet ook als actief lid van dat team worden beschouwd; de status teamleider omvat dus de actieve deelname en wordt als afzonderlijke rol/status weergegeven. Een personeelslid kan in verschillende teams verschillende statussen hebben.
+
+De matrix gebruikt per cel een duidelijke keuzecontrole (bijvoorbeeld een selectievakje met statuskeuze of een keuzelijst), zodat niet per ongeluk meerdere onderling strijdige statussen tegelijk kunnen worden toegekend. Een lege cel betekent geen teamlidmaatschap.
+
+### 9.4 Samenvouwen en overzicht
+
+- Koepel-, schoolbestuur-, school- en teamkolomgroepen kunnen afzonderlijk worden samengevouwen en opengevouwen.
+- Bij samenvouwen worden de onderliggende kolomgroepen verborgen, zonder de teamlidmaatschappen te wijzigen.
+- De beheerder kan bijvoorbeeld één school openlaten en de overige scholen samenvouwen, of meerdere scholen naast elkaar vergelijken.
+- De gekozen weergave verandert uitsluitend de presentatie, nooit de lidmaatschapsgegevens.
+- Bij brede tabellen blijven de personeelskolom en de hiërarchische koppen herkenbaar tijdens horizontaal scrollen.
+
+### 9.5 Datamodel
+
+Voorgestelde tabellen:
+
+| Tabel | Belangrijkste velden | Doel |
+|---|---|---|
+| `teams` | id, institution_id, code, name, description, status | Team binnen één onderwijsinstelling |
+| `team_memberships` | id, team_id, user_id, membership_type, valid_from, valid_until, status, assigned_by | Personeelslidmaatschap en rol in het team |
+| `team_membership_audit` of `audit_events` | actor_id, team_id, user_id, old_value, new_value, timestamp | Historiek van wijzigingen |
+
+Gebruik `membership_type` met gecontroleerde waarden `active_member`, `passive_member` en `team_leader`. Leg de regel vast dat een teamleider functioneel ook actief lid is. Een gebruiker kan maar één geldige lidmaatschapsstatus per team hebben; gebruik passende unieke constraints of transactielogica om dubbele actieve lidmaatschappen te voorkomen.
+
+Teambeheer blijft gescheiden van moduletoegang en module-rechtenprofielen. Een teamlidmaatschap verleent op zichzelf geen toegang tot een SAPOOV-module.
+
+### 9.6 Bevoegdheden en audit
+
+- Teamlidmaatschappen kunnen alleen worden gewijzigd door gebruikers met expliciete teambeheerrechten binnen de betrokken organisatiescope.
+- Een beheerder op schoolniveau kan alleen teams van die school beheren, tenzij expliciete ruimere bevoegdheid is toegekend.
+- Bestuurs- of koepelbrede beheerders krijgen niet automatisch schrijfrechten op alle onderliggende teams.
+- Elke toevoeging, wijziging of verwijdering van een teamlidmaatschap wordt server-side gevalideerd en auditbaar geregistreerd.
+- Bulkacties over meerdere scholen zijn alleen mogelijk als de beheerder voor elke betrokken school expliciete bevoegdheid heeft.
+
+### 9.7 Acceptatiecriteria teambeheer
+
+- Eén personeelslid verschijnt slechts één keer in de rijen, ook bij lidmaatschap in meerdere scholen.
+- De beheerder kan filteren op naam, e-mailadres en e-mailextensie.
+- De beheerder kan één school, meerdere scholen, een bestuur of de volledige koepel als overzichtsscope kiezen.
+- De kolommen tonen de hiërarchie koepel → bestuur → school → team.
+- Per personeelslid en team kan exact één lidmaatschapsstatus worden ingesteld.
+- Een teamleider wordt als actief lid behandeld.
+- De kolomgroepen kunnen onafhankelijk worden samengevouwen en opengevouwen.
+- Het aanpassen van de weergave wijzigt geen teamlidmaatschappen.
+- Een teamlidmaatschap geeft geen impliciete moduletoegang.
+- Alle wijzigingen zijn auditbaar en worden door server-side autorisatie beschermd.
+
+## 10. Migratie- en implementatievolgorde
 
 1. Officiële organisatienamen, nummers, afkortingen, websites, e-mailadressen en fysieke adressen verzamelen en bevestigen.
 2. Definitieve entiteiten en locaties met UUID's vastleggen.
@@ -352,7 +438,7 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 11. Beveiligings-, isolatie-, regressie- en terugroltests uitvoeren.
 12. Pas na formele acceptatie een afzonderlijk productieplan uitvoeren.
 
-## 10. Test- en acceptatiecriteria
+## 11. Test- en acceptatiecriteria
 
 - Gebruiker zonder actieve roltoewijzing krijgt geen moduletoegang.
 - Lidmaatschap zonder modulemachtiging geeft geen moduletoegang.
@@ -368,7 +454,7 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - Een platformbeheerder krijgt niet automatisch inhoudelijke inzage in alle schoolgegevens.
 - Een gebruiker kan niet een eigen bestelling goedkeuren wanneer functiescheiding van toepassing is.
 
-## 11. Open beslissingen vóór implementatie
+## 12. Open beslissingen vóór implementatie
 
 - Definitieve juridische namen, officiële instellingsnummers, afkortingen en contactgegevens van koepel, bestuur en instellingen.
 - Definitieve afbakening van Richtpunt campus Gent Henleykaai en Richtpunt campus Gent-Oudenaarde en hun locaties.
@@ -379,6 +465,6 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - Definitieve bewaartermijnen en inzageregels voor auditlogs.
 - Keuze van de centrale database en de concrete Cloudflare-resourcebindings voor het contextregister.
 
-## 12. Veiligheidsgrens van deze ontwerpstap
+## 13. Veiligheidsgrens van deze ontwerpstap
 
 Deze commit werkt uitsluitend documentatie bij op de ontwikkelbranch. Er zijn geen tabellen aangemaakt, records gewijzigd, D1-databases aangemaakt of gekloond, R2-buckets gewijzigd, Workers of Pages-projecten aangepast, DNS-records gewijzigd of Access-policies aangepast. Productie blijft onaangeroerd.
