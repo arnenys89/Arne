@@ -88,3 +88,5 @@ html,body{height:100%;overflow:hidden}
 .rights-matrix .matrix-check{min-width:34px;padding:5px 4px}
 .rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:190px}
 @media(max-width:700px){.context-picker{grid-template-columns:1fr}.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:145px}}
+
+/* Rebuild production Pages runtime with the current central identity configuration. */
