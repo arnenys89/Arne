@@ -185,3 +185,9 @@ De nieuwe beheerinterface toont daarom een melding dat migratie 0006 nog moet wo
 - De JavaScript-syntax van `public/app.js` is gecontroleerd.
 - De Worker-module is gecontroleerd na omzetting van de `export default`-wrapper naar een parseerbare vorm.
 - De D1-migraties zijn nog niet op een echte ontwikkel-database uitgevoerd; daarvoor moet eerst een geïsoleerde testdatabase worden gebruikt en moeten de migraties en seed-import volledig worden gevalideerd.
+
+
+- `migrations/0008_scoped_role_assignments.sql`: afzonderlijke roltoewijzingen per gebruiker, module, rechtenprofiel en school; descendant-toegang staat standaard uit.
+- `src/index.js`: API voor organisatiegebonden roltoewijzingen, met aparte moduletoegangsschakelaar.
+- De beheerinterface bevat nu ook de eerste hiërarchische rechtenmatrix met inklapbare koepel-, bestuurs-, school- en modulekoppen. De matrix gebruikt één gebruikersrij per persoon en afzonderlijke selectievakjes voor platformtoegang en rechtenprofielen.
+- De teammatrix haalt personeelsrijen bij voorkeur uit de bestaande personeelsprofielen; wanneer die lijst leeg is, gebruikt ze de centrale gebruikerslijst.
