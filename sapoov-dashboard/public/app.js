@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iconSvg = icon => { const paths = {"shopping-cart":"<path d=\"M3 4h2l2.5 12h11L21 8H6\"/><circle cx=\"10\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M9 11h9\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18M7 14h3m3 0h4m-10 3h3\"/>","graduation-cap":"<path d=\"m2 9 10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 3 9 3 12 0v-5m4-2v7\"/>","calendar-check":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18m4 5 2 2 4-5\"/>","book-open":"<path d=\"M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2zM21 5c-4-1-7 0-9 2v13c2-2 5-3 9-2z\"/>","layout-dashboard":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"5\" rx=\"1\"/><rect x=\"13\" y=\"10\" width=\"8\" height=\"11\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","network":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"4\" r=\"2\"/><circle cx=\"4\" cy=\"20\" r=\"2\"/><circle cx=\"20\" cy=\"20\" r=\"2\"/><path d=\"m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4\"/>","clipboard-list":"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4V2h6v2M9 10h6m-6 4h6m-6 4h4\"/>","compass":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2.5 6-6 2.5 2.5-6z\"/>"}; const path = paths[icon] || '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'; return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>'; };
-let me=null, users=[], apps=[], roles=[], assignments=[], matrixAccess=[], collapsedApps=new Set(), education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
+let me=null, users=[], apps=[], roles=[], assignments=[], organizationUnits=[], accessScopes=[], roleScopes=[], collapsedOrgNodes=new Set(), collapsedModules=new Set(), education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
 async function api(path,options={}) {
  const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});
  const data=await response.json().catch(()=>({}));
@@ -14,10 +14,12 @@ async function loadAdmin(){
  users=matrix.users;
  apps=matrix.applications;
  roles=matrix.roles;
- assignments=matrix.assignments.map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
- matrixAccess=matrix.access||[];
+ assignments=(matrix.assignments||[]).map(x=>({...x,scope:JSON.parse(x.scope_json||'{}')}));
+ organizationUnits=matrix.organizationUnits||[];
+ accessScopes=matrix.accessScopes||[];
+ roleScopes=matrix.roleScopes||[];
  const accessCounts=new Map();
- for(const x of matrixAccess){if(x.enabled===1)accessCounts.set(x.user_id,(accessCounts.get(x.user_id)||0)+1);}
+ for(const x of accessScopes){if(Number(x.enabled)===1)accessCounts.set(x.user_id,(accessCounts.get(x.user_id)||0)+1);}
  users=users.map(u=>({...u,application_count:accessCounts.get(u.id)||0}));
  if(!selectedApp||!apps.some(x=>x.id===selectedApp))selectedApp=apps[0]?.id||'';
  if(!selectedUser||!users.some(x=>x.id===selectedUser))selectedUser=users[0]?.id||'';
@@ -44,6 +46,74 @@ function renderAdmin(){
  if(editingRole){$('role-name').value=editingRole.id?editingRole.name:'';$('role-description').value=editingRole.id?editingRole.description:'';$('role-permissions').value=editingRole.id?(editingRole.permissions||[]).join(', '):'';$('role-editor-title').textContent=editingRole.id?'Rol aanpassen':'Nieuwe rol';}
 }
 function renderRightsMatrix(){
+ const term=$('matrix-search').value.trim().toLowerCase();
+ const filtered=users.filter(u=>(u.display_name+' '+u.email).toLowerCase().includes(term));
+ const unitById=new Map(organizationUnits.map(x=>[x.id,x]));
+ const children=new Map();
+ for(const unit of organizationUnits){const key=unit.parent_id||'';if(!children.has(key))children.set(key,[]);children.get(key).push(unit);}
+ const roots=children.get('')||[];
+ const appList=apps.filter(a=>a.status!=='hidden');
+ const rolesFor=app=>roles.filter(r=>r.application_id===app.id);
+ const scopeEnabled=(rows,userId,appId,unitId,roleId=null)=>{
+   const filteredRows=rows.filter(x=>x.user_id===userId&&x.application_id===appId&&(roleId===null||x.role_id===roleId));
+   let current=unitId;
+   while(current){const found=filteredRows.find(x=>x.organization_unit_id===current);if(found)return Number(found.enabled)===1;current=unitById.get(current)?.parent_id||null;}
+   return false;
+ };
+ const width=node=>{
+   if(collapsedOrgNodes.has(node.id))return 1;
+   if(node.unit_type==='school')return appList.reduce((sum,a)=>sum+1+(collapsedModules.has(node.id+'::'+a.id)?0:rolesFor(a).length),0);
+   return (children.get(node.id)||[]).reduce((sum,c)=>sum+width(c),0);
+ };
+ const rows=[[],[],[],[],[]];
+ const makeButton=(id,collapsed,kind,label)=>`<button type="button" class="matrix-collapse" data-collapse-kind="${kind}" data-collapse-id="${esc(id)}" aria-label="${collapsed?'Uitklappen':'Inklappen'}">${collapsed?'+':'−'}</button>${esc(label)}`;
+ const addNodeHeader=(node,level)=>{
+   const collapsed=collapsedOrgNodes.has(node.id);
+   if(collapsed){rows[level].push(`<th rowspan="${5-level}" colspan="1" class="matrix-org-head">${makeButton(node.id,true,'org',node.name)}</th>`);return;}
+   if(node.unit_type==='school'){
+     const locs=(children.get(node.id)||[]).filter(x=>x.unit_type==='locatie').map(x=>x.name);
+     const locLabel=locs.length?`<small>Locaties: ${esc(locs.join(' · '))}</small>`:'';
+     rows[level].push(`<th colspan="${width(node)}" class="matrix-school-head">${makeButton(node.id,false,'org',node.name)}${locLabel}</th>`);
+     for(const app of appList){
+       const key=node.id+'::'+app.id, appCollapsed=collapsedModules.has(key), appRoles=rolesFor(app);
+       rows[3].push(`<th colspan="${1+(appCollapsed?0:appRoles.length)}" class="matrix-app-head"><button type="button" class="matrix-collapse" data-collapse-kind="module" data-collapse-id="${esc(key)}" aria-label="${appCollapsed?'Rollen tonen':'Rollen verbergen'}">${appCollapsed?'+':'−'}</button>${esc(app.name)}</th>`);
+       rows[4].push('<th class="matrix-subhead">Toegang</th>');
+       if(!appCollapsed)for(const role of appRoles)rows[4].push(`<th class="matrix-subhead" title="${esc(role.description||role.name)}">${esc(role.name)}</th>`);
+     }
+     return;
+   }
+   rows[level].push(`<th colspan="${width(node)}" class="matrix-org-head">${makeButton(node.id,false,'org',node.name)}</th>`);
+   for(const child of children.get(node.id)||[])addNodeHeader(child,level+1);
+ };
+ for(const root of roots)addNodeHeader(root,0);
+ const header='<thead><tr><th class="matrix-user-head" rowspan="5">Gebruiker</th>'+rows.map(r=>r.join('')).join('</tr><tr>')+'</tr></thead>';
+ const renderCells=(node,user)=>{
+   if(collapsedOrgNodes.has(node.id))return '<td class="matrix-folded">…</td>';
+   if(node.unit_type==='school'){
+     let cells='';
+     for(const app of appList){
+       const key=node.id+'::'+app.id, appCollapsed=collapsedModules.has(key);
+       const enabled=scopeEnabled(accessScopes,user.id,app.id,node.id);
+       cells+=`<td class="matrix-check"><input type="checkbox" data-org-access data-user="${esc(user.id)}" data-app="${esc(app.id)}" data-org-unit="${esc(node.id)}" aria-label="Toegang ${esc(app.name)} voor ${esc(user.email)} in ${esc(node.name)}" ${enabled?'checked':''}></td>`;
+       if(!appCollapsed)for(const role of rolesFor(app)){
+         const assigned=scopeEnabled(roleScopes,user.id,app.id,node.id,role.id);
+         cells+=`<td class="matrix-check"><input type="checkbox" data-org-role data-user="${esc(user.id)}" data-app="${esc(app.id)}" data-org-unit="${esc(node.id)}" data-role="${esc(role.id)}" aria-label="Rol ${esc(role.name)} voor ${esc(user.email)} in ${esc(node.name)}" ${assigned?'checked':''}></td>`;
+       }
+     }
+     return cells;
+   }
+   return (children.get(node.id)||[]).map(child=>renderCells(child,user)).join('');
+ };
+ let body='';
+ for(const user of filtered){
+   body+=`<tr><th scope="row" class="matrix-user"><b>${esc(user.display_name||user.email)}</b><small>${esc(user.email)}</small>${user.status!=='active'?'<span class="matrix-status">'+esc(user.status)+'</span>':''}</th>`;
+   body+=roots.map(root=>renderCells(root,user)).join('');
+   body+='</tr>';
+ }
+ if(!filtered.length)body+='<tr><td class="matrix-empty" colspan="'+(1+roots.reduce((n,r)=>n+width(r),0))+'">Geen gebruikers gevonden.</td></tr>';
+ $('rights-matrix').innerHTML=header+'<tbody>'+body+'</tbody>';
+}
+
  const term=$('matrix-search').value.trim().toLowerCase();
  const filtered=users.filter(u=>(u.display_name+' '+u.email).toLowerCase().includes(term));
  const appList=apps.filter(a=>a.status!=='hidden');
@@ -114,20 +184,27 @@ async function start(){
 }
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
 $('matrix-search').addEventListener('input',renderRightsMatrix);
-$('matrix-collapse-all').addEventListener('click',()=>{collapsedApps=new Set(apps.map(a=>a.id));renderRightsMatrix();});
-$('matrix-expand-all').addEventListener('click',()=>{collapsedApps.clear();renderRightsMatrix();});
-$('rights-matrix').addEventListener('click',e=>{const b=e.target.closest('[data-collapse-app]');if(!b)return;const id=b.dataset.collapseApp;if(collapsedApps.has(id))collapsedApps.delete(id);else collapsedApps.add(id);renderRightsMatrix();});
+$('matrix-collapse-all').addEventListener('click',()=>{
+ collapsedOrgNodes=new Set(organizationUnits.filter(x=>['koepel','schoolbestuur','school'].includes(x.unit_type)).map(x=>x.id));
+ collapsedModules.clear();renderRightsMatrix();
+});
+$('matrix-expand-all').addEventListener('click',()=>{collapsedOrgNodes.clear();collapsedModules.clear();renderRightsMatrix();});
+$('rights-matrix').addEventListener('click',e=>{
+ const b=e.target.closest('[data-collapse-kind]');if(!b)return;
+ const id=b.dataset.collapseId;
+ if(b.dataset.collapseKind==='org'){if(collapsedOrgNodes.has(id))collapsedOrgNodes.delete(id);else collapsedOrgNodes.add(id);}
+ else {if(collapsedModules.has(id))collapsedModules.delete(id);else collapsedModules.add(id);}
+ renderRightsMatrix();
+});
 $('rights-matrix').addEventListener('change',async e=>{
- const input=e.target.closest('input[data-matrix-access],input[data-matrix-role]');if(!input)return;
- const userId=input.dataset.user,applicationId=input.dataset.app,checked=input.checked;
+ const input=e.target.closest('input[data-org-access],input[data-org-role]');if(!input)return;
+ const userId=input.dataset.user,applicationId=input.dataset.app,organizationUnitId=input.dataset.orgUnit,checked=input.checked;
  input.disabled=true;
  try{
-  if(input.hasAttribute('data-matrix-access')){
-   await api('/api/admin/access',{method:'POST',body:JSON.stringify({userId,applicationId,enabled:checked})});
+  if(input.hasAttribute('data-org-access')){
+   await api('/api/admin/organization-access',{method:'POST',body:JSON.stringify({userId,applicationId,organizationUnitId,enabled:checked})});
   }else{
-   const roleId=input.dataset.role;
-   if(checked) await api('/api/admin/assignments',{method:'POST',body:JSON.stringify({userId,applicationId,roleId,scope:{}})});
-   else await api('/api/admin/assignments?userId='+encodeURIComponent(userId)+'&applicationId='+encodeURIComponent(applicationId)+'&roleId='+encodeURIComponent(roleId),{method:'DELETE'});
+   await api('/api/admin/organization-roles',{method:'POST',body:JSON.stringify({userId,applicationId,roleId:input.dataset.role,organizationUnitId,enabled:checked})});
   }
   await loadAdmin();
   notice(checked?'Recht of toegang ingeschakeld.':'Recht of toegang uitgeschakeld.');

@@ -54,3 +54,15 @@ html,body{height:100%;overflow:hidden}
 .rights-matrix tbody tr:hover td,.rights-matrix tbody tr:hover .matrix-user{background:#fffbee}
 .rights-matrix .matrix-empty{text-align:center;color:#777;padding:28px}
 @media(max-width:700px){.matrix-actions{width:100%}.matrix-panel>.panel-heading{align-items:flex-start;flex-direction:column}.matrix-scroll{max-height:60vh}.rights-matrix .matrix-user-head,.rights-matrix .matrix-user{min-width:155px}.matrix-toolbar .field{max-width:none}}
+
+/* Organisatiehiërarchie in de rechtenmatrix */
+.rights-matrix .matrix-org-head{background:#e8e4d8;font-weight:700}
+.rights-matrix .matrix-school-head{background:#f1eee6;font-weight:700;white-space:normal;min-width:190px}
+.rights-matrix .matrix-school-head small{display:block;color:#777;font-size:9px;font-weight:400;margin:4px 0 0 27px}
+.rights-matrix .matrix-folded{background:#faf9f6;color:#aaa;min-width:42px}
+.rights-matrix thead tr:nth-child(1) th{top:0}
+.rights-matrix thead tr:nth-child(2) th{top:34px}
+.rights-matrix thead tr:nth-child(3) th{top:68px}
+.rights-matrix thead tr:nth-child(4) th{top:102px}
+.rights-matrix thead tr:nth-child(5) th{top:136px}
+.matrix-panel .muted{max-width:1000px}

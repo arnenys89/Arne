@@ -58,6 +58,15 @@ async function audit(db, actor, action, targetType, targetId, details={}) {
   await db.prepare('INSERT INTO audit_events(id,actor_email,action,target_type,target_id,details_json) VALUES(?,?,?,?,?,?)').bind(id(),actor.email,action,targetType,targetId||null,JSON.stringify(details)).run();
 }
 async function bodyJson(request) { try { return await request.json(); } catch { return null; } }
+function inheritedScopeEnabled(grants, unitById, unitId) {
+  const byUnit = new Map(grants.map(row => [row.organization_unit_id, Number(row.enabled)]));
+  let current = unitId;
+  while (current) {
+    if (byUnit.has(current)) return byUnit.get(current) === 1;
+    current = unitById.get(current)?.parent_id || null;
+  }
+  return false;
+}
 
 export default {
   async fetch(request, env) {
@@ -72,15 +81,19 @@ export default {
     const method = request.method, path = url.pathname;
 
     if (method==='GET' && path==='/api/me') {
-      const [apps, assignments, access] = await Promise.all([
+      const [apps, assignments, units, access] = await Promise.all([
         env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
         env.DB.prepare(`SELECT a.id AS application_id,a.name AS application_name,a.url,r.id AS role_id,r.name AS role,r.permissions_json
           FROM user_app_roles uar JOIN applications a ON a.id=uar.application_id JOIN roles r ON r.id=uar.role_id
           WHERE uar.user_id=? AND a.status!='hidden' ORDER BY a.sort_order,a.name,r.name`).bind(user.id).all(),
-        env.DB.prepare("SELECT application_id FROM user_application_access WHERE user_id=? AND enabled=1").bind(user.id).all()
+        env.DB.prepare("SELECT id,parent_id,unit_type,name FROM organization_units WHERE active=1").all(),
+        env.DB.prepare("SELECT application_id,organization_unit_id,enabled FROM user_application_access_scopes WHERE user_id=?").bind(user.id).all()
       ]);
-      const enabled = new Set(access.results.map(x=>x.application_id));
-      const visible = superadmin ? apps.results : apps.results.filter(a=>enabled.has(a.id));
+      const unitById = new Map(units.results.map(x=>[x.id,x]));
+      const schools = units.results.filter(x=>x.unit_type==='school');
+      const visible = superadmin ? apps.results : apps.results.filter(app =>
+        schools.some(school => inheritedScopeEnabled(access.results.filter(x=>x.application_id===app.id),unitById,school.id))
+      );
       return json({user:{id:user.id,email:user.email,display_name:user.display_name},superadmin,applications:visible,assignments:assignments.results});
     }
 
@@ -89,17 +102,42 @@ export default {
       const app=await env.DB.prepare('SELECT * FROM applications WHERE id=? AND status="active"').bind(appSlug).first();
       if (!app) return json({error:'Onbekende toepassing.'},404);
       if (!app.access_audience || !identity.audiences.includes(app.access_audience)) return json({error:'De aanmeldsessie hoort niet bij deze toepassing.'},403);
-      const access=await env.DB.prepare('SELECT enabled FROM user_application_access WHERE user_id=? AND application_id=?').bind(user.id,app.id).first();
-      if (!access || access.enabled!==1) return json({error:'Je hebt geen toegang tot deze toepassing.'},403);
-      const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json,uar.scope_json FROM user_app_roles uar
-        JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id=? ORDER BY r.name`).bind(user.id,app.id).all();
-      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:rows.results.length>0});
+      const [units,access,roleRows]=await Promise.all([
+        env.DB.prepare("SELECT id,parent_id,unit_type,name FROM organization_units WHERE active=1").all(),
+        env.DB.prepare("SELECT organization_unit_id,enabled FROM user_application_access_scopes WHERE user_id=? AND application_id=?").bind(user.id,app.id).all(),
+        env.DB.prepare(`SELECT s.role_id,s.organization_unit_id,s.enabled,r.name,r.description,r.permissions_json
+          FROM user_application_role_scopes s JOIN roles r ON r.id=s.role_id
+          WHERE s.user_id=? AND s.application_id=? ORDER BY r.name`).bind(user.id,app.id).all()
+      ]);
+      const unitById=new Map(units.results.map(x=>[x.id,x]));
+      const schools=units.results.filter(x=>x.unit_type==='school');
+      const authorizedSchools=schools.filter(s=>inheritedScopeEnabled(access.results,unitById,s.id));
+      if (!authorizedSchools.length) return json({error:'Je hebt geen toegang tot deze toepassing.'},403);
+      const roleIds=[...new Set(roleRows.results.map(x=>x.role_id))];
+      const roles=[];
+      for(const roleId of roleIds){
+        const rows=roleRows.results.filter(x=>x.role_id===roleId);
+        const activeSchools=authorizedSchools.filter(s=>inheritedScopeEnabled(rows,unitById,s.id));
+        if(activeSchools.length){
+          const row=rows[0];
+          roles.push({id:row.role_id,name:row.name,description:row.description,permissions:JSON.parse(row.permissions_json||'[]'),
+            scope:{organizationUnitIds:activeSchools.map(x=>x.id),organizationUnitNames:activeSchools.map(x=>x.name)}});
+        }
+      }
+      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles,authorized:true,organizationUnits:authorizedSchools.map(x=>({id:x.id,name:x.name}))});
     }
 
     if (method==='GET' && ['/beleidskompas','/beleidskompas/','/beleidskompas.html'].includes(path)) {
       const app=await env.DB.prepare("SELECT id FROM applications WHERE id='beleidskompas' AND status='active'").first();
       if (!app) return new Response('Beleidskompas is nog niet geconfigureerd.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
-      const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles uar WHERE uar.user_id=? AND uar.application_id='beleidskompas' AND EXISTS (SELECT 1 FROM user_application_access uaa WHERE uaa.user_id=? AND uaa.application_id='beleidskompas' AND uaa.enabled=1) LIMIT 1").bind(user.id,user.id).first();
+      const [units,accessRows,roleRows]=await Promise.all([
+        env.DB.prepare("SELECT id,parent_id,unit_type,name FROM organization_units WHERE active=1").all(),
+        env.DB.prepare("SELECT organization_unit_id,enabled FROM user_application_access_scopes WHERE user_id=? AND application_id='beleidskompas'").bind(user.id).all(),
+        env.DB.prepare("SELECT organization_unit_id,enabled FROM user_application_role_scopes WHERE user_id=? AND application_id='beleidskompas'").bind(user.id).all()
+      ]);
+      const unitById=new Map(units.results.map(x=>[x.id,x]));
+      const schools=units.results.filter(x=>x.unit_type==='school');
+      const grant=schools.some(s=>inheritedScopeEnabled(accessRows.results,unitById,s.id)&&inheritedScopeEnabled(roleRows.results,unitById,s.id));
       if (!superadmin && !grant) return new Response('Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Beleidskompas-lezer toe te kennen.',{status:403,headers:{'content-type':'text/plain; charset=utf-8'}});
       return env.ASSETS.fetch(new Request(new URL('/beleidskompas.html',url),{method:'GET',headers:request.headers}));
     }
@@ -107,6 +145,56 @@ export default {
     if (path.startsWith('/api/admin/')) {
       if (!superadmin) return json({error:'Alleen de centrale superadministrator mag gebruikers en rechten beheren.'},403);
       if (method==='GET' && path==='/api/admin/rights-matrix') {
+        const [userRows,appRows,roleRows,unitRows,assignmentRows,accessRows,accessScopeRows,roleScopeRows]=await Promise.all([
+          env.DB.prepare("SELECT id,email,display_name,status,created_at FROM users ORDER BY email").all(),
+          env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
+          env.DB.prepare("SELECT * FROM roles WHERE application_id IS NOT NULL ORDER BY application_id,name").all(),
+          env.DB.prepare("SELECT id,parent_id,unit_type,name,sort_order,active FROM organization_units WHERE active=1 ORDER BY sort_order,name").all(),
+          env.DB.prepare(`SELECT uar.user_id,uar.application_id,uar.role_id,uar.scope_json,r.name AS role_name,a.name AS application_name
+            FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id JOIN applications a ON a.id=uar.application_id`).all(),
+          env.DB.prepare("SELECT user_id,application_id,enabled FROM user_application_access").all(),
+          env.DB.prepare("SELECT user_id,application_id,organization_unit_id,enabled FROM user_application_access_scopes").all(),
+          env.DB.prepare("SELECT user_id,application_id,role_id,organization_unit_id,enabled FROM user_application_role_scopes").all()
+        ]);
+        return json({
+          users:userRows.results,applications:appRows.results,
+          roles:roleRows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')})),
+          assignments:assignmentRows.results,access:accessRows.results,
+          organizationUnits:unitRows.results,accessScopes:accessScopeRows.results,roleScopes:roleScopeRows.results
+        });
+      }
+      if (method==='POST' && path==='/api/admin/organization-access') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !b?.applicationId || !b?.organizationUnitId || typeof b.enabled!=='boolean') return json({error:'Gebruiker, toepassing, organisatie-eenheid en toegang zijn verplicht.'},400);
+        const [target,app,unit]=await Promise.all([
+          env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first(),
+          env.DB.prepare('SELECT id FROM applications WHERE id=?').bind(b.applicationId).first(),
+          env.DB.prepare("SELECT id,unit_type FROM organization_units WHERE id=? AND active=1").bind(b.organizationUnitId).first()
+        ]);
+        if (!target || !app || !unit || unit.unit_type==='locatie') return json({error:'Gebruiker, toepassing of organisatie-eenheid niet gevonden of niet wijzigbaar.'},404);
+        await env.DB.prepare(`INSERT INTO user_application_access_scopes(user_id,application_id,organization_unit_id,enabled,updated_by)
+          VALUES(?,?,?,?,?) ON CONFLICT(user_id,application_id,organization_unit_id) DO UPDATE SET enabled=excluded.enabled,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+          .bind(b.userId,b.applicationId,b.organizationUnitId,b.enabled?1:0,user.email).run();
+        await audit(env.DB,user,'organization.application.access.update','user_application_access_scope',b.userId,{applicationId:b.applicationId,organizationUnitId:b.organizationUnitId,enabled:b.enabled});
+        return json({ok:true,enabled:b.enabled});
+      }
+      if (method==='POST' && path==='/api/admin/organization-roles') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !b?.applicationId || !b?.roleId || !b?.organizationUnitId || typeof b.enabled!=='boolean') return json({error:'Gebruiker, toepassing, rol, organisatie-eenheid en status zijn verplicht.'},400);
+        const [target,app,role,unit]=await Promise.all([
+          env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first(),
+          env.DB.prepare('SELECT id FROM applications WHERE id=?').bind(b.applicationId).first(),
+          env.DB.prepare('SELECT id,application_id FROM roles WHERE id=?').bind(b.roleId).first(),
+          env.DB.prepare("SELECT id,unit_type FROM organization_units WHERE id=? AND active=1").bind(b.organizationUnitId).first()
+        ]);
+        if (!target || !app || !role || role.application_id!==b.applicationId || !unit || unit.unit_type==='locatie') return json({error:'Gebruiker, toepassing, rol of organisatie-eenheid niet geldig.'},404);
+        await env.DB.prepare(`INSERT INTO user_application_role_scopes(user_id,application_id,role_id,organization_unit_id,enabled,updated_by)
+          VALUES(?,?,?,?,?,?) ON CONFLICT(user_id,application_id,role_id,organization_unit_id) DO UPDATE SET enabled=excluded.enabled,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+          .bind(b.userId,b.applicationId,b.roleId,b.organizationUnitId,b.enabled?1:0,user.email).run();
+        await audit(env.DB,user,'organization.application.role.update','user_application_role_scope',b.userId,{applicationId:b.applicationId,roleId:b.roleId,organizationUnitId:b.organizationUnitId,enabled:b.enabled});
+        return json({ok:true,enabled:b.enabled});
+      }
+      
         const [userRows,appRows,roleRows,assignmentRows,accessRows]=await Promise.all([
           env.DB.prepare("SELECT id,email,display_name,status,created_at FROM users ORDER BY email").all(),
           env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
