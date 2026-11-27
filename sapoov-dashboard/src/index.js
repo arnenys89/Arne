@@ -267,7 +267,7 @@ export default {
             id,organization_id,stable_key,code,official_name,display_name,location_type,street,house_number,bus,
             postal_code,municipality,country_code,general_email,general_phone,website_url,logo_source_url,
             official_source_url,is_main_location,status,sort_order
-          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, 'draft', ?)`).bind(
+          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, 'draft', ?)`).bind(
             locationId,b.organizationId,stableKey,String(b.code||''),String(b.officialName).trim(),String(b.displayName).trim(),
             locationType,String(b.street||''),String(b.houseNumber||''),String(b.bus||''),String(b.postalCode||''),
             String(b.municipality||''),String(b.countryCode||'BE'),String(b.email||''),String(b.phone||''),
