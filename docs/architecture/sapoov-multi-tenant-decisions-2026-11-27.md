@@ -23,8 +23,8 @@ De organisatiestructuur moet later bijkomende koepels en schoolbesturen kunnen b
 - **Richtpunt campus Gent-Oudenaarde:** afzonderlijke instelling; de Gentse locatie is Gent – Godshuizenlaan.
 
 ### Basisonderwijs
-- **Kimpunt campus Assenede:** afzonderlijke basisschool; locatie(s) nog te specificeren.
-- **Kimpunt campus Eeklo:** afzonderlijke basisschool; locatie(s) nog te specificeren.
+- **Kiempunt campus Assenede:** afzonderlijke basisschool; locatie(s) nog te specificeren.
+- **Kiempunt campus Eeklo:** afzonderlijke basisschool; locatie(s) nog te specificeren.
 
 De schrijfwijze van “Kimpunt” en de volledige officiële instellingsnaam voor Assenede moeten nog worden bevestigd.
 
@@ -32,12 +32,12 @@ De schrijfwijze van “Kimpunt” en de volledige officiële instellingsnaam voo
 - **Groeipunt:** instelling voor volwassenenonderwijs binnen hetzelfde schoolbestuur.
 - De eventuele locaties van Groeipunt zijn nog niet gespecificeerd.
 
-Voorlopig zijn er dus acht onderwijsinstellingen/contexten onder Provinciebestuur Oost-Vlaanderen: vijf secundaire scholen, twee basisscholen en één instelling voor volwassenenonderwijs. De formele juridische/administratieve namen en officiële identificatiecodes moeten nog worden bevestigd.
+Voorlopig zijn er dus acht onderwijsinstellingen/contexten onder Provinciebestuur Oost-Vlaanderen: vijf secundaire scholen, twee basisscholen en één instelling voor volwassenenonderwijs. De formele juridische/administratieve namen en resterende identificatiecodes worden per veld geverifieerd; zie het bronregister.
 
 **Terminologie:** de school/onderwijsinstelling is de organisatorische entiteit. Een locatie is een fysieke vestigingsplaats van die instelling. Gebruik in de SAPOOV-interface en documentatie de term **locatie**, niet **campus**, voor fysieke vestigingsplaatsen. Het woord “campus” blijft wel deel van een officiële schoolnaam waar dat zo is vastgelegd.
 
 ## 3. Naamgevingsregel
-Wanneer het woord campus voorkomt in een schoolnaam, wordt het altijd met een kleine letter geschreven: **campus**. Deze schrijfwijze geldt consequent in SAPOOV, de beheerinterface, rapporten en documentatie. Voorbeelden zijn “Richtpunt campus Ninove Zottegem”, “Richtpunt campus Eeklo”, “Richtpunt campus Hamme”, “Richtpunt campus Gent Henleykaai”, “Kimpunt campus Assenede” en “Kimpunt campus Eeklo”.
+Wanneer het woord campus voorkomt in een schoolnaam, wordt het altijd met een kleine letter geschreven: **campus**. Deze schrijfwijze geldt consequent in SAPOOV, de beheerinterface, rapporten en documentatie. Voorbeelden zijn “Richtpunt campus Ninove Zottegem”, “Richtpunt campus Eeklo”, “Richtpunt campus Hamme”, “Richtpunt campus Gent Henleykaai”, “Kiempunt campus Assenede” en “Kiempunt campus Eeklo”.
 
 ## 4. Organisatiemetadata
 Elke koepel, elk schoolbestuur en elke onderwijsinstelling/school krijgt eigen beheerbare metadata. Voorzie minstens de volgende velden op elk van deze organisatieniveaus:
@@ -92,7 +92,7 @@ Gebruik een generiek organisatietype voor de onderliggende onderwijsinstelling, 
 7. Afzonderlijke contexten Eeklo, Hamme, Gent, de twee basisscholen en Groeipunt configureren met eigen opslag volgens de gekozen isolatiestrategie.
 8. Gegevensisolatie, rechten en bestaande werking valideren.
 
-## 9. Nog te bevestigen
+## 9. Bronregister en resterende verificatie
 - Formele juridische/administratieve namen en officiële instellingsnummers van koepel, schoolbestuur en alle onderwijsinstellingen.
 - Officiële afkortingen, website-URL's, contact-e-mailadressen en correspondentieadressen per entiteit.
 - De juiste logo's en de goedgekeurde logo-bestanden per entiteit.
@@ -101,5 +101,5 @@ Gebruik een generiek organisatietype voor de onderliggende onderwijsinstelling, 
 - De overige locaties van Richtpunt campus Gent-Oudenaarde en de locatiestructuur van Groeipunt.
 - Mapping van bestaande gebruikersrollen naar Richtpunt campus Ninove Zottegem.
 
-## 10. Veiligheidsgrens
+Het gecontroleerde bronregister met websites, e-mailadressen, adressen, beschikbare instellingsnummers, logo-bronnen, verificatiestatussen en bronlinks staat in [SAPOOV — officieel organisatie- en contactregister](sapoov-official-organization-registry-2026-11-27.md).\n\n## 10. Veiligheidsgrens
 Dit document legt de ontwerpbeslissingen vast. Er zijn geen productiedatabases, records, Workers, Pages-projecten, DNS-records, Access-policies of R2-objecten aangepast.
