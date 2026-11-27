@@ -196,36 +196,56 @@ export default {
         return json({events:result.results});
       }
       if (method==='GET' && path==='/api/admin/organizations') {
-        const [organizations,campuses,sources]=await Promise.all([
+        const [organizations,locations,campuses,sources,locationSources]=await Promise.all([
           env.DB.prepare('SELECT * FROM organizations ORDER BY sort_order,display_name').all(),
+          env.DB.prepare('SELECT * FROM organization_locations ORDER BY organization_id,sort_order,display_name').all(),
           env.DB.prepare('SELECT * FROM campuses ORDER BY organization_id,sort_order,display_name').all(),
-          env.DB.prepare('SELECT * FROM organization_sources ORDER BY checked_at DESC').all()
+          env.DB.prepare('SELECT * FROM organization_sources ORDER BY checked_at DESC').all(),
+          env.DB.prepare('SELECT * FROM organization_location_sources ORDER BY checked_at DESC').all()
         ]);
-        return json({organizations:organizations.results,campuses:campuses.results,sources:sources.results});
+        return json({organizations:organizations.results,locations:locations.results,campuses:campuses.results,sources:sources.results,locationSources:locationSources.results});
       }
       if (method==='POST' && path==='/api/admin/organizations') {
         const b=await bodyJson(request);
         const organizationId=id(), slugValue=slug(b?.slug||b?.displayName);
+        const types=['umbrella','school_board','institution'];
         if (!b || !slugValue || !String(b.officialName||'').trim() || !String(b.displayName||'').trim()) return json({error:'Officiële naam en publieksnaam zijn verplicht.'},400);
+        const organizationType=types.includes(b.organizationType)?b.organizationType:'institution';
         const institutionNumber=String(b.institutionNumber||'').trim();
-        if (institutionNumber && !/^\\d{4,8}$/.test(institutionNumber)) return json({error:'Controleer het instellingsnummer. Gebruik uitsluitend de officiële cijfers.'},400);
+        if (institutionNumber && !/^\d{4,8}$/.test(institutionNumber)) return json({error:'Controleer het instellingsnummer. Gebruik uitsluitend de officiële cijfers.'},400);
+        if (b.parentOrganizationId && !await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.parentOrganizationId).first()) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
         try {
-          await env.DB.prepare(`INSERT INTO organizations(id,slug,official_name,display_name,institution_number,enterprise_number,education_type,education_network,parent_organization_id,general_email,general_phone,website_url,logo_source_url,official_source_url,status,sort_order)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(organizationId,slugValue,String(b.officialName).trim(),String(b.displayName).trim(),institutionNumber||null,String(b.enterpriseNumber||'').trim(),String(b.educationType||''),String(b.educationNetwork||'Provinciaal Onderwijs Oost-Vlaanderen'),b.parentOrganizationId||null,String(b.email||'').trim(),String(b.phone||'').trim(),String(b.website||'').trim(),String(b.logoSourceUrl||'').trim(),String(b.sourceUrl||'').trim(),'draft',Number.isInteger(b.sortOrder)?b.sortOrder:100).run();
+          await env.DB.prepare(`INSERT INTO organizations(
+            id,slug,official_name,display_name,institution_number,enterprise_number,education_type,
+            education_network,parent_organization_id,general_email,general_phone,website_url,
+            logo_source_url,official_source_url,status,sort_order,organization_type,abbreviation,
+            postal_street,postal_house_number,postal_bus,postal_code,postal_municipality,postal_country_code
+          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?)`).bind(
+            organizationId,slugValue,String(b.officialName).trim(),String(b.displayName).trim(),
+            institutionNumber||null,String(b.enterpriseNumber||'').trim(),String(b.educationType||''),
+            String(b.educationNetwork||'Provinciaal Onderwijs Oost-Vlaanderen'),b.parentOrganizationId||null,
+            String(b.email||'').trim(),String(b.phone||'').trim(),String(b.website||'').trim(),
+            String(b.logoSourceUrl||'').trim(),String(b.sourceUrl||'').trim(),'draft',
+            Number.isInteger(b.sortOrder)?b.sortOrder:100,organizationType,String(b.abbreviation||'').trim(),
+            String(b.postalStreet||'').trim(),String(b.postalHouseNumber||'').trim(),String(b.postalBus||'').trim(),
+            String(b.postalCode||'').trim(),String(b.postalMunicipality||'').trim(),String(b.postalCountryCode||'BE')
+          ).run();
         } catch { return json({error:'Organisatie bestaat al of de bovenliggende organisatie is ongeldig.'},409); }
-        await audit(env.DB,user,'organization.create','organization',organizationId,{slug:slugValue,displayName:b.displayName});
+        await audit(env.DB,user,'organization.create','organization',organizationId,{slug:slugValue,displayName:b.displayName,organizationType});
         return json({ok:true,id:organizationId,status:'draft'},201);
       }
       if (method==='PATCH' && path==='/api/admin/organizations') {
         const b=await bodyJson(request);
         if (!b?.id) return json({error:'Organisatie-ID ontbreekt.'},400);
-        const allowed=['officialName','displayName','institutionNumber','enterpriseNumber','educationType','educationNetwork','parentOrganizationId','email','phone','website','logoObjectKey','logoSourceUrl','logoAlt','logoLicenseNote','sourceUrl','status','sortOrder'];
-        const columns={officialName:'official_name',displayName:'display_name',institutionNumber:'institution_number',enterpriseNumber:'enterprise_number',educationType:'education_type',educationNetwork:'education_network',parentOrganizationId:'parent_organization_id',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',logoAlt:'logo_alt',logoLicenseNote:'logo_license_note',sourceUrl:'official_source_url',status:'status',sortOrder:'sort_order'};
+        const allowed=['officialName','displayName','institutionNumber','enterpriseNumber','educationType','educationNetwork','parentOrganizationId','email','phone','website','logoObjectKey','logoSourceUrl','logoAlt','logoLicenseNote','sourceUrl','status','sortOrder','organizationType','abbreviation','postalStreet','postalHouseNumber','postalBus','postalCode','postalMunicipality','postalCountryCode'];
+        const columns={officialName:'official_name',displayName:'display_name',institutionNumber:'institution_number',enterpriseNumber:'enterprise_number',educationType:'education_type',educationNetwork:'education_network',parentOrganizationId:'parent_organization_id',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',logoAlt:'logo_alt',logoLicenseNote:'logo_license_note',sourceUrl:'official_source_url',status:'status',sortOrder:'sort_order',organizationType:'organization_type',abbreviation:'abbreviation',postalStreet:'postal_street',postalHouseNumber:'postal_house_number',postalBus:'postal_bus',postalCode:'postal_code',postalMunicipality:'postal_municipality',postalCountryCode:'postal_country_code'};
         const sets=[],values=[];
         for (const key of allowed) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(columns[key]+'=?'); values.push(b[key]===null?'':b[key]); }
         if (!sets.length) return json({error:'Geen wijzigbare velden ontvangen.'},400);
         if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige organisatiestatus.'},400);
-        if (b.institutionNumber && !/^\\d{4,8}$/.test(String(b.institutionNumber))) return json({error:'Ongeldig instellingsnummer.'},400);
+        if (b.organizationType && !['umbrella','school_board','institution'].includes(b.organizationType)) return json({error:'Ongeldig organisatietype.'},400);
+        if (b.institutionNumber && !/^\d{4,8}$/.test(String(b.institutionNumber))) return json({error:'Ongeldig instellingsnummer.'},400);
+        if (b.parentOrganizationId && !await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.parentOrganizationId).first()) return json({error:'Bovenliggende organisatie niet gevonden.'},404);
         sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
         try {
           const result=await env.DB.prepare('UPDATE organizations SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
@@ -234,30 +254,124 @@ export default {
         await audit(env.DB,user,'organization.update','organization',b.id,{fields:allowed.filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
         return json({ok:true});
       }
-      if (method==='POST' && path==='/api/admin/campuses') {
-        const b=await bodyJson(request), campusId=id(), campusSlug=slug(b?.slug||b?.displayName);
-        if (!b?.organizationId || !campusSlug || !String(b.officialName||'').trim() || !String(b.displayName||'').trim()) return json({error:'Organisatie, officiële naam en campusnaam zijn verplicht.'},400);
-        const organization=await env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.organizationId).first();
+      if (method==='POST' && path==='/api/admin/locations') {
+        const b=await bodyJson(request), locationId=id();
+        const stableKey=String(b?.stableKey||'').trim();
+        if (!b?.organizationId || !stableKey || !String(b.officialName||'').trim() || !String(b.displayName||'').trim()) return json({error:'Organisatie, stabiele sleutel, officiële naam en locatienaam zijn verplicht.'},400);
+        const organization=await env.DB.prepare("SELECT id FROM organizations WHERE id=? AND organization_type='institution'").bind(b.organizationId).first();
         if (!organization) return json({error:'Onderwijsinstelling niet gevonden.'},404);
+        const types=['school_site','adult_education_campus','lesson_place','administrative_office','other'];
+        const locationType=types.includes(b.locationType)?b.locationType:'school_site';
         try {
-          await env.DB.prepare(`INSERT INTO campuses(id,organization_id,slug,official_name,display_name,street,house_number,bus,postal_code,municipality,country_code,general_email,general_phone,website_url,logo_source_url,official_source_url,is_main_campus,status,sort_order)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',?)`).bind(campusId,b.organizationId,campusSlug,String(b.officialName).trim(),String(b.displayName).trim(),String(b.street||''),String(b.houseNumber||''),String(b.bus||''),String(b.postalCode||''),String(b.municipality||''),String(b.countryCode||'BE'),String(b.email||''),String(b.phone||''),String(b.website||''),String(b.logoSourceUrl||''),String(b.sourceUrl||''),b.isMainCampus?1:0,Number.isInteger(b.sortOrder)?b.sortOrder:100).run();
-        } catch { return json({error:'Campus bestaat al binnen deze instelling of bevat ongeldige gegevens.'},409); }
-        await audit(env.DB,user,'campus.create','campus',campusId,{organizationId:b.organizationId,displayName:b.displayName});
-        return json({ok:true,id:campusId,status:'draft'},201);
+          await env.DB.prepare(`INSERT INTO organization_locations(
+            id,organization_id,stable_key,code,official_name,display_name,location_type,street,house_number,bus,
+            postal_code,municipality,country_code,general_email,general_phone,website_url,logo_source_url,
+            official_source_url,is_main_location,status,sort_order
+          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, 'draft', ?)`).bind(
+            locationId,b.organizationId,stableKey,String(b.code||''),String(b.officialName).trim(),String(b.displayName).trim(),
+            locationType,String(b.street||''),String(b.houseNumber||''),String(b.bus||''),String(b.postalCode||''),
+            String(b.municipality||''),String(b.countryCode||'BE'),String(b.email||''),String(b.phone||''),
+            String(b.website||''),String(b.logoSourceUrl||''),String(b.sourceUrl||''),b.isMainLocation?1:0,
+            Number.isInteger(b.sortOrder)?b.sortOrder:100
+          ).run();
+        } catch { return json({error:'Locatie bestaat al of bevat ongeldige gegevens.'},409); }
+        await audit(env.DB,user,'organization.location.create','organization_location',locationId,{organizationId:b.organizationId,stableKey,displayName:b.displayName});
+        return json({ok:true,id:locationId,status:'draft'},201);
       }
-      if (method==='PATCH' && path==='/api/admin/campuses') {
+      if (method==='PATCH' && path==='/api/admin/locations') {
         const b=await bodyJson(request);
-        if (!b?.id) return json({error:'Campus-ID ontbreekt.'},400);
-        const columns={officialName:'official_name',displayName:'display_name',street:'street',houseNumber:'house_number',bus:'bus',postalCode:'postal_code',municipality:'municipality',countryCode:'country_code',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',sourceUrl:'official_source_url',isMainCampus:'is_main_campus',status:'status',sortOrder:'sort_order'};
+        if (!b?.id) return json({error:'Locatie-ID ontbreekt.'},400);
+        const columns={code:'code',officialName:'official_name',displayName:'display_name',locationType:'location_type',street:'street',houseNumber:'house_number',bus:'bus',postalCode:'postal_code',municipality:'municipality',countryCode:'country_code',email:'general_email',phone:'general_phone',website:'website_url',logoObjectKey:'logo_object_key',logoSourceUrl:'logo_source_url',sourceUrl:'official_source_url',isMainLocation:'is_main_location',status:'status',sortOrder:'sort_order'};
         const sets=[],values=[];
-        for (const [key,column] of Object.entries(columns)) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(column+'=?'); values.push(key==='isMainCampus'?(b[key]?1:0):b[key]); }
-        if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige campusstatus.'},400);
+        for (const [key,column] of Object.entries(columns)) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(column+'=?'); values.push(key==='isMainLocation'?(b[key]?1:0):b[key]); }
+        if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige locatiestatus.'},400);
+        if (b.locationType && !['school_site','adult_education_campus','lesson_place','administrative_office','other'].includes(b.locationType)) return json({error:'Ongeldig locatietype.'},400);
         if (!sets.length) return json({error:'Geen wijzigbare velden ontvangen.'},400);
         sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
-        const result=await env.DB.prepare('UPDATE campuses SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
-        if (!result.meta.changes) return json({error:'Campus niet gevonden.'},404);
-        await audit(env.DB,user,'campus.update','campus',b.id,{fields:Object.keys(columns).filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
+        const result=await env.DB.prepare('UPDATE organization_locations SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
+        if (!result.meta.changes) return json({error:'Locatie niet gevonden.'},404);
+        await audit(env.DB,user,'organization.location.update','organization_location',b.id,{fields:Object.keys(columns).filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
+        return json({ok:true});
+      }
+      if (method==='GET' && path==='/api/admin/teams') {
+        const [teams,memberships]=await Promise.all([
+          env.DB.prepare('SELECT t.*,o.display_name AS institution_name FROM teams t JOIN organizations o ON o.id=t.institution_id ORDER BY o.sort_order,t.sort_order,t.name').all(),
+          env.DB.prepare('SELECT tm.*,u.email,u.display_name FROM team_memberships tm JOIN users u ON u.id=tm.user_id ORDER BY tm.team_id,u.email').all()
+        ]);
+        return json({teams:teams.results,memberships:memberships.results});
+      }
+      if (method==='POST' && path==='/api/admin/teams') {
+        const b=await bodyJson(request), teamId=id();
+        const stableKey=String(b?.stableKey||'').trim();
+        if (!b?.institutionId || !stableKey || !String(b.name||'').trim()) return json({error:'School, stabiele sleutel en teamnaam zijn verplicht.'},400);
+        const institution=await env.DB.prepare("SELECT id FROM organizations WHERE id=? AND organization_type='institution'").bind(b.institutionId).first();
+        if (!institution) return json({error:'Onderwijsinstelling niet gevonden.'},404);
+        try {
+          await env.DB.prepare('INSERT INTO teams(id,institution_id,stable_key,code,name,description,sort_order) VALUES(?,?,?,?,?,?,?)')
+            .bind(teamId,b.institutionId,stableKey,String(b.code||''),String(b.name).trim(),String(b.description||''),Number.isInteger(b.sortOrder)?b.sortOrder:100).run();
+        } catch { return json({error:'Team bestaat al binnen de organisatie.'},409); }
+        await audit(env.DB,user,'team.create','team',teamId,{institutionId:b.institutionId,name:b.name});
+        return json({ok:true,id:teamId},201);
+      }
+      if (method==='PATCH' && path==='/api/admin/teams') {
+        const b=await bodyJson(request);
+        if (!b?.id) return json({error:'Team-ID ontbreekt.'},400);
+        const columns={code:'code',name:'name',description:'description',status:'status',sortOrder:'sort_order'};
+        const sets=[],values=[];
+        for (const [key,column] of Object.entries(columns)) if (Object.prototype.hasOwnProperty.call(b,key)) { sets.push(column+'=?'); values.push(b[key]); }
+        if (b.status && !['draft','active','inactive','archived'].includes(b.status)) return json({error:'Ongeldige teamstatus.'},400);
+        if (!sets.length) return json({error:'Geen wijzigbare velden ontvangen.'},400);
+        sets.push('updated_at=CURRENT_TIMESTAMP'); values.push(b.id);
+        const result=await env.DB.prepare('UPDATE teams SET '+sets.join(',')+' WHERE id=?').bind(...values).run();
+        if (!result.meta.changes) return json({error:'Team niet gevonden.'},404);
+        await audit(env.DB,user,'team.update','team',b.id,{fields:Object.keys(columns).filter(k=>Object.prototype.hasOwnProperty.call(b,k))});
+        return json({ok:true});
+      }
+      if (method==='PUT' && path==='/api/admin/team-memberships') {
+        const b=await bodyJson(request);
+        const allowed=['active_member','passive_member','team_leader'];
+        if (!b?.teamId || !b?.userId || !allowed.includes(b.membershipType)) return json({error:'Team, gebruiker en geldige teamstatus zijn verplicht.'},400);
+        const [team,target]=await Promise.all([
+          env.DB.prepare('SELECT id FROM teams WHERE id=?').bind(b.teamId).first(),
+          env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first()
+        ]);
+        if (!team || !target) return json({error:'Team of personeelslid niet gevonden.'},404);
+        const membershipId=id();
+        await env.DB.prepare(`INSERT INTO team_memberships(id,team_id,user_id,membership_type,valid_from,valid_until,status,assigned_by)
+          VALUES(?,?,?,?,?,?, 'active',?)
+          ON CONFLICT(team_id,user_id) DO UPDATE SET membership_type=excluded.membership_type,
+          valid_from=excluded.valid_from,valid_until=excluded.valid_until,status='active',
+          assigned_by=excluded.assigned_by,updated_at=CURRENT_TIMESTAMP`).bind(
+          membershipId,b.teamId,b.userId,b.membershipType,b.validFrom||null,b.validUntil||null,user.email
+        ).run();
+        await audit(env.DB,user,'team.membership.set','team_membership',b.teamId,{userId:b.userId,membershipType:b.membershipType});
+        return json({ok:true});
+      }
+      if (method==='DELETE' && path==='/api/admin/team-memberships') {
+        const teamId=url.searchParams.get('teamId'),userId=url.searchParams.get('userId');
+        if (!teamId || !userId) return json({error:'Team en gebruiker zijn verplicht.'},400);
+        await env.DB.prepare('DELETE FROM team_memberships WHERE team_id=? AND user_id=?').bind(teamId,userId).run();
+        await audit(env.DB,user,'team.membership.remove','team_membership',teamId,{userId});
+        return json({ok:true});
+      }
+      if (method==='GET' && path==='/api/admin/module-access') {
+        const result=await env.DB.prepare('SELECT * FROM user_module_access ORDER BY organization_id,application_id,user_id').all();
+        return json({access:result.results});
+      }
+      if (method==='PUT' && path==='/api/admin/module-access') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !b?.applicationId || !b?.organizationId || typeof b.enabled!=='boolean') return json({error:'Gebruiker, module, organisatie en toegangsschakelaar zijn verplicht.'},400);
+        const [target,app,organization]=await Promise.all([
+          env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first(),
+          env.DB.prepare('SELECT id FROM applications WHERE id=?').bind(b.applicationId).first(),
+          env.DB.prepare('SELECT id FROM organizations WHERE id=?').bind(b.organizationId).first()
+        ]);
+        if (!target || !app || !organization) return json({error:'Gebruiker, module of organisatie niet gevonden.'},404);
+        await env.DB.prepare(`INSERT INTO user_module_access(id,user_id,application_id,organization_id,enabled,assigned_by)
+          VALUES(?,?,?,?,?,?)
+          ON CONFLICT(user_id,application_id,organization_id) DO UPDATE SET enabled=excluded.enabled,
+          assigned_by=excluded.assigned_by,updated_at=CURRENT_TIMESTAMP`).bind(id(),b.userId,b.applicationId,b.organizationId,b.enabled?1:0,user.email).run();
+        await audit(env.DB,user,'module.access.set','user_module_access',b.userId,{applicationId:b.applicationId,organizationId:b.organizationId,enabled:b.enabled});
         return json({ok:true});
       }
       if (method==='POST' && path==='/api/admin/organization-sources') {
