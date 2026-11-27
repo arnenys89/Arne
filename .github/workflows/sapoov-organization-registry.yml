@@ -1,0 +1,31 @@
+name: SAPOOV organization registry
+
+on:
+  push:
+    branches:
+      - feature/sapoov-organization-registry
+    paths:
+      - 'sapoov-dashboard/**'
+      - '.github/workflows/sapoov-organization-registry.yml'
+  pull_request:
+    paths:
+      - 'sapoov-dashboard/**'
+      - '.github/workflows/sapoov-organization-registry.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sapoov-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Check JavaScript and organization seed
+        run: npm run check
+      - name: Apply migrations and verify local D1
+        run: npm run test:d1:local

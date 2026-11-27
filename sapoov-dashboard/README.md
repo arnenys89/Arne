@@ -56,3 +56,10 @@ if (!allowed) return new Response("Onvoldoende rechten", { status: 403 });
 
 ## Migratie van bestaande websites
 De centrale gebruikers- en rollenwerkruimte en API zijn voorbereid. Een website is pas werkelijk centraal gekoppeld nadat haar eigen backend de API raadpleegt en haar lokale rolcontrole vervangt door de centrale rol- en permissioncontrole. Dat moet per toepassing worden getest, met behoud van bestaande gebruikersgegevens en functionele rechten. Tot die migratie blijft de bestaande lokale rechtencontrole van die website leidend.
+
+
+## Previewomgeving
+
+De Pages Function in `functions/api/[[path]].js` gebruikt dezelfde API-handler als `src/index.js`. De preview-omgeving is gekoppeld aan de afzonderlijke D1-database `sapoov-central-identity-preview`; koppel de preview nooit aan de productiedatabase.
+
+De preview gebruikt een eigen Cloudflare Access-app voor de branch-alias `feature-sapoov-organization.sapoov-dashboard.pages.dev`. Nieuwe D1-migraties moeten eerst op deze geïsoleerde previewdatabase worden toegepast en gecontroleerd voordat ze voor productie worden overwogen.
