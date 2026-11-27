@@ -71,7 +71,7 @@ export async function handleWorkplace(request,env,identity,centralUser){
   ]);
   return json({user:{id:user.id,email:user.email,name:user.name,role:permissions.includes('*')?'admin':permissions.includes('reservations.manage_team')?'teamleider':'medewerker',permissions,picture_url:photo?.picture_url||'',organizationUnit:selectedUnit},campuses:campuses.results,floors:floors.results,rooms:rooms.results,workstations:workstations.results});
  }
- if(path==='/api/favorites'&&request.method==='GET'){const rows=await db.prepare('SELECT workstation_id FROM wp_user_favorite_workstations WHERE user_id=? ORDER BY created_at').bind(user.id).all();return json({favorites:rows.results.map(x=>x.workstation_id)});}
+ if(path==='/api/favorites'&&request.method==='GET'){const rows=await db.prepare("SELECT fav.workstation_id FROM wp_user_favorite_workstations fav JOIN wp_workstations w ON w.id=fav.workstation_id JOIN wp_rooms rm ON rm.id=w.room_id JOIN wp_floors f ON f.id=rm.floor_id WHERE fav.user_id=? AND f.campus_id IN ("+campusPlaceholders+") ORDER BY fav.created_at").bind(user.id,...allowedCampusIds).all();return json({favorites:rows.results.map(x=>x.workstation_id)});}
  if(path==='/api/favorites'&&request.method==='POST'){
   const body=await request.json().catch(()=>null),deskId=typeof body?.workstation_id==='string'?body.workstation_id:'';
   if(!deskId)return json({error:'Kies een geldige werkplek.'},400);
