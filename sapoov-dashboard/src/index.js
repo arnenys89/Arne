@@ -498,6 +498,89 @@ export default {
         await audit(env.DB,user,'organization.source.add','organization_source',sourceId,{fieldName:b.fieldName,sourceName:b.sourceName});
         return json({ok:true,id:sourceId},201);
       }
+      if (method==='GET' && path==='/api/admin/education') {
+        const [classes,campuses,schoolYears]=await Promise.all([
+          env.DB.prepare(`SELECT c.id,c.school_year_id,c.campus_id,cp.display_name AS campus_name,c.class_code,c.display_name,c.active,c.source_file,c.imported_at
+            FROM classes c JOIN campuses cp ON cp.id=c.campus_id
+            ORDER BY cp.display_name,c.class_code`).all(),
+          env.DB.prepare('SELECT id,slug AS code,display_name AS name,status FROM campuses ORDER BY display_name').all(),
+          env.DB.prepare('SELECT id,label,start_date,end_date,status FROM school_years ORDER BY start_date DESC').all()
+        ]);
+        return json({classes:classes.results||[],campuses:(campuses.results||[]).map(c=>({...c,active:c.status==='active'})),school_years:schoolYears.results||[]});
+      }
+      if (method==='GET' && path==='/api/admin/personnel') {
+        const result=await env.DB.prepare(`SELECT u.id AS user_id,u.email,u.display_name,u.status AS account_status,
+          p.staff_number,p.campus_id,cp.display_name AS campus_name,
+          COALESCE(p.employment_status,'unknown') AS employment_status,p.start_date,p.end_date,p.source,p.notes
+          FROM users u LEFT JOIN personnel_profiles p ON p.user_id=u.id
+          LEFT JOIN campuses cp ON cp.id=p.campus_id
+          ORDER BY u.display_name,u.email`).all();
+        return json({personnel:result.results||[],count:(result.results||[]).length,
+          profiles:(result.results||[]).filter(x=>x.employment_status!=='unknown'||x.staff_number||x.campus_id).length});
+      }
+      if (method==='POST' && path==='/api/admin/personnel') {
+        const b=await bodyJson(request), userId=String(b?.userId||'').trim();
+        const campusId=b?.campusId?String(b.campusId):null, status=String(b?.employmentStatus||'unknown');
+        if(!userId||!['active','inactive','leave','unknown'].includes(status)) return json({error:'Gebruiker en geldige personeelsstatus zijn verplicht.'},400);
+        const target=await env.DB.prepare('SELECT id FROM users WHERE id=?').bind(userId).first();
+        if(!target) return json({error:'Gebruiker niet gevonden.'},404);
+        if(campusId&&!await env.DB.prepare('SELECT id FROM campuses WHERE id=?').bind(campusId).first()) return json({error:'Campus niet gevonden.'},404);
+        const startDate=b.startDate||null,endDate=b.endDate||null;
+        if(startDate&&endDate&&endDate<startDate) return json({error:'De einddatum mag niet vóór de startdatum liggen.'},400);
+        await env.DB.prepare(`INSERT INTO personnel_profiles(user_id,staff_number,campus_id,employment_status,start_date,end_date,source,notes)
+          VALUES(?,?,?,?,?,?,?,?)
+          ON CONFLICT(user_id) DO UPDATE SET staff_number=excluded.staff_number,campus_id=excluded.campus_id,
+          employment_status=excluded.employment_status,start_date=excluded.start_date,end_date=excluded.end_date,
+          source=excluded.source,notes=excluded.notes,updated_at=CURRENT_TIMESTAMP`).bind(
+          userId,String(b.staffNumber||''),campusId,status,startDate,endDate,'manual',''
+        ).run();
+        await audit(env.DB,user,'personnel.profile.save','personnel',userId,{campusId,status});
+        return json({ok:true});
+      }
+      if (method==='GET' && path==='/api/admin/students') {
+        const [students,schoolYears,classes]=await Promise.all([
+          env.DB.prepare(`SELECT s.id,s.student_number,s.first_name,s.last_name,s.preferred_name,s.status,
+            e.school_year_id,e.class_id,c.class_code,cp.display_name AS campus_name
+            FROM students s LEFT JOIN student_enrolments e ON e.student_id=s.id AND e.status='active'
+            LEFT JOIN classes c ON c.id=e.class_id LEFT JOIN campuses cp ON cp.id=c.campus_id
+            ORDER BY s.last_name,s.first_name`).all(),
+          env.DB.prepare('SELECT id,label,start_date,end_date,status FROM school_years ORDER BY start_date DESC').all(),
+          env.DB.prepare(`SELECT c.id,c.school_year_id,c.campus_id,c.class_code,c.display_name,cp.display_name AS campus_name
+            FROM classes c JOIN campuses cp ON cp.id=c.campus_id WHERE c.active=1
+            ORDER BY c.school_year_id,cp.display_name,c.class_code`).all()
+        ]);
+        return json({count:(students.results||[]).length,students:students.results||[],
+          school_years:schoolYears.results||[],classes:classes.results||[]});
+      }
+      if (method==='POST' && path==='/api/admin/students') {
+        const b=await bodyJson(request),studentNumber=String(b?.studentNumber||'').trim();
+        const firstName=String(b?.firstName||'').trim(),lastName=String(b?.lastName||'').trim();
+        if(!studentNumber||!firstName||!lastName) return json({error:'Leerlingnummer, voornaam en familienaam zijn verplicht.'},400);
+        const studentId=id();
+        try {
+          await env.DB.prepare('INSERT INTO students(id,student_number,first_name,last_name,preferred_name,status,source) VALUES(?,?,?,?,?,?,?)')
+            .bind(studentId,studentNumber,firstName,lastName,String(b.preferredName||'').trim(),'active','manual').run();
+        } catch { return json({error:'Dit leerlingnummer bestaat al of de leerlinggegevens zijn ongeldig.'},409); }
+        await audit(env.DB,user,'student.create','student',studentId,{studentNumber});
+        return json({ok:true,id:studentId},201);
+      }
+      if (method==='POST' && path==='/api/admin/student-enrolments') {
+        const b=await bodyJson(request);
+        if(!b?.studentId||!b?.schoolYearId||!b?.classId) return json({error:'Leerling, schooljaar en klas zijn verplicht.'},400);
+        const [student,schoolYear,classRow]=await Promise.all([
+          env.DB.prepare('SELECT id FROM students WHERE id=?').bind(b.studentId).first(),
+          env.DB.prepare('SELECT id FROM school_years WHERE id=?').bind(b.schoolYearId).first(),
+          env.DB.prepare('SELECT id,school_year_id FROM classes WHERE id=? AND active=1').bind(b.classId).first()
+        ]);
+        if(!student||!schoolYear||!classRow||classRow.school_year_id!==b.schoolYearId) return json({error:'Leerling, schooljaar of klas niet gevonden of niet onderling gekoppeld.'},404);
+        await env.DB.prepare(`INSERT INTO student_enrolments(id,student_id,school_year_id,class_id,start_date,status)
+          VALUES(?,?,?,?,?,'active')
+          ON CONFLICT(student_id,school_year_id) DO UPDATE SET class_id=excluded.class_id,
+          start_date=excluded.start_date,end_date=NULL,status='active',updated_at=CURRENT_TIMESTAMP`)
+          .bind(id(),b.studentId,b.schoolYearId,b.classId,b.startDate||null).run();
+        await audit(env.DB,user,'student.enrolment.save','student_enrolment',b.studentId,{schoolYearId:b.schoolYearId,classId:b.classId});
+        return json({ok:true});
+      }
       return json({error:'Beheereindpunt niet gevonden.'},404);
     }
     if (env.ASSETS) return env.ASSETS.fetch(request);
