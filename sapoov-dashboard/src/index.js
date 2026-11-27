@@ -72,14 +72,46 @@ export default {
     const method = request.method, path = url.pathname;
 
     if (method==='GET' && path==='/api/me') {
-      const [apps, assignments] = await Promise.all([
+      const [apps,assignments,contexts]=await Promise.all([
         env.DB.prepare("SELECT * FROM applications WHERE status!='hidden' ORDER BY sort_order,name").all(),
         env.DB.prepare(`SELECT a.id AS application_id,a.name AS application_name,a.url,r.id AS role_id,r.name AS role,r.permissions_json
           FROM user_app_roles uar JOIN applications a ON a.id=uar.application_id JOIN roles r ON r.id=uar.role_id
-          WHERE uar.user_id=? AND a.status!='hidden' ORDER BY a.sort_order,a.name,r.name`).bind(user.id).all()
+          WHERE uar.user_id=? AND a.status!='hidden' ORDER BY a.sort_order,a.name,r.name`).bind(user.id).all(),
+        superadmin
+          ? env.DB.prepare("SELECT id,display_name,organization_type FROM organizations WHERE organization_type='institution' AND status='active' ORDER BY sort_order,display_name").all()
+          : env.DB.prepare(`SELECT DISTINCT o.id,o.display_name,o.organization_type
+              FROM user_module_access uma JOIN organizations o ON o.id=uma.organization_id
+              WHERE uma.user_id=? AND uma.enabled=1 AND o.organization_type='institution' AND o.status='active'
+              ORDER BY o.display_name`).bind(user.id).all()
       ]);
-      const visible = superadmin ? apps.results : apps.results.filter(a=>assignments.results.some(x=>x.application_id===a.id));
-      return json({user:{id:user.id,email:user.email,display_name:user.display_name},superadmin,applications:visible,assignments:assignments.results});
+      const availableContexts=contexts.results;
+      const requestedContext=request.headers.get('x-sapoov-context')||url.searchParams.get('sapoov_context')||'';
+      let activeContext=availableContexts.find(c=>c.id===requestedContext)||null;
+      if (!activeContext && availableContexts.length===1) activeContext=availableContexts[0];
+      let visible=[];
+      if (superadmin) {
+        visible=apps.results;
+      } else if (availableContexts.length) {
+        if (activeContext) {
+          const scopedApps=await env.DB.prepare(`SELECT a.* FROM user_module_access uma
+            JOIN applications a ON a.id=uma.application_id
+            WHERE uma.user_id=? AND uma.organization_id=? AND uma.enabled=1 AND a.status='active'
+            ORDER BY a.sort_order,a.name`).bind(user.id,activeContext.id).all();
+          visible=scopedApps.results;
+        }
+      } else {
+        // Backward compatibility while existing single-school grants are migrated.
+        visible=apps.results.filter(a=>assignments.results.some(x=>x.application_id===a.id));
+      }
+      return json({
+        user:{id:user.id,email:user.email,display_name:user.display_name},
+        superadmin,
+        applications:visible,
+        assignments:assignments.results,
+        contexts:availableContexts,
+        activeContext,
+        requiresContextSelection:!superadmin&&availableContexts.length>1&&!activeContext
+      });
     }
 
     if (method==='GET' && path.startsWith('/api/access/')) {
@@ -87,9 +119,26 @@ export default {
       const app=await env.DB.prepare('SELECT * FROM applications WHERE id=? AND status="active"').bind(appSlug).first();
       if (!app) return json({error:'Onbekende toepassing.'},404);
       if (!app.access_audience || !identity.audiences.includes(app.access_audience)) return json({error:'De aanmeldsessie hoort niet bij deze toepassing.'},403);
+      const requestedContext=request.headers.get('x-sapoov-context')||url.searchParams.get('sapoov_context')||'';
+      if (!superadmin && requestedContext) {
+        const gate=await env.DB.prepare(`SELECT 1 AS ok FROM user_module_access
+          WHERE user_id=? AND application_id=? AND organization_id=? AND enabled=1`).bind(user.id,app.id,requestedContext).first();
+        if (!gate) return json({error:'Je hebt geen platformtoegang in deze organisatiecontext.'},403);
+        const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json
+          FROM user_scoped_role_assignments s JOIN roles r ON r.id=s.role_id
+          WHERE s.user_id=? AND s.application_id=? AND s.organization_id=? AND s.status='active'
+            AND (s.valid_from IS NULL OR s.valid_from<=date('now'))
+            AND (s.valid_until IS NULL OR s.valid_until>=date('now'))
+          ORDER BY r.name`).bind(user.id,app.id,requestedContext).all();
+        return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},contextId:requestedContext,roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]')})),authorized:true});
+      }
+      if (!superadmin) {
+        const hasScopedContext=await env.DB.prepare('SELECT 1 AS ok FROM user_module_access WHERE user_id=? AND enabled=1 LIMIT 1').bind(user.id).first();
+        if (hasScopedContext) return json({error:'Kies eerst een organisatiecontext.'},400);
+      }
       const rows=await env.DB.prepare(`SELECT r.id,r.name,r.description,r.permissions_json,uar.scope_json FROM user_app_roles uar
         JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id=? ORDER BY r.name`).bind(user.id,app.id).all();
-      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:rows.results.length>0});
+      return json({user:{id:user.id,email:user.email,display_name:user.display_name},application:{id:app.id,name:app.name},roles:rows.results.map(r=>({...r,permissions:JSON.parse(r.permissions_json||'[]'),scope:JSON.parse(r.scope_json||'{}')})),authorized:superadmin||rows.results.length>0});
     }
 
     if (method==='GET' && ['/beleidskompas','/beleidskompas/','/beleidskompas.html'].includes(path)) {
