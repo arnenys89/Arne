@@ -43,8 +43,18 @@ export async function onRequest(context) {
  const user=await env.DB.prepare("SELECT id,status FROM users WHERE email=?").bind(identity.email).first();
  if(!user||user.status!=="active")return json({error:"Je SAPOOV-account is niet actief."},403);
  if(!isSuperadmin){
-  const grant=await env.DB.prepare("SELECT 1 AS ok FROM user_app_roles uar JOIN roles r ON r.id=uar.role_id WHERE uar.user_id=? AND uar.application_id='beleidskompas' LIMIT 1").bind(user.id).first();
-  if(!grant)return json({error:"Je hebt geen toegang tot Beleidskompas. Vraag de SAPOOV-beheerder om de rol Lezer of Beheerder toe te kennen."},403);
+  const [access,roleRows,units]=await Promise.all([
+   env.DB.prepare("SELECT organization_unit_id,enabled FROM user_application_access_scopes WHERE user_id=? AND application_id='beleidskompas'").bind(user.id).all(),
+   env.DB.prepare("SELECT organization_unit_id,enabled FROM user_application_role_scopes WHERE user_id=? AND application_id='beleidskompas'").bind(user.id).all(),
+   env.DB.prepare("SELECT id,name,unit_type FROM organization_units WHERE active=1").all()
+  ]);
+  const available=access.results.filter(x=>Number(x.enabled)===1).map(x=>x.organization_unit_id);
+  let unitId=url.searchParams.get("organizationUnitId")||"";
+  if(!unitId&&available.length===1)unitId=available[0];
+  if(!unitId)return json({error:available.length?"Kies eerst een organisatiecontext voor Beleidskompas.":"Je hebt geen expliciete toegang tot Beleidskompas.",requiresOrganizationContext:available.length>1,organizationUnits:units.results.filter(x=>available.includes(x.id))},available.length?409:403);
+  const hasAccess=access.results.some(x=>x.organization_unit_id===unitId&&Number(x.enabled)===1);
+  const hasRole=roleRows.results.some(x=>x.organization_unit_id===unitId&&Number(x.enabled)===1);
+  if(!hasAccess||!hasRole)return json({error:"Je hebt geen expliciete toegang en rechtenprofiel voor Beleidskompas binnen deze organisatiecontext."},403);
  }
  if(!env.ASSETS||typeof env.ASSETS.fetch!=="function")return json({error:"De statische SAPOOV-bestanden zijn niet beschikbaar.",diagnostic:"ASSETS binding ontbreekt"},503);
  const assetUrl=new URL('/beleidskompas/',request.url);
