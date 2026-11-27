@@ -132,7 +132,7 @@ async function selectOrganizationContext(unitId){
 }
 async function start(){
  try{
-  const data=await api('/api/me');me=data;$('identity').textContent=data.user.display_name||data.user.email;availableContexts=data.contexts||[];
+  const data=await api('/api/me');me=data;$('identity').textContent=(data.user.display_name||data.user.email)+' · '+data.user.email+' · '+(data.superadmin?'Superadmin':'Standaardaccount');availableContexts=data.contexts||[];
   $('organization-context').innerHTML='<option value="">Kies een organisatiecontext…</option>'+availableContexts.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(({koepel:'Koepel',schoolbestuur:'Schoolbestuur',school:'School',locatie:'Campus/vestiging'}[x.unit_type]||x.unit_type))+'</option>').join('');
   $('context-picker').classList.toggle('hidden',availableContexts.length===0);
   if(availableContexts.length===1){$('context-picker').classList.remove('hidden');await selectOrganizationContext(availableContexts[0].id);}
@@ -151,7 +151,7 @@ async function start(){
    if(Array.isArray(data.applications))dashboardApps=data.applications;
    renderApps();
   }
- }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
+ }catch(error){notice(error.message,true);$('message').textContent='Dashboardinitialisatie onvolledig: '+error.message;if(dashboardApps.length)renderApps();}
 }
 $('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){dashboardApps=me.applications||dashboardApps;}else{dashboardApps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
 $('apps').addEventListener('click',e=>{const card=e.target.closest('[data-app-target]');if(!card||selectedOrganizationUnit)return;e.preventDefault();$('message').textContent='Kies eerst de school, campus of het bestuur waarin je deze module wilt openen.';$('organization-context').focus();});
