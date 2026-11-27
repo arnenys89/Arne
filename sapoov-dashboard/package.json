@@ -7,7 +7,8 @@
     "deploy": "wrangler deploy",
     "db:local": "wrangler d1 migrations apply sapoov-central-identity --local",
     "db:remote": "echo 'Remote D1-migraties zijn op deze ontwikkelbranch bewust geblokkeerd. Test eerst lokaal en gebruik pas na expliciete productieacceptatie een afzonderlijke deploymentprocedure.' && exit 1",
-    "check": "node --check src/index.js && node --check public/app.js"
+    "check": "node --check src/index.js && node --check public/app.js && node scripts/validate-organization-seed.js",
+    "test:seed": "node scripts/validate-organization-seed.js"
   },
   "dependencies": {
     "jose": "^6.1.0"
