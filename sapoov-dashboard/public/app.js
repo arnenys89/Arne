@@ -2,8 +2,8 @@ const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iconSvg = icon => { const paths = {"shopping-cart":"<path d=\"M3 4h2l2.5 12h11L21 8H6\"/><circle cx=\"10\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M9 11h9\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18M7 14h3m3 0h4m-10 3h3\"/>","graduation-cap":"<path d=\"m2 9 10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 3 9 3 12 0v-5m4-2v7\"/>","calendar-check":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18m4 5 2 2 4-5\"/>","book-open":"<path d=\"M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2zM21 5c-4-1-7 0-9 2v13c2-2 5-3 9-2z\"/>","layout-dashboard":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"5\" rx=\"1\"/><rect x=\"13\" y=\"10\" width=\"8\" height=\"11\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","network":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"4\" r=\"2\"/><circle cx=\"4\" cy=\"20\" r=\"2\"/><circle cx=\"20\" cy=\"20\" r=\"2\"/><path d=\"m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4\"/>","clipboard-list":"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4V2h6v2M9 10h6m-6 4h6m-6 4h4\"/>","compass":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2.5 6-6 2.5 2.5-6z\"/>"}; const path = paths[icon] || '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'; return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>'; };
 let me=null, users=[], apps=[], roles=[], assignments=[], education={classes:[],campuses:[],school_years:[]}, personnel=[], students=[], selectedApp='', selectedUser='', editingRole=null;
-let organizations=[], organizationLocations=[], teams=[], teamMemberships=[], selectedOrganizationId='';
-const collapsedTeamGroups=new Set();
+let organizations=[], organizationLocations=[], teams=[], teamMemberships=[], moduleAccessAssignments=[], scopedRoleAssignments=[], selectedOrganizationId='';
+const collapsedTeamGroups=new Set(), collapsedRightsGroups=new Set();
 async function api(path,options={}) {
  const response=await fetch(path,{...options,headers:{'accept':'application/json','content-type':'application/json',...(options.headers||{})}});
  const data=await response.json().catch(()=>({}));
@@ -170,18 +170,89 @@ function renderTeamMatrix(){
   return '<tr><td class="staff-cell"><b>'+esc(u.display_name||u.name||u.email)+'</b><small>'+esc(u.email)+'</small></td>'+cells+'</tr>';
  }).join('')||'<tr><td colspan="'+(visibleColumns.length+1)+'" class="empty-row">Geen personeelsleden gevonden of er zijn nog geen teams aangemaakt.</td></tr>';
 }
+function countVisibleRightsLeaves(node){
+ if(collapsedRightsGroups.has(node.type+':'+node.id))return 1;
+ if(node.type==='access'||node.type==='role')return 1;
+ return (node.children||[]).reduce((n,c)=>n+countVisibleRightsLeaves(c),0);
+}
+function buildRightsTree(){
+ const byId=new Map(organizations.map(o=>[o.id,o]));
+ const selectedSchool=$('rights-school-filter').value;
+ const modules=apps.filter(a=>a.status!=='hidden');
+ const schools=organizations.filter(o=>o.organization_type==='institution'&&(!selectedSchool||o.id===selectedSchool));
+ const schoolNodes=schools.map(s=>({
+  id:s.id,type:'school',name:s.display_name,children:modules.map(app=>({
+   id:app.id+'@'+s.id,type:'module',name:app.name,application:app,organization:s,
+   children:[
+    {id:app.id+'@'+s.id+'@access',type:'access',name:'Platformtoegang',application:app,organization:s},
+    ...roles.filter(r=>r.application_id===app.id).map(role=>({id:role.id+'@'+s.id,type:'role',name:role.name,role,application:app,organization:s}))
+   ]
+  }))
+ }));
+ const boards=organizations.filter(o=>o.organization_type==='school_board').map(b=>({id:b.id,type:'board',name:b.display_name,children:schoolNodes.filter(s=>byId.get(s.id)?.parent_organization_id===b.id)})).filter(b=>b.children.length);
+ const roots=organizations.filter(o=>o.organization_type==='umbrella').map(u=>({id:u.id,type:'umbrella',name:u.display_name,children:boards.filter(b=>byId.get(b.id)?.parent_organization_id===u.id)})).filter(u=>u.children.length);
+ return roots.length?roots:schoolNodes;
+}
+function renderRightsMatrix(){
+ const schools=organizations.filter(o=>o.organization_type==='institution');
+ const current=$('rights-school-filter').value;
+ $('rights-school-filter').innerHTML='<option value="">Alle scholen</option>'+schools.map(o=>'<option value="'+esc(o.id)+'">'+esc(o.display_name)+'</option>').join('');
+ $('rights-school-filter').value=current;
+ const nameTerm=$('rights-filter-name').value.trim().toLowerCase();
+ const emailTerm=$('rights-filter-email').value.trim().toLowerCase();
+ const domainTerm=$('rights-filter-domain').value.trim().toLowerCase().replace(/^@/,'');
+ const filteredUsers=users.filter(u=>{
+  const name=(u.display_name||'').toLowerCase(),email=(u.email||'').toLowerCase(),domain=email.split('@')[1]||'';
+  return (!nameTerm||name.includes(nameTerm))&&(!emailTerm||email.includes(emailTerm))&&(!domainTerm||domain.includes(domainTerm));
+ });
+ const roots=buildRightsTree(),headerRows=[[],[],[],[],[]],visibleColumns=[];
+ const visit=(node,depth)=>{
+  const key=node.type+':'+node.id,collapsed=collapsedRightsGroups.has(key);
+  if(node.type==='access'||node.type==='role'){
+   headerRows[4].push('<th class="team-leaf">'+esc(node.name)+'</th>');
+   visibleColumns.push({type:node.type,node});return;
+  }
+  if(collapsed){
+   headerRows[depth].push('<th rowspan="'+(5-depth)+'" class="collapsed-group"><button type="button" data-rights-collapse="'+esc(key)+'" aria-expanded="false">▸ '+esc(node.name)+'</button></th>');
+   visibleColumns.push({type:'collapsed',node});return;
+  }
+  headerRows[depth].push('<th colspan="'+countVisibleRightsLeaves(node)+'"><button type="button" data-rights-collapse="'+esc(key)+'" aria-expanded="true">▾ '+esc(node.name)+'</button></th>');
+  (node.children||[]).forEach(child=>visit(child,depth+1));
+ };
+ roots.forEach(root=>visit(root,0));
+ $('rights-column-count').textContent=visibleColumns.length+' kolommen';
+ $('rights-matrix-head').innerHTML='<tr><th class="staff-heading" rowspan="5">Gebruiker</th>'+headerRows[0].join('')+'</tr>'+headerRows.slice(1).map(row=>'<tr>'+row.join('')+'</tr>').join('');
+ const accessMap=new Map(moduleAccessAssignments.map(x=>[x.user_id+':'+x.application_id+':'+x.organization_id,Number(x.enabled)===1]));
+ const roleMap=new Set(scopedRoleAssignments.filter(x=>x.status==='active').map(x=>x.user_id+':'+x.application_id+':'+x.role_id+':'+x.organization_id));
+ $('rights-matrix-body').innerHTML=filteredUsers.map(u=>{
+  const cells=visibleColumns.map(col=>{
+   if(col.type==='collapsed')return '<td class="collapsed-cell">…</td>';
+   const node=col.node,userId=u.id,orgId=node.organization.id,appId=node.application.id;
+   if(col.type==='access'){
+    const checked=accessMap.get(userId+':'+appId+':'+orgId)===true;
+    return '<td><input type="checkbox" class="rights-check" data-kind="access" data-user="'+esc(userId)+'" data-app="'+esc(appId)+'" data-org="'+esc(orgId)+'" '+(checked?'checked':'')+' aria-label="'+esc('Platformtoegang '+node.application.name+' voor '+u.email)+'"></td>';
+   }
+   const checked=roleMap.has(userId+':'+appId+':'+node.role.id+':'+orgId);
+   return '<td><input type="checkbox" class="rights-check" data-kind="role" data-user="'+esc(userId)+'" data-app="'+esc(appId)+'" data-role="'+esc(node.role.id)+'" data-org="'+esc(orgId)+'" '+(checked?'checked':'')+' aria-label="'+esc(node.role.name+' voor '+u.email)+'"></td>';
+  }).join('');
+  return '<tr><td class="staff-cell"><b>'+esc(u.display_name||u.email)+'</b><small>'+esc(u.email)+'</small></td>'+cells+'</tr>';
+ }).join('')||'<tr><td colspan="'+(visibleColumns.length+1)+'" class="empty-row">Geen gebruikers of kolommen gevonden.</td></tr>';
+}
 async function loadStructureAdmin(){
  try{
-  const [orgData,teamData]=await Promise.all([api('/api/admin/organizations'),api('/api/admin/teams')]);
+  const [orgData,teamData,moduleData,scopedRoleData]=await Promise.all([api('/api/admin/organizations'),api('/api/admin/teams'),api('/api/admin/module-access'),api('/api/admin/scoped-role-assignments')]);
   organizations=orgData.organizations||[];organizationLocations=orgData.locations||[];
   teams=teamData.teams||[];teamMemberships=teamData.memberships||[];
+  moduleAccessAssignments=moduleData.access||[];scopedRoleAssignments=scopedRoleData.assignments||[];
   if(!selectedOrganizationId||!organizations.some(o=>o.id===selectedOrganizationId))selectedOrganizationId=organizations.find(o=>o.organization_type==='institution')?.id||organizations[0]?.id||'';
-  renderOrganizationAdmin();fillOrganizationForm(organizations.find(o=>o.id===selectedOrganizationId)||null);renderTeamMatrix();
+  renderOrganizationAdmin();fillOrganizationForm(organizations.find(o=>o.id===selectedOrganizationId)||null);renderTeamMatrix();renderRightsMatrix();
   $('organization-status').textContent='Organisatiestructuur geladen. Nieuwe gegevens worden als concept opgeslagen.';
   $('team-status').textContent='Teamstructuur geladen. Wijzigingen worden afzonderlijk opgeslagen en gelogd.';
+  $('rights-status').textContent='Rechtenmatrix geladen. Moduletoegang en rechtenprofielen worden afzonderlijk beheerd.';
  }catch(error){
   $('organization-status').textContent='Organisatie- en locatieschermen wachten op databasemigratie 0006. '+error.message;
   $('team-status').textContent='Teambeheer wacht op databasemigratie 0006. '+error.message;
+  $('rights-status').textContent='Rechtenmatrix wacht op databasemigraties 0006 en 0008. '+error.message;
  }
 }
 async function saveOrganization(){
@@ -256,6 +327,22 @@ $('save-personnel').addEventListener('click',async()=>{try{await api('/api/admin
 $('save-student').addEventListener('click',async()=>{try{await api('/api/admin/students',{method:'POST',body:JSON.stringify({studentNumber:$('student-number').value.trim(),firstName:$('student-first').value.trim(),lastName:$('student-last').value.trim(),preferredName:$('student-preferred').value.trim()})});$('student-number').value='';$('student-first').value='';$('student-last').value='';$('student-preferred').value='';await loadAdmin();notice('Leerling toegevoegd.');}catch(e){notice(e.message,true);}});
 $('enrol-year').addEventListener('change',updateEnrolClasses);
 $('save-enrolment').addEventListener('click',async()=>{try{await api('/api/admin/student-enrolments',{method:'POST',body:JSON.stringify({studentId:$('enrol-student').value,schoolYearId:$('enrol-year').value,classId:$('enrol-class').value,startDate:$('enrol-start').value||null})});await loadAdmin();notice('Klasinschrijving opgeslagen.');}catch(e){notice(e.message,true);}});
+['rights-filter-name','rights-filter-email','rights-filter-domain','rights-school-filter'].forEach(id=>$(id).addEventListener(id==='rights-school-filter'?'change':'input',renderRightsMatrix));
+$('rights-matrix-head').addEventListener('click',e=>{const b=e.target.closest('[data-rights-collapse]');if(!b)return;const key=b.dataset.rightsCollapse;if(collapsedRightsGroups.has(key))collapsedRightsGroups.delete(key);else collapsedRightsGroups.add(key);renderRightsMatrix();});
+$('rights-matrix-body').addEventListener('change',async e=>{
+ const input=e.target.closest('[data-kind][data-user][data-app][data-org]');if(!input)return;
+ const userId=input.dataset.user,applicationId=input.dataset.app,organizationId=input.dataset.org;
+ try{
+  if(input.dataset.kind==='access'){
+   await api('/api/admin/module-access',{method:'PUT',body:JSON.stringify({userId,applicationId,organizationId,enabled:input.checked})});
+  }else{
+   const roleId=input.dataset.role;
+   if(input.checked)await api('/api/admin/scoped-role-assignments',{method:'PUT',body:JSON.stringify({userId,applicationId,organizationId,roleId,includeDescendants:false})});
+   else await api('/api/admin/scoped-role-assignments?userId='+encodeURIComponent(userId)+'&applicationId='+encodeURIComponent(applicationId)+'&organizationId='+encodeURIComponent(organizationId)+'&roleId='+encodeURIComponent(roleId),{method:'DELETE'});
+  }
+  await loadStructureAdmin();notice('Toegang of rechtenprofiel bijgewerkt.');
+ }catch(err){input.checked=!input.checked;notice(err.message,true);}
+});
 $('organization-rows').addEventListener('click',e=>{const b=e.target.closest('[data-organization]');if(!b)return;selectedOrganizationId=b.dataset.organization;renderOrganizationAdmin();fillOrganizationForm(organizations.find(o=>o.id===selectedOrganizationId));});
 $('organization-search').addEventListener('input',renderOrganizationAdmin);
 $('save-organization').addEventListener('click',async()=>{try{await saveOrganization();notice('Organisatie opgeslagen als concept.');}catch(e){notice(e.message,true);}});
