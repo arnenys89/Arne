@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-27",
+  "environment": "development-seed-only",
+  "importPolicy": {
+    "idStrategy": "stable-key-mapped-to-generated-UUID",
+    "upsertBy": "stable_key",
+    "defaultStatus": "draft",
+    "activateAutomatically": false,
+    "writeToProduction": false,
+    "excludedStableKeys": [
+      "kiempunt-buggenhout"
+    ],
+    "notes": [
+      "This file is a reviewed seed payload, not an instruction to execute a production import.",
+      "User-defined SAPOOV structure is authoritative for the intended tenant hierarchy.",
+      "Official-source discrepancies are retained as notes and must not silently alter the user-defined hierarchy."
+    ]
+  },
+  "organizations": [
+    {
+      "stable_key": "pov",
+      "organization_type": "umbrella",
+      "official_name": "Provinciaal Onderwijs Vlaanderen",
+      "display_name": "Provinciaal Onderwijs Vlaanderen",
+      "abbreviation": "POV",
+      "parent_key": null,
+      "website_url": "https://pov.be",
+      "contact_email": "provinciaalonderwijsvlaanderen@pov.be",
+      "phone": "+32 486 79 00 01",
+      "postal_address": {
+        "street": "Groendreef",
+        "house_number": "1",
+        "postal_code": "1000",
+        "municipality": "Brussel",
+        "country_code": "BE"
+      },
+      "institution_number": null,
+      "source_url": "https://pov.be/over-ons-contacteer-ons/",
+      "source_status": "official_website_checked",
+      "logo": {
+        "source_page": "https://pov.be",
+        "asset_status": "not_yet_copied_to_r2"
+      }
+    },
+    {
+      "stable_key": "provincie-oost-vlaanderen",
+      "organization_type": "school_board",
+      "official_name": "Provincie Oost-Vlaanderen",
+      "display_name": "Provinciebestuur Oost-Vlaanderen",
+      "abbreviation": null,
+      "parent_key": "pov",
+      "website_url": "https://oost-vlaanderen.be",
+      "contact_email": "provinciaalonderwijs@oost-vlaanderen.be",
+      "phone": "+32 9 267 74 45",
+      "postal_address": {
+        "street": "Charles de Kerchovelaan",
+        "house_number": "189",
+        "postal_code": "9000",
+        "municipality": "Gent",
+        "country_code": "BE"
+      },
+      "institution_number": null,
+      "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html",
+      "source_status": "official_website_checked",
+      "logo": {
+        "source_page": "https://oost-vlaanderen.be",
+        "asset_status": "not_yet_copied_to_r2"
+      }
+    },
+    {
+      "stable_key": "richtpunt-campus-ninove-zottegem",
+      "organization_type": "institution",
+      "education_type": "secondary",
+      "official_name": "Richtpunt campus Ninove-Zottegem",
+      "display_name": "Richtpunt campus Ninove-Zottegem",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "145722",
+      "website_url": "https://www.richtpuntninovezottegem.be",
+      "contact_email": "info@richtpuntninovezottegem.be",
+      "phone": null,
+      "source_url": "https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722",
+      "source_status": "official_poi_school_record_found",
+      "notes": [
+        "One institution with exactly two SAPOOV locations: Ninove and Zottegem."
+      ],
+      "logo": {
+        "source_page": "https://richtpunt.be/ninovezottegem/",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "richtpunt-ninove",
+          "official_name": "Locatie Ninove",
+          "display_name": "Ninove",
+          "street": "Centrumlaan",
+          "house_number": "160",
+          "postal_code": "9400",
+          "municipality": "Ninove",
+          "country_code": "BE",
+          "phone": "+32 54 31 78 50",
+          "contact_email": "info@richtpuntninove.be",
+          "source_url": "https://richtpunt.be/ninovezottegem/contact/"
+        },
+        {
+          "stable_key": "richtpunt-zottegem",
+          "official_name": "Locatie Zottegem",
+          "display_name": "Zottegem",
+          "street": "Sabina van Beierenlaan",
+          "house_number": "35",
+          "postal_code": "9620",
+          "municipality": "Zottegem",
+          "country_code": "BE",
+          "phone": "+32 9 360 19 93",
+          "contact_email": "info@richtpuntzottegem.be",
+          "source_url": "https://richtpunt.be/ninovezottegem/contact/"
+        }
+      ]
+    },
+    {
+      "stable_key": "richtpunt-campus-eeklo",
+      "organization_type": "institution",
+      "education_type": "secondary",
+      "official_name": "Richtpunt campus Eeklo",
+      "display_name": "Richtpunt campus Eeklo",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "36467",
+      "website_url": "https://www.richtpunteeklo.be",
+      "contact_email": "info@richtpunteeklo.be",
+      "phone": "+32 9 370 73 73",
+      "source_url": "https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:16414",
+      "source_status": "official_inspection_record_found_user_confirmed_number",
+      "logo": {
+        "source_page": "https://www.richtpunteeklo.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "richtpunt-eeklo",
+          "official_name": "Richtpunt campus Eeklo",
+          "display_name": "Eeklo",
+          "street": "Roze",
+          "house_number": "131",
+          "postal_code": "9900",
+          "municipality": "Eeklo",
+          "country_code": "BE",
+          "phone": "+32 9 370 73 73",
+          "contact_email": "info@richtpunteeklo.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "richtpunt-campus-hamme",
+      "organization_type": "institution",
+      "education_type": "secondary",
+      "official_name": "Richtpunt campus Hamme",
+      "display_name": "Richtpunt campus Hamme",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "37275",
+      "website_url": "https://www.richtpunthamme.be",
+      "contact_email": "info@richtpunthamme.be",
+      "phone": "+32 52 47 83 54",
+      "source_url": "https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:22594",
+      "source_status": "official_inspection_record_found",
+      "logo": {
+        "source_page": "https://www.richtpunthamme.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "richtpunt-hamme",
+          "official_name": "Richtpunt campus Hamme",
+          "display_name": "Hamme",
+          "street": "Meulenbroekstraat",
+          "house_number": "15",
+          "postal_code": "9220",
+          "municipality": "Hamme",
+          "country_code": "BE",
+          "phone": "+32 52 47 83 54",
+          "contact_email": "info@richtpunthamme.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "richtpunt-campus-gent-henleykaai",
+      "organization_type": "institution",
+      "education_type": "secondary",
+      "official_name": "Richtpunt campus Gent Henleykaai",
+      "display_name": "Richtpunt campus Gent Henleykaai",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "36624",
+      "website_url": "https://www.richtpuntgenthenley.be",
+      "contact_email": "infocampushenley@richtpuntgent.be",
+      "phone": "+32 9 267 12 10",
+      "source_url": "https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-henleykaai",
+      "source_status": "official_school_record_found",
+      "logo": {
+        "source_page": "https://www.richtpuntgenthenley.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "richtpunt-gent-henleykaai",
+          "official_name": "Richtpunt campus Gent Henleykaai",
+          "display_name": "Gent – Henleykaai",
+          "street": "Henleykaai",
+          "house_number": "83",
+          "postal_code": "9000",
+          "municipality": "Gent",
+          "country_code": "BE",
+          "phone": "+32 9 267 12 10",
+          "contact_email": "infocampushenley@richtpuntgent.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "richtpunt-campus-gent-godshuizenlaan",
+      "organization_type": "institution",
+      "education_type": "secondary",
+      "official_name": "Richtpunt campus Gent Godshuizenlaan",
+      "display_name": "Richtpunt campus Gent Godshuizenlaan",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "36699",
+      "website_url": "https://www.richtpuntgent.be",
+      "contact_email": "infocampusgodshuizen@richtpuntgent.be",
+      "phone": "+32 9 267 12 60",
+      "source_url": "https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-godshuizenlaan",
+      "source_status": "official_poi_and_school_record_found_user_defined_sapoov_scope",
+      "notes": [
+        "User-defined SAPOOV display name and scope: one institution with exactly one location in Gent – Godshuizenlaan.",
+        "Provincial public contact page still groups this under the former Gent-Oudenaarde label and lists other sites. Do not import those additional sites into this SAPOOV institution."
+      ],
+      "logo": {
+        "source_page": "https://www.richtpuntgent.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "richtpunt-gent-godshuizenlaan",
+          "official_name": "Richtpunt campus Gent Godshuizenlaan",
+          "display_name": "Gent – Godshuizenlaan",
+          "street": "Godshuizenlaan",
+          "house_number": "65-75",
+          "postal_code": "9000",
+          "municipality": "Gent",
+          "country_code": "BE",
+          "phone": "+32 9 267 12 60",
+          "contact_email": "infocampusgodshuizen@richtpuntgent.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "kiempunt-campus-assenede",
+      "organization_type": "institution",
+      "education_type": "special_primary",
+      "official_name": "Kiempunt campus Assenede",
+      "display_name": "Kiempunt campus Assenede",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "130237",
+      "website_url": "https://www.kiempunt.be",
+      "contact_email": "info@kiempuntassenede.be",
+      "phone": "+32 9 344 98 69",
+      "source_url": "https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=130237",
+      "source_status": "official_poi_school_record_found",
+      "logo": {
+        "source_page": "https://www.kiempunt.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "kiempunt-assenede",
+          "official_name": "Kiempunt campus Assenede",
+          "display_name": "Assenede",
+          "street": "Stoepestraat",
+          "house_number": "40",
+          "postal_code": "9960",
+          "municipality": "Assenede",
+          "country_code": "BE",
+          "phone": "+32 9 344 98 69",
+          "contact_email": "info@kiempuntassenede.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "kiempunt-campus-eeklo",
+      "organization_type": "institution",
+      "education_type": "special_primary",
+      "official_name": "Kiempunt campus Eeklo",
+      "display_name": "Kiempunt campus Eeklo",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "116079",
+      "website_url": "https://www.kiempunt.be",
+      "contact_email": "info@kiempunteeklo.be",
+      "phone": "+32 9 377 32 82",
+      "source_url": "https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=116079",
+      "source_status": "official_school_record_found",
+      "logo": {
+        "source_page": "https://www.kiempunt.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "kiempunt-eeklo",
+          "official_name": "Kiempunt campus Eeklo",
+          "display_name": "Eeklo",
+          "street": "Gentsesteenweg",
+          "house_number": "82-84",
+          "postal_code": "9900",
+          "municipality": "Eeklo",
+          "country_code": "BE",
+          "phone": "+32 9 377 32 82",
+          "contact_email": "info@kiempunteeklo.be",
+          "source_url": "https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html"
+        }
+      ]
+    },
+    {
+      "stable_key": "cvo-groeipunt",
+      "organization_type": "institution",
+      "education_type": "adult_education",
+      "official_name": "CVO Groeipunt",
+      "display_name": "CVO Groeipunt",
+      "abbreviation": null,
+      "parent_key": "provincie-oost-vlaanderen",
+      "institution_number": "131888",
+      "website_url": "https://www.groeipunt.be",
+      "contact_email": "info@groeipunt.be",
+      "phone": "+32 5 431 78 60",
+      "source_url": "https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:72024L1785BEL_202606567",
+      "source_status": "current_2026_flemish_regulation_found",
+      "notes": [
+        "Older documents also contain number 131482. It is retained as a historical/verification note and is not imported as a second organization.",
+        "The center has multiple campus locations and additional lesson places. The initial seed contains only the 11 campuses with a secretariat listed in the 2025-2026 center regulations."
+      ],
+      "logo": {
+        "source_page": "https://www.groeipunt.be",
+        "asset_status": "not_yet_copied_to_r2"
+      },
+      "locations": [
+        {
+          "stable_key": "groeipunt-gent-leopoldskazerne",
+          "official_name": "Campus Gent Leopoldskazerne",
+          "display_name": "Gent – Leopoldskazerne",
+          "street": "Charles de Kerchovelaan",
+          "house_number": "189",
+          "postal_code": "9000",
+          "municipality": "Gent",
+          "country_code": "BE",
+          "is_main_location": true,
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-gent-henleykaai",
+          "official_name": "Campus Gent Henleykaai",
+          "display_name": "Gent – Henleykaai",
+          "street": "Henleykaai",
+          "house_number": "83",
+          "postal_code": "9000",
+          "municipality": "Gent",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-gent-gouvernementstraat",
+          "official_name": "Campus Gent Gouvernementstraat",
+          "display_name": "Gent – Gouvernementstraat",
+          "street": "Gouvernementstraat",
+          "house_number": "22-24",
+          "postal_code": "9000",
+          "municipality": "Gent",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-gent-sint-amandsberg",
+          "official_name": "Campus Gent Sint-Amandsberg",
+          "display_name": "Gent – Sint-Amandsberg",
+          "street": "E. Tinelstraat",
+          "house_number": "92",
+          "postal_code": "9040",
+          "municipality": "Sint-Amandsberg",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-eeklo",
+          "official_name": "Campus Eeklo",
+          "display_name": "Eeklo",
+          "street": "Roze",
+          "house_number": "131",
+          "postal_code": "9900",
+          "municipality": "Eeklo",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-deinze",
+          "official_name": "Campus Deinze",
+          "display_name": "Deinze",
+          "street": "Brielstraat",
+          "house_number": "25",
+          "postal_code": "9800",
+          "municipality": "Deinze",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-ninove",
+          "official_name": "Campus Ninove",
+          "display_name": "Ninove",
+          "street": "Centrumlaan",
+          "house_number": "160",
+          "postal_code": "9400",
+          "municipality": "Ninove",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-lokeren",
+          "official_name": "Campus Lokeren",
+          "display_name": "Lokeren",
+          "street": "Durmelaan",
+          "house_number": "34A",
+          "postal_code": "9160",
+          "municipality": "Lokeren",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-wetteren",
+          "official_name": "Campus Wetteren",
+          "display_name": "Wetteren",
+          "street": "Nieuwstraat",
+          "house_number": "11",
+          "postal_code": "9230",
+          "municipality": "Wetteren",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-zele-koevliet",
+          "official_name": "Campus Zele Koevliet",
+          "display_name": "Zele – Koevliet",
+          "street": "Koevliet",
+          "house_number": "2C",
+          "postal_code": "9240",
+          "municipality": "Zele",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        },
+        {
+          "stable_key": "groeipunt-zottegem",
+          "official_name": "Campus Zottegem",
+          "display_name": "Zottegem",
+          "street": "Sabina van Beierenlaan",
+          "house_number": "35",
+          "postal_code": "9620",
+          "municipality": "Zottegem",
+          "country_code": "BE",
+          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+        }
+      ]
+    }
+  ]
+}
