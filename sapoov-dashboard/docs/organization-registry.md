@@ -219,3 +219,14 @@ De officiële logo-downloadpagina van Provincie Oost-Vlaanderen vermeldt explici
 - De 69 INSERT-statements in de seedmigratie hebben een gelijk aantal kolommen en waarden.
 
 Deze controles zijn broncode-/structuurcontroles. Ze vervangen geen uitvoering van de migraties tegen een geïsoleerde D1-testdatabase of een volledige browser- en autorisatietest.
+
+
+## 8. Lokale migratie- en integratietest
+
+De repository bevat nu een afzonderlijke lokale D1-test:
+
+- `npm run check`: JavaScript-syntaxis en inhoudelijke controles op het seedbestand.
+- `npm run test:d1:local`: voert alle migraties uit op een geïsoleerde lokale D1-database onder `.wrangler/organization-registry-test` en controleert daarna de referentiële integriteit, aantallen, unieke instellingsnummers, draft-statussen, CVO-contactgegevens en bron-URL's.
+- De workflow `.github/workflows/sapoov-organization-registry.yml` voert beide controles automatisch uit bij relevante wijzigingen.
+
+De lokale test gebruikt expliciet `--local` en een aparte persist-map. Ze schrijft niet naar de remote D1-database. Een geslaagde workflow is vereist vóór de previewfase. De remote migratieprocedure blijft geblokkeerd op deze branch.
