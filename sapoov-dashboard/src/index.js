@@ -89,9 +89,13 @@ export default {
       const requestedUnitId=url.searchParams.get('organizationUnitId')||'';
       const selectedUnit=requestedUnitId ? contexts.find(unit=>unit.id===requestedUnitId) : null;
       if(requestedUnitId&&!selectedUnit) return json({error:'Je hebt geen expliciete toegang tot deze organisatiecontext.'},403);
-      const visibleApps=selectedUnit ? (superadmin ? apps.results : apps.results.filter(app =>
-        explicitScopeEnabled(access.results.filter(x=>x.application_id===app.id),selectedUnit.id)
-      )) : [];
+      // Superadmins see the complete application catalogue even before choosing a working context.
+      // Selecting a context is still required before opening context-bound modules.
+      const visibleApps=selectedUnit
+        ? (superadmin ? apps.results : apps.results.filter(app =>
+            explicitScopeEnabled(access.results.filter(x=>x.application_id===app.id),selectedUnit.id)
+          ))
+        : (superadmin ? apps.results : []);
       const visibleAppIds=new Set(visibleApps.map(x=>x.id));
       const assignments=selectedUnit ? roleRows.results.filter(row =>
         row.organization_unit_id===selectedUnit.id&&Number(row.enabled)===1&&visibleAppIds.has(row.application_id)
