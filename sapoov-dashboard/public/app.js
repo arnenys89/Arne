@@ -114,8 +114,15 @@ function updateEnrolClasses(){const y=$('enrol-year').value;$('enrol-class').inn
 function contextUrl(target){const u=new URL(target,window.location.origin);if(selectedOrganizationUnit)u.searchParams.set('organizationUnitId',selectedOrganizationUnit.id);return u.href;}
 function applyContextToLinks(){document.querySelectorAll('.sapoov-side-link').forEach(link=>{const base=link.dataset.baseHref||link.getAttribute('href');if(!link.dataset.baseHref)link.dataset.baseHref=base;link.href=selectedOrganizationUnit?contextUrl(base):base;});}
 function renderApps(){
- if(!selectedOrganizationUnit){$('apps').innerHTML='<div class="message">Kies eerst de organisatiecontext waarin je wilt werken.</div>';applyContextToLinks();return;}
- $('apps').innerHTML=apps.map(a=>{const internal=['werkplekreservatie','beleidskompas'].includes(a.id);const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');return `<a class="app" href="${esc(contextUrl(target))}" ${internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p></a>`}).join('')||'<div class="message">Binnen deze organisatiecontext zijn geen toepassingen expliciet toegekend.</div>';
+ const needsContext=!selectedOrganizationUnit;
+ if(needsContext&&!me?.superadmin){
+  $('apps').innerHTML='<div class="message">Kies eerst de organisatiecontext waarin je wilt werken.</div>';applyContextToLinks();return;
+ }
+ $('apps').innerHTML=apps.map(a=>{
+  const internal=['werkplekreservatie','beleidskompas'].includes(a.id);
+  const target=a.id==='werkplekreservatie'?'/werkplekreservatie':a.id==='beleidskompas'?'/beleidskompas':(a.url||'#');
+  return `<a class="app" data-app-target="${esc(target)}" href="${needsContext?'#':esc(contextUrl(target))}" ${needsContext?'aria-label="'+esc(a.name)+' — kies eerst een organisatiecontext"':(internal?'':'target="_blank" rel="noopener noreferrer"')}><span class="app-icon">${iconSvg(a.icon)}</span><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p>${needsContext?'<small>Kies een school of bestuur om te openen</small>':''}</a>`;
+ }).join('')||'<div class="message">Er zijn momenteel geen actieve toepassingen beschikbaar.</div>';
  applyContextToLinks();
 }
 async function selectOrganizationContext(unitId){
@@ -130,11 +137,18 @@ async function start(){
   $('context-picker').classList.toggle('hidden',availableContexts.length===0);
   if(data.superadmin){$('admin').classList.remove('hidden');$('admin-nav').classList.remove('hidden');await loadAdmin();}
   if(availableContexts.length===1){$('context-picker').classList.remove('hidden');await selectOrganizationContext(availableContexts[0].id);}
-  else if(availableContexts.length>1){$('message').textContent='Kies de organisatiecontext waarin je wilt werken. Je ziet alleen toepassingen waarvoor je daar expliciet toegang hebt.';apps=[];selectedOrganizationUnit=null;renderApps();}
+  else if(availableContexts.length>1){
+   selectedOrganizationUnit=null;
+   if(data.superadmin){apps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules van alle besturen en scholen zijn zichtbaar. Kies een organisatiecontext om een module te openen.';}
+   else{$('message').textContent='Kies de organisatiecontext waarin je wilt werken. Je ziet alleen toepassingen waarvoor je daar expliciet toegang hebt.';apps=[];}
+   renderApps();
+  }
+  else if(data.superadmin){selectedOrganizationUnit=null;apps=data.applications||[];$('message').textContent='Superadministrator: alle actieve modules zijn zichtbaar. Kies een organisatiecontext om een module te openen.';renderApps();}
   else{$('message').textContent='Er is nog geen organisatiecontext met expliciet toegekende toepassingstoegang aan je account gekoppeld.';apps=[];renderApps();}
  }catch(error){notice(error.message,true);$('message').textContent=error.message;$('apps').innerHTML='';}
 }
-$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;apps=[];renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
+$('organization-context').addEventListener('change',async e=>{if(!e.target.value){selectedOrganizationUnit=null;if(me?.superadmin){apps=me.applications||apps;}else{apps=[];}renderApps();return;}try{await selectOrganizationContext(e.target.value);}catch(error){notice(error.message,true);}});
+$('apps').addEventListener('click',e=>{const card=e.target.closest('[data-app-target]');if(!card||selectedOrganizationUnit)return;e.preventDefault();$('message').textContent='Kies eerst de school, campus of het bestuur waarin je deze module wilt openen.';$('organization-context').focus();});
 
 $('admin-nav').addEventListener('click',()=>{$('admin').scrollIntoView({behavior:'smooth'});});
 $('matrix-search').addEventListener('input',renderRightsMatrix);
