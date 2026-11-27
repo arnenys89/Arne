@@ -6,6 +6,7 @@ import 'package:eid_nfc/eid_nfc.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'camera_scanner.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -260,6 +261,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
             'Daarna kan je de kaart tegen de NFC-zone van je smartphone houden.',
           ),
           const SizedBox(height: 18),
+          OutlinedButton.icon(
+            onPressed: _reading
+                ? null
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CameraScannerScreen(),
+                      ),
+                    ),
+            icon: const Icon(Icons.document_scanner_outlined),
+            label: const Text('Scan identiteitskaart met camera'),
+          ),
+          const SizedBox(height: 12),
           TextField(
             controller: _canController,
             enabled: !_reading,
