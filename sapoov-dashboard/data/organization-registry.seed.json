@@ -40,7 +40,8 @@
       "source_status": "official_website_checked",
       "logo": {
         "source_page": "https://pov.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       }
     },
     {
@@ -65,7 +66,8 @@
       "source_status": "official_website_checked",
       "logo": {
         "source_page": "https://oost-vlaanderen.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "De provinciale logo-downloadpagina vermeldt dat toestemming nodig is voor gebruik; eerst toestemming vragen via info@oost-vlaanderen.be."
       }
     },
     {
@@ -87,7 +89,8 @@
       ],
       "logo": {
         "source_page": "https://richtpunt.be/ninovezottegem/",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -134,7 +137,8 @@
       "source_status": "official_inspection_record_found_user_confirmed_number",
       "logo": {
         "source_page": "https://www.richtpunteeklo.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -168,7 +172,8 @@
       "source_status": "official_inspection_record_found",
       "logo": {
         "source_page": "https://www.richtpunthamme.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -202,7 +207,8 @@
       "source_status": "official_school_record_found",
       "logo": {
         "source_page": "https://www.richtpuntgenthenley.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -240,7 +246,8 @@
       ],
       "logo": {
         "source_page": "https://www.richtpuntgent.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -274,7 +281,8 @@
       "source_status": "official_poi_school_record_found",
       "logo": {
         "source_page": "https://www.kiempunt.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -308,7 +316,8 @@
       "source_status": "official_school_record_found",
       "logo": {
         "source_page": "https://www.kiempunt.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
@@ -346,7 +355,8 @@
       ],
       "logo": {
         "source_page": "https://www.groeipunt.be",
-        "asset_status": "not_yet_copied_to_r2"
+        "asset_status": "pending_asset_review",
+        "usage_note": "Officiële merkbron geïdentificeerd; direct bestand, transparantie en gebruiksvoorwaarden nog controleren vóór opslag in R2."
       },
       "locations": [
         {
