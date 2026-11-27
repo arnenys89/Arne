@@ -40,7 +40,7 @@ De volgende administratieve nummers zijn gevonden in officiële onderwijsbronnen
 | Richtpunt campus Gent Godshuizenlaan | Secundair | 36699 | https://www.richtpuntgent.be | infocampusgodshuizen@richtpuntgent.be | +32 9 267 12 60 | Gent – Godshuizenlaan |
 | Kiempunt campus Assenede | Buitengewoon basisonderwijs | 130237 | https://www.kiempunt.be | info@kiempuntassenede.be | +32 9 344 98 69 | Assenede |
 | Kiempunt campus Eeklo | Buitengewoon basisonderwijs | 116079 | https://www.kiempunt.be | info@kiempunteeklo.be | +32 9 377 32 82 | Eeklo |
-| CVO Groeipunt | Volwassenenonderwijs | 131888 | https://www.groeipunt.be | info@groeipunt.be | +32 5 431 78 60 | Meerdere locaties en lesplaatsen |
+| CVO Groeipunt | Volwassenenonderwijs | 131888 | https://www.groeipunt.be | info@groeipunt.be | Contact via de afzonderlijke campussen | Meerdere locaties en lesplaatsen |
 
 ### 3.1 Bronnen per instelling
 
@@ -85,23 +85,23 @@ De officiële schoolwebsite vermeldt daarnaast het algemene adres info@richtpunt
 
 Het centrumreglement 2025-2026 noemt de volgende campussen met secretariaat. In SAPOOV worden dit fysieke locaties onder één CVO Groeipunt-instelling:
 
-| Locatie | Adres |
-|---|---|
-| Gent Leopoldskazerne (hoofdzetel) | Charles de Kerchovelaan 189, 9000 Gent, België |
-| Gent Henleykaai | Henleykaai 83, 9000 Gent, België |
-| Gent Gouvernementstraat | Gouvernementstraat 22-24, 9000 Gent, België |
-| Gent Sint-Amandsberg | E. Tinelstraat 92, 9040 Sint-Amandsberg, België |
-| Eeklo | Roze 131, 9900 Eeklo, België |
-| Deinze | Brielstraat 25, 9800 Deinze, België |
-| Ninove | Centrumlaan 160, 9400 Ninove, België |
-| Lokeren | Durmelaan 34A, 9160 Lokeren, België |
-| Wetteren | Nieuwstraat 11, 9230 Wetteren, België |
-| Zele Koevliet | Koevliet 2C, 9240 Zele, België |
-| Zottegem | Sabina van Beierenlaan 35, 9620 Zottegem, België |
+| Locatie | Adres | Telefoon |
+|---|---|---|
+| Gent Leopoldskazerne (hoofdzetel) | Charles de Kerchovelaan 189, 9000 Gent, België | 09 267 12 90 |
+| Gent Henleykaai | Henleykaai 83, 9000 Gent, België | 09 267 12 90 |
+| Gent Gouvernementstraat | Gouvernementstraat 22-24, 9000 Gent, België | 09 267 12 90 |
+| Gent Sint-Amandsberg | Edgard Tinelstraat 92, 9040 Sint-Amandsberg, België | 09 218 89 30 |
+| Eeklo | Roze 131, 9900 Eeklo, België | 09 370 74 12 |
+| Deinze RAC | Brielstraat 25, 9800 Deinze, België | 09 220 11 08 |
+| Ninove | Centrumlaan 160, 9400 Ninove, België | 054 31 78 60 |
+| Lokeren | Durmelaan 34A, 9160 Lokeren, België | 09 340 51 10 |
+| Wetteren | Nieuwstraat 11, 9230 Wetteren, België | 09 369 05 93 |
+| Zele Koevliet | Koevliet 2C, 9240 Zele, België | 052 45 92 80 |
+| Zottegem | Sabina van Beierenlaan 35, 9620 Zottegem, België | 09 345 46 58 |
 
 Daarnaast vermeldt Groeipunt lesplaatsen zonder vast secretariaat. Die worden pas als afzonderlijke SAPOOV-locaties toegevoegd wanneer ze functioneel nodig zijn; het is niet wenselijk elke tijdelijke of externe lesplaats automatisch als volwaardige schoollocatie te registreren.
 
-Bron voor de elf campussen: Centrumreglement CVO Groeipunt 2025-2026, https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf. Actuele lesplaatsen: https://www.groeipunt.be/lesplaats/dendermonde.
+De actuele officiële lesplaatsenpagina vermeldt deze elf campussen met secretariaat en hun adressen en telefoonnummers: https://www.groeipunt.be/lesplaats/dendermonde. Het centrumreglement 2025-2026 is aanvullend bronmateriaal: https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf.
 
 ## 5. Logo's en beeldmerken
 
