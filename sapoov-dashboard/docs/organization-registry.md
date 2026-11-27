@@ -10,7 +10,7 @@ Status: brongegevens verzameld; importbestand voorbereid; nog niet naar D1 geïm
 - Schoolbestuur: **Provincie Oost-Vlaanderen**; SAPOOV-weergavenaam: **Provinciebestuur Oost-Vlaanderen**.
 - Onder dit bestuur worden acht onderwijsinstellingen opgenomen: vijf Richtpunt-instellingen, twee Kiempunt-instellingen en CVO Groeipunt.
 - **Kiempunt Buggenhout wordt volledig uitgesloten**: geen organisatie, geen locatie en geen importrecord.
-- Ninove en Zottegem zijn twee fysieke locaties van één onderwijsinstelling: **Richtpunt campus Ninove-Zottegem**.
+- Ninove en Zottegem zijn twee fysieke locaties van één onderwijsinstelling: **Richtpunt campus Ninove Zottegem**.
 - Gent Henleykaai en Gent Godshuizenlaan zijn twee afzonderlijke onderwijsinstellingen in SAPOOV.
 - De door de gebruiker vastgelegde SAPOOV-naam **Richtpunt campus Gent Godshuizenlaan** heeft precies één SAPOOV-locatie: Gent – Godshuizenlaan. De locaties Oudenaarde en Gent Abdisstraat worden niet opgenomen in die instelling.
 
@@ -33,7 +33,7 @@ De volgende administratieve nummers zijn gevonden in officiële onderwijsbronnen
 
 | SAPOOV-naam | Type | Instellingsnummer | Website | Algemeen e-mailadres | Telefoon | SAPOOV-locaties |
 |---|---|---:|---|---|---|---|
-| Richtpunt campus Ninove-Zottegem | Secundair | 145722 | https://www.richtpuntninovezottegem.be | info@richtpuntninovezottegem.be | — (contact per locatie) | Ninove; Zottegem |
+| Richtpunt campus Ninove Zottegem | Secundair | 145722 | https://www.richtpuntninovezottegem.be | info@richtpuntninovezottegem.be | — (contact per locatie) | Ninove; Zottegem |
 | Richtpunt campus Eeklo | Secundair | 36467 | https://www.richtpunteeklo.be | info@richtpunteeklo.be | +32 9 370 73 73 | Eeklo |
 | Richtpunt campus Hamme | Secundair | 37275 | https://www.richtpunthamme.be | info@richtpunthamme.be | +32 52 47 83 54 | Hamme |
 | Richtpunt campus Gent Henleykaai | Secundair | 36624 | https://www.richtpuntgenthenley.be | infocampushenley@richtpuntgent.be | +32 9 267 12 10 | Gent – Henleykaai |
@@ -44,7 +44,7 @@ De volgende administratieve nummers zijn gevonden in officiële onderwijsbronnen
 
 ### 3.1 Bronnen per instelling
 
-- Richtpunt campus Ninove-Zottegem, nummer 145722 en schoolfiche: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722. De officiële schoolwebsite bevestigt het algemene e-mailadres en de twee locaties: https://richtpunt.be/ninovezottegem/.
+- Richtpunt campus Ninove Zottegem, nummer 145722 en schoolfiche: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722. De officiële schoolwebsite bevestigt het algemene e-mailadres en de twee locaties: https://richtpunt.be/ninovezottegem/.
 - Richtpunt campus Eeklo, nummer 36467: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=36467. Inspectieverslag met instellingsnummer, adres, telefoon, e-mail en website: https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:16414.
 - Richtpunt campus Hamme, nummer 37275: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=37275. Onderwijsinspectie/bronvermelding: https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:22594.
 - Richtpunt campus Gent Henleykaai, nummer 36624: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=36624. Schoolfiche met adres, telefoon, e-mail en website: https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-henleykaai.
@@ -59,7 +59,7 @@ In oudere bronnen komt ook nummer **131482** voor bij CVO Groeipunt. De meest re
 
 ## 4. Locaties
 
-### 4.1 Richtpunt campus Ninove-Zottegem
+### 4.1 Richtpunt campus Ninove Zottegem
 
 | Locatie | Adres | Telefoon | E-mail |
 |---|---|---|---|
