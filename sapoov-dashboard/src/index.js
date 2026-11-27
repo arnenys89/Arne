@@ -374,6 +374,50 @@ export default {
         await audit(env.DB,user,'module.access.set','user_module_access',b.userId,{applicationId:b.applicationId,organizationId:b.organizationId,enabled:b.enabled});
         return json({ok:true});
       }
+      if (method==='GET' && path==='/api/admin/scoped-role-assignments') {
+        const result=await env.DB.prepare(`SELECT a.*,u.email,u.display_name,r.name AS role_name,r.application_id,
+          app.name AS application_name,o.display_name AS organization_name
+          FROM user_scoped_role_assignments a
+          JOIN users u ON u.id=a.user_id
+          JOIN roles r ON r.id=a.role_id
+          JOIN applications app ON app.id=a.application_id
+          JOIN organizations o ON o.id=a.organization_id
+          ORDER BY o.sort_order,app.sort_order,r.name,u.email`).all();
+        return json({assignments:result.results});
+      }
+      if (method==='PUT' && path==='/api/admin/scoped-role-assignments') {
+        const b=await bodyJson(request);
+        if (!b?.userId || !b?.applicationId || !b?.roleId || !b?.organizationId) return json({error:'Gebruiker, module, rechtenprofiel en school zijn verplicht.'},400);
+        if (b.includeDescendants!==undefined && typeof b.includeDescendants!=='boolean') return json({error:'Descendant-toegang moet expliciet aan of uit staan.'},400);
+        const [target,app,role,organization]=await Promise.all([
+          env.DB.prepare('SELECT id FROM users WHERE id=?').bind(b.userId).first(),
+          env.DB.prepare('SELECT id FROM applications WHERE id=?').bind(b.applicationId).first(),
+          env.DB.prepare('SELECT id,application_id FROM roles WHERE id=?').bind(b.roleId).first(),
+          env.DB.prepare("SELECT id FROM organizations WHERE id=? AND organization_type='institution'").bind(b.organizationId).first()
+        ]);
+        if (!target || !app || !role || role.application_id!==b.applicationId || !organization) return json({error:'Gebruiker, module, rol of school niet gevonden of niet onderling gekoppeld.'},404);
+        const from=b.validFrom||null,until=b.validUntil||null;
+        if(from&&until&&until<from)return json({error:'De einddatum mag niet vóór de begindatum liggen.'},400);
+        await env.DB.prepare(`INSERT INTO user_scoped_role_assignments(
+          id,user_id,application_id,role_id,organization_id,include_descendants,valid_from,valid_until,status,assigned_by
+        ) VALUES(?,?,?,?,?,?,?,?, 'active',?)
+        ON CONFLICT(user_id,application_id,role_id,organization_id) DO UPDATE SET
+          include_descendants=excluded.include_descendants,valid_from=excluded.valid_from,
+          valid_until=excluded.valid_until,status='active',assigned_by=excluded.assigned_by,
+          updated_at=CURRENT_TIMESTAMP`).bind(
+          id(),b.userId,b.applicationId,b.roleId,b.organizationId,b.includeDescendants?1:0,from,until,user.email
+        ).run();
+        await audit(env.DB,user,'scoped.role.grant','user_scoped_role_assignment',b.userId,{applicationId:b.applicationId,roleId:b.roleId,organizationId:b.organizationId,includeDescendants:Boolean(b.includeDescendants)});
+        return json({ok:true});
+      }
+      if (method==='DELETE' && path==='/api/admin/scoped-role-assignments') {
+        const userId=url.searchParams.get('userId'),applicationId=url.searchParams.get('applicationId'),roleId=url.searchParams.get('roleId'),organizationId=url.searchParams.get('organizationId');
+        if (![userId,applicationId,roleId,organizationId].every(Boolean)) return json({error:'Gebruiker, module, rechtenprofiel en school zijn verplicht.'},400);
+        await env.DB.prepare(`UPDATE user_scoped_role_assignments SET status='revoked',updated_at=CURRENT_TIMESTAMP
+          WHERE user_id=? AND application_id=? AND role_id=? AND organization_id=?`).bind(userId,applicationId,roleId,organizationId).run();
+        await audit(env.DB,user,'scoped.role.revoke','user_scoped_role_assignment',userId,{applicationId,roleId,organizationId});
+        return json({ok:true});
+      }
       if (method==='POST' && path==='/api/admin/organization-sources') {
         const b=await bodyJson(request);
         if (!b?.fieldName || !b?.sourceName || !b?.sourceUrl || (!!b.organizationId===!!b.campusId)) return json({error:'Veld, bron, bron-URL en precies één organisatie of campus zijn verplicht.'},400);
