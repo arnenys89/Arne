@@ -299,6 +299,16 @@ De tabel heeft dus meerdere koprijen. Een voorbeeld van één kolompad is: Provi
 - Bij brede tabellen moeten de kolomkoppen tijdens horizontaal scrollen herkenbaar blijven; de gebruikerskolom blijft bij voorkeur vastgezet.
 - De matrix moet ook bruikbaar blijven wanneer een gebruiker geen rechten heeft in bepaalde kolommen: een lege cel betekent geen toekenning, niet een impliciete weigering die als aparte rol wordt opgeslagen.
 
+**Afzonderlijke toegangsschakelaar per module:**
+- Naast de rechtenprofielen krijgt elke gebruiker per module en per schoolcontext een afzonderlijke checkbox **“Toegang tot dit platform”**.
+- Aangevinkt: de module verschijnt in het dashboard van de gebruiker voor die organisatiecontext én de gebruiker mag de module openen. De API controleert deze expliciete moduletoegang bij iedere aanvraag.
+- Uitgevinkt: de module verschijnt niet in het dashboard en toegang tot de module-API's wordt geweigerd, ook wanneer er nog rechtenprofielen aan de gebruiker gekoppeld zijn. De onderliggende roltoewijzingen mogen bewaard blijven, maar zijn niet actief zolang de moduletoegang uitstaat.
+- Deze moduletoegang is een toegangspoort en vervangt de rechtenprofielen niet. De rechtenprofielen bepalen welke handelingen de gebruiker binnen de module mag uitvoeren.
+- Een gebruiker met moduletoegang maar zonder enig rechtenprofiel kan de module openen, maar krijgt geen functionele beheer- of mutatierechten. Alleen expliciet als algemeen beschikbaar gemarkeerde start-/leesfunctionaliteit kan dan toegankelijk zijn; standaard geldt deny by default.
+- De moduletoegang moet afzonderlijk kunnen worden toegekend en ingetrokken per gebruiker, module en organisatiescope. Ze wordt niet automatisch overgeërfd naar andere scholen of modules.
+- De matrix toont deze checkbox op moduleniveau, duidelijk onderscheiden van de checkboxes voor de rechtenprofielen onder die module.
+- Wijzigingen aan moduletoegang worden server-side gevalideerd en geregistreerd in `audit_events`.
+
 **Beheer via de cellen:**
 - Elke cel op het kruispunt van een gebruiker en een rechtenprofiel bevat een aanvinkvakje (checkbox).
 - Aangevinkt betekent dat het betreffende rechtenprofiel aan die gebruiker wordt toegekend binnen de kolomcontext; uitgevinkt betekent dat die toekenning niet bestaat of wordt ingetrokken.
