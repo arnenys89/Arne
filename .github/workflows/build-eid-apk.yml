@@ -1,0 +1,70 @@
+name: Build Belgische eID Android APK
+
+on:
+  push:
+    branches:
+      - feature/belgische-eid-android
+    paths:
+      - "belgische-eid-android/**"
+      - ".github/workflows/build-eid-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: belgische-eid-android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android project
+        run: |
+          flutter create --platforms=android --org be.sapoov --project-name belgische_eid .
+          python3 - <<'PY'
+          from pathlib import Path
+          gradle = Path("android/app/build.gradle.kts")
+          if gradle.exists():
+              source = gradle.read_text()
+              source = source.replace("minSdk = flutter.minSdkVersion", "minSdk = 24")
+              gradle.write_text(source)
+          else:
+              gradle = Path("android/app/build.gradle")
+              source = gradle.read_text()
+              source = source.replace("minSdkVersion flutter.minSdkVersion", "minSdkVersion 24")
+              gradle.write_text(source)
+          PY
+
+      - name: Resolve packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: belgische-eid-android-apk
+          path: belgische-eid-android/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
