@@ -1,36 +1,29 @@
 # SAPOOV multi-tenant — technisch ontwerp
 
-Status: ontwerp, nog niet toegepast op productie.
+Status: ontwerp bijgewerkt met bevestigde gebruikersbeslissingen; nog niet toegepast op productie.
 Branch: feature/sapoov-multi-tenant-foundation
 
-## 1. Ontwerpprincipes
+## 1. Ontwerpprincipes en bevestigde keuzes
 
-- Eén centrale identiteit per natuurlijke persoon; dezelfde gebruiker kan lid zijn van meerdere organisaties.
-- Organisatiegebonden lidmaatschappen en rechten: toegang volgt nooit automatisch uit het bestaan van een centraal gebruikersrecord.
-- Organisatiehiërarchie: koepel → schoolbestuur → school → campus.
-- Een module heeft een expliciet toepassingsniveau. Het aankopenplatform wordt op schoolniveau beheerd.
-- De aankopenmodule gebruikt gedeelde code maar strikt gescheiden D1-databases en R2-opslag per schoolcontext.
-- Alle autorisatie wordt server-side in de API gecontroleerd.
-- Elke mutatie van organisaties, rechten en gevoelige bestelgegevens wordt auditbaar.
+- Eén centrale identiteit per persoon; een gebruiker kan lid zijn van meerdere organisaties.
+- Organisatiestructuur: koepel → schoolbestuur → school → campus.
+- Aankopen wordt beheerd op schoolniveau.
+- Rechtenovererving staat standaard uit. Koepel- en schoolbestuurbeheerders krijgen uitsluitend onderliggende toegang na expliciete toekenning.
+- Gebruikers kiezen na aanmelden zelf de actieve context als ze meerdere contexten hebben.
+- Eén gedeelde codebasis voor Aankopen, met een afzonderlijke D1-database en R2-opslag per school.
+- Alle autorisatie wordt server-side in de API afgedwongen.
+- Mutaties van organisaties, rechten en gevoelige bestelgegevens zijn auditbaar.
 
-## 2. Bevestigde organisatorische beslissingen
+## 2. Eerste organisatiestructuur
 
-1. Richtpunt campus Ninove-Zottegem is één school met twee campussen: Ninove en Zottegem.
-2. Richtpunt Hamme is een afzonderlijke school.
-3. Richtpunt Gent is een afzonderlijke school.
-4. Richtpunt Eeklo is een afzonderlijke school.
-5. De formele koepel en het schoolbestuur moeten nog aan deze organisaties worden gekoppeld; deze namen/relaties worden niet verondersteld.
+| Schoolcontext | School | Campussen | Gegevensopslag |
+|---|---|---|---|
+| Bestaand | Eén school (officiële naam nog te bevestigen) | Richtpunt campus Ninove; Richtpunt campus Zottegem | Bestaande D1 + bestaande R2 na gecontroleerde migratie |
+| Nieuw 1 | Richtpunt campus Hamme | Hamme | Eigen D1 + eigen R2 |
+| Nieuw 2 | Richtpunt campus Gent | Gent | Eigen D1 + eigen R2 |
+| Nieuw 3 | Richtpunt campus Eeklo | Eeklo | Eigen D1 + eigen R2 |
 
-Schematisch:
-
-- Koepel
-  - Schoolbestuur
-    - Richtpunt campus Ninove-Zottegem
-      - Campus Ninove
-      - Campus Zottegem
-    - Richtpunt Hamme
-    - Richtpunt Gent
-    - Richtpunt Eeklo
+Hamme, Gent en Eeklo worden dus niet als drie campussen van één school gemodelleerd, maar als drie afzonderlijke scholen. De formele koepel- en schoolbestuursrelaties moeten nog met officiële organisatiegegevens worden ingevuld.
 
 ## 3. Centraal identiteits- en organisatiemodel
 
@@ -38,7 +31,7 @@ Schematisch:
 
 | Tabel | Belangrijkste velden | Relatie |
 |---|---|---|
-| umbrella_organizations | id, code, name, status | bovenliggend niveau |
+| umbrella_organizations | id, code, name, status | koepel |
 | school_boards | id, umbrella_id, code, name, status | hoort bij één koepel |
 | schools | id, school_board_id, code, name, status | hoort bij één schoolbestuur |
 | campuses | id, school_id, code, name, address_json, status | hoort bij één school |
@@ -47,89 +40,94 @@ Alle ID's zijn UUID's. Namen zijn wijzigbaar en worden nooit als technische sleu
 
 ### Gebruikers en lidmaatschappen
 
-- users blijft de centrale persoons-/loginidentiteit.
-- organization_memberships koppelt user_id aan een organisatie-entiteit met status en geldigheidsperiode.
+- `users` blijft de centrale loginidentiteit.
+- `organization_memberships` koppelt user_id aan een organisatie-entiteit, met status en geldigheidsperiode.
 - Een gebruiker kan meerdere actieve lidmaatschappen hebben.
-- Personeelsgegevens blijven gescheiden van authenticatiegegevens.
-- Een campuslidmaatschap creëert niet automatisch een lidmaatschap op school-, bestuurs- of koepelniveau.
+- Een centraal gebruikersrecord geeft op zichzelf geen toegang tot een school.
+- Een campuslidmaatschap maakt niet automatisch een lidmaatschap op school-, bestuurs- of koepelniveau.
 
 ## 4. Modules, onderdelen en rollen
 
 | Tabel | Doel |
 |---|---|
 | applications | bestaande modules/applicaties |
-| application_components | configureerbare onderdelen binnen een module |
-| application_scopes | koppelt module aan organisatietype en organisatie-ID |
-| roles | rollen per module of onderdeel |
-| user_role_assignments | gebruiker + rol + expliciete scope + geldigheidsperiode + toewijzer |
+| application_components | configureerbare onderdelen |
+| application_scopes | toepassingsniveau en organisatiecontext per module |
+| roles | configureerbare rollen per module/onderdeel |
+| user_role_assignments | gebruiker + rol + expliciete organisatiescope + geldigheid |
 | role_permissions | concrete acties zoals orders.read, orders.approve, suppliers.manage |
 
-Een roltoewijzing bevat minimaal: user_id, role_id, application_id, organization_type, organization_id, assigned_by, valid_from, valid_until en status.
+Een roltoewijzing bevat minimaal: user_id, role_id, application_id, organization_type, organization_id, inherit_to_descendants (boolean, default false), assigned_by, valid_from, valid_until en status. Het bestaande scope_json kan tijdelijk als compatibiliteitsveld blijven bestaan, maar mag niet de enige autorisatiebron zijn.
+
+Voor Aankopen wordt application_scope ingesteld op schoolniveau. Campussen vallen onder de schoolcontext; de aankopenmodule heeft geen aparte database per campus.
 
 ## 5. Rechtenovererving
 
-**Beslissing: rechten worden niet automatisch overgeërfd.** Een rol op koepelniveau of schoolbestuursniveau geeft niet vanzelf toegang tot onderliggende scholen. Een beheerder moet expliciet aangeven op welke onderliggende organisatie(s) de rol van toepassing is.
+Overerving staat standaard UIT en vereist expliciete toekenning.
 
-- Koepelrol: uitsluitend koepelniveau, tenzij expliciet uitgebreid naar benoemde onderliggende organisaties.
-- Schoolbestuursrol: uitsluitend bestuursniveau, tenzij expliciet uitgebreid naar benoemde scholen.
-- Schoolrol: uitsluitend die school, tenzij expliciet uitgebreid naar benoemde campussen.
-- Campusrol: uitsluitend die campus.
+| Toekenningsniveau | Reikwijdte |
+|---|---|
+| Koepel | uitsluitend koepel zelf; onderliggende toegang alleen met expliciete overerving/toekenning |
+| Schoolbestuur | uitsluitend schoolbestuur zelf; onderliggende toegang alleen met expliciete overerving/toekenning |
+| School | die school; campussen binnen de school volgens de expliciete module-/rolscope |
+| Campus | uitsluitend die campus |
 
-De API controleert de concrete scope bij iedere aanvraag. Een rol in koepel A geeft nooit toegang tot koepel B.
+De API bepaalt toegestane descendants vanuit de opgeslagen hiërarchie. Een client kan geen ruimere scope aanvragen. Een rol in koepel A geeft nooit toegang tot koepel B.
 
-## 6. Contextselectie en API-beveiliging
+## 6. Contextkeuze na aanmelden
 
-1. Na Cloudflare Access-authenticatie wordt de identiteit server-side vastgesteld.
+1. Cloudflare Access-authenticatie stelt de identiteit server-side vast.
 2. De API haalt actieve lidmaatschappen en roltoewijzingen op.
-3. **Een gebruiker die toegang heeft tot meerdere contexten kiest na het aanmelden zelf de actieve context.**
-4. Alleen contexten waarvoor een expliciete actieve roltoewijzing bestaat, worden aangeboden.
-5. De API controleert bij iedere aanvraag module, actie, organisatiecontext en scope.
-6. De API resolveert zelf de juiste database- en R2-configuratie.
-7. Een organization_id, campus_id, databasekeuze of bucketnaam uit de browser wordt nooit blind vertrouwd.
-8. Bij ontbrekende of dubbelzinnige context volgt een weigering; er is geen stille terugval naar een standaardcontext.
+3. SAPOOV toont uitsluitend de contexten waarvoor de gebruiker expliciete toegang heeft.
+4. Bij één toegankelijke context kan die context direct worden geopend; bij meerdere contexten kiest de gebruiker zelf.
+5. De actieve context wordt voor de sessie vastgelegd, maar is geen vervanging voor autorisatie.
+6. De API controleert bij elke aanvraag opnieuw module, actie, gebruiker en context.
+7. Een organisatie-ID uit URL, body of query wordt nooit blind vertrouwd.
+8. Bij ontbrekende of ongeldige context volgt weigering; nooit stilzwijgend terugvallen op een standaardcontext.
 
-Auditregistratie bevat actor, actie, doelrecord, context-ID, tijdstip en relevante wijzigingssamenvatting. Geen tokens of geheimen in logs.
+## 7. Gegevensisolatie Aankopen
 
-## 7. Aankopenmodule: toepassingsniveau en gegevensisolatie
+### Gedeelde code
 
-**Beslissing: de aankopenmodule wordt op schoolniveau beheerd.**
+Frontend en API blijven één codebasis. Schoolnamen en campusnamen worden niet hard-coded gebruikt om autorisatie of databasekeuze te bepalen.
 
-Dat betekent:
-- Richtpunt campus Ninove-Zottegem krijgt één aankopenconfiguratie en één eigen gegevenscontext voor beide campussen.
-- Richtpunt Hamme krijgt een afzonderlijke configuratie en database.
-- Richtpunt Gent krijgt een afzonderlijke configuratie en database.
-- Richtpunt Eeklo krijgt een afzonderlijke configuratie en database.
-- Binnen de schoolcontext kunnen bestellingen desgewenst aan de campus Ninove of Zottegem worden gekoppeld. Die campusaanduiding is operationele metadata en vormt geen aparte aankopendatabase.
+### Per school afzonderlijke opslag
 
-### Gedeelde code en afzonderlijke opslag
+- Eigen D1-database met hetzelfde versiebeheerbare schema.
+- Eigen R2-bucket per school (voorkeurskeuze) met afzonderlijke bindings/policies.
+- Eigen leveranciers, catalogus, teams, bestellingen, aankopen en instellingen.
+- Centrale identiteitsdatabase bevat identiteit, organisatiehiërarchie, moduleconfiguratie, lidmaatschappen en autorisatie; geen bestelregels of leveranciersgegevens.
 
-- Eén gedeelde frontend en API-codebasis.
-- Per school een eigen D1-database met hetzelfde versiebeheerbare schema.
-- Per school een eigen R2-bucket (voorkeurskeuze) voor afbeeldingen en documenten.
-- Eigen leveranciers, catalogus, teams, bestellingen, aankopen en instellingen per school.
-- Centrale identiteitsdatabase bevat identiteit, organisatiehiërarchie, moduleconfiguratie, lidmaatschappen en autorisatie, geen bestelregels of leveranciersgegevens.
+### Contextregister
 
-Een server-side contextregister koppelt de school-ID aan de interne D1- en R2-resource-identificatoren. Alleen de API kiest resources na autorisatie.
+Een server-side contextregister koppelt school-ID aan interne D1- en R2-resource-identificatoren. Alleen geautoriseerde platformbeheerders kunnen dit wijzigen. De API resolveert resources pas na autorisatie. De client ontvangt nooit resourcegeheimen of database-ID's.
 
-## 8. Migratie van het huidige bestelplatform
+## 8. Migratie bestaande aankopenomgeving
 
-De huidige database bevat gebruikers, teams, teamleden, bestellingen, catalogus, leveranciers en aankopen. Campus wordt op verschillende plaatsen nog als tekst opgeslagen.
+Huidige tabellen omvatten onder meer users, teams, team_members, orders, order_items, catalog_items, suppliers, purchases en buyer_assignments. Campus wordt op verschillende plaatsen nog als tekst opgeslagen.
 
-1. Maak gecontroleerde exports/back-ups van bestaande D1 en R2 en noteer bindings en Worker-routes.
-2. Leg officiële organisatie-entiteiten en UUID's vast.
-3. Koppel bestaande campuswaarden Ninove en Zottegem aan de twee campus-ID's onder één school-ID.
-4. Voeg school- en campusforeign keys toe aan contextgebonden records; behoud oude tekstvelden tijdens de overgang.
-5. Vul nieuwe foreign keys via expliciete mappings en controleer NULL's, relaties en dubbels.
-6. Vergelijk aantallen per tabel en per campus en controleer steekproeven op bestelgeschiedenis.
-7. Schakel de API gecontroleerd om naar de nieuwe ID's.
-8. Maak voor Hamme, Gent en Eeklo elk een lege database aan vanuit dezelfde schema-migraties. Kopieer geen persoonsgegevens of bestellingen.
-9. Schakel oude tekstvelden pas uit na observatieperiode en geteste terugrolprocedure.
+1. Maak gecontroleerde exports/back-ups van D1 en R2 en noteer bindings en Worker-routes.
+2. Leg de UUID's vast voor de bestaande school en de campussen Ninove en Zottegem.
+3. Maak expliciete mappings van bestaande campuswaarden naar campus-ID's en school-ID.
+4. Voeg nieuwe foreign keys toe aan contextgebonden tabellen; behoud oude tekstvelden tijdelijk.
+5. Vul foreign keys via gecontroleerde mapping en controleer NULL's, ongeldige relaties en duplicaten.
+6. Vergelijk aantallen per tabel en campus; controleer bestelhistoriek en steekproeven.
+7. Schakel de API gecontroleerd over naar de nieuwe ID's; houd een terugrolpad beschikbaar.
+8. Maak drie lege databases voor Hamme, Gent en Eeklo op basis van dezelfde schema-migraties.
+9. Maak per nieuwe school een eigen R2-bucket en configureer server-side bindings.
+10. Schakel oude tekstvelden pas uit na observatieperiode en geslaagde terugroltest.
 
-De bestaande Ninove/Zottegem-database blijft behouden als bron tot de migratie gevalideerd is.
+Geen persoonsgegevens, bestellingen, leveranciers of catalogus uit de bestaande school kopiëren naar de nieuwe schooldatabases.
 
 ## 9. Teambeheer
 
-Teamdefinities worden gekoppeld aan de school waarop het team actief is. Teamleden krijgen per team een positie: actief lid, passief lid of teamleider. Een teamleider is ook lid van het team. Dezelfde persoon kan in meerdere teams verschillende posities hebben.
+Teams zijn gekoppeld aan een schoolcontext. Teamleden worden aan centrale gebruikers gekoppeld en krijgen een positie: actief lid, passief lid of teamleider. Een gebruiker kan in verschillende teams verschillende posities hebben. Een teamleider moet ook lid zijn van het team. Campussen kunnen als filter of organisatorische toewijzing binnen de school worden gebruikt als dat voor het team relevant is.
+
+Voorgestelde tabellen:
+- teams(id, school_id, name, description, active)
+- team_members(team_id, user_id, membership_type, campus_id nullable, valid_from, valid_until)
+
+Unieke constraints voorkomen dubbele actieve lidmaatschappen binnen hetzelfde team.
 
 ## 10. Beheerinterface
 
@@ -138,39 +136,37 @@ Teamdefinities worden gekoppeld aan de school waarop het team actief is. Teamled
 - Aanmaken, wijzigen en deactiveren; geen fysieke verwijdering van organisaties met gekoppelde gegevens.
 
 ### Teambeheer
-- Personeelslijst filterbaar per school/campus.
-- Per team actief lid, passief lid en teamleider beheren.
+- Personeelslijst filterbaar per school en campus.
+- Per team rollen actief lid, passief lid en teamleider.
+- Bulktoekenning en auditlog.
 
 ### Module- en rollenbeheer
 - Selecteer gebruiker, module, onderdeel, rol en organisatiescope.
-- Expliciete toekenning aan onderliggende organisaties; geen automatische overerving.
-- Toon effectieve rechten, bron, toewijzer en vervaldatum.
-
-### Contextkeuze
-- Na aanmelden kiest een gebruiker met meerdere toegankelijke contexten zelf de actieve context.
-- De actieve context wordt zichtbaar getoond.
-- Elke API-aanvraag valideert die context opnieuw.
+- Toon effectieve rechten en of die expliciet of via expliciete overerving zijn toegekend.
+- Waarschuw bij brede scopes.
+- Toon toewijzer, geldigheidsperiode en status.
 
 ## 11. Test- en acceptatieplan
 
-1. Identiteit zonder lidmaatschap krijgt geen moduletoegang.
-2. Een campusrol ziet uitsluitend gegevens van die campus.
-3. Een schoolrol ziet schoolgegevens; campusdetails worden alleen getoond volgens de toegekende rechten.
-4. Een koepel- of schoolbestuursrol krijgt geen onderliggende toegang zonder expliciete toekenning.
-5. Een gebruiker met meerdere contexten kan na aanmelden kiezen; elke keuze wordt afzonderlijk gecontroleerd.
-6. Een gemanipuleerde organization_id in URL, body of query geeft geen cross-context toegang.
-7. Bestellingen, catalogus, leveranciers, uploads en afbeeldingen zijn niet leesbaar tussen scholen.
-8. Bestaande Ninove/Zottegem-records blijven behouden.
-9. Hamme, Gent en Eeklo starten elk met een lege, afzonderlijke gegevensopslag.
+1. Gebruiker zonder lidmaatschap krijgt geen toegang.
+2. Campusrol ziet uitsluitend toegestane gegevens.
+3. Schoolrol ziet de schoolcontext; campussen vallen onder dezelfde aankopen-D1.
+4. Koepel-/bestuursrol krijgt geen onderliggende toegang zonder expliciete toekenning.
+5. Gebruiker met meerdere contexten krijgt een contextkeuze na aanmelden.
+6. Gemanipuleerde organization_id levert geen cross-context toegang op.
+7. Bestellingen, catalogus, leveranciers, uploads en afbeeldingen zijn niet leesbaar tussen schoolcontexten.
+8. Ninove en Zottegem blijven samen in de bestaande schoolcontext.
+9. Hamme, Gent en Eeklo hebben elk een afzonderlijke lege gegevensopslag.
 10. Rechtenwijzigingen en contextwissels zijn auditbaar.
 
-## 12. Nog te bevestigen vóór schema-implementatie
+## 12. Nog open vóór schema-implementatie
 
-- De officiële naam en ID van de koepel en het schoolbestuur.
-- De formele koppeling van de vier scholen aan het schoolbestuur.
-- De bestaande gebruikersrollen die naar welke organisatie-ID's moeten worden gemapt.
-- De gewenste concrete rollen en permissies per onderdeel van het aankopenplatform.
+- Officiële naam en ID van de koepel en het schoolbestuur.
+- Officiële schoolnaam en school-ID voor de bestaande school met campussen Ninove en Zottegem.
+- Formele schoolbestuur-/koepelkoppeling en officiële IDs voor Hamme, Gent en Eeklo.
+- Mapping van bestaande personeelsleden en rollen naar organisatie-ID's.
+- Definitieve moduleonderdelen en permissies.
 
 ## 13. Grenzen van deze ontwerpstap
 
-Dit document specificeert het goedgekeurde ontwerp; het is nog geen toegepaste productiemigratie. Er zijn geen tabellen aangemaakt, geen records gewijzigd, geen D1-databases gekloond en geen Workers, Pages-projecten, routes, DNS-instellingen of R2-buckets aangepast.
+Dit document beschrijft het ontwerp en de bevestigde beslissingen. Er zijn nog geen tabellen aangemaakt, records gewijzigd, D1-databases gekloond of Workers, Pages-projecten, routes, DNS-instellingen of R2-buckets aangepast.
