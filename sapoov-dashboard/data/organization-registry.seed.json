@@ -346,7 +346,7 @@
       "institution_number": "131888",
       "website_url": "https://www.groeipunt.be",
       "contact_email": "info@groeipunt.be",
-      "phone": "+32 5 431 78 60",
+      "phone": null,
       "source_url": "https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:72024L1785BEL_202606567",
       "source_status": "current_2026_flemish_regulation_found",
       "notes": [
@@ -369,7 +369,8 @@
           "municipality": "Gent",
           "country_code": "BE",
           "is_main_location": true,
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 267 12 90"
         },
         {
           "stable_key": "groeipunt-gent-henleykaai",
@@ -380,7 +381,8 @@
           "postal_code": "9000",
           "municipality": "Gent",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 267 12 90"
         },
         {
           "stable_key": "groeipunt-gent-gouvernementstraat",
@@ -391,18 +393,20 @@
           "postal_code": "9000",
           "municipality": "Gent",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 267 12 90"
         },
         {
           "stable_key": "groeipunt-gent-sint-amandsberg",
           "official_name": "Campus Gent Sint-Amandsberg",
           "display_name": "Gent – Sint-Amandsberg",
-          "street": "E. Tinelstraat",
+          "street": "Edgard Tinelstraat",
           "house_number": "92",
           "postal_code": "9040",
           "municipality": "Sint-Amandsberg",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 218 89 30"
         },
         {
           "stable_key": "groeipunt-eeklo",
@@ -413,18 +417,20 @@
           "postal_code": "9900",
           "municipality": "Eeklo",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 370 74 12"
         },
         {
           "stable_key": "groeipunt-deinze",
-          "official_name": "Campus Deinze",
+          "official_name": "Campus Deinze RAC",
           "display_name": "Deinze",
           "street": "Brielstraat",
           "house_number": "25",
           "postal_code": "9800",
           "municipality": "Deinze",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 220 11 08"
         },
         {
           "stable_key": "groeipunt-ninove",
@@ -435,7 +441,8 @@
           "postal_code": "9400",
           "municipality": "Ninove",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "054 31 78 60"
         },
         {
           "stable_key": "groeipunt-lokeren",
@@ -446,7 +453,8 @@
           "postal_code": "9160",
           "municipality": "Lokeren",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 340 51 10"
         },
         {
           "stable_key": "groeipunt-wetteren",
@@ -457,7 +465,8 @@
           "postal_code": "9230",
           "municipality": "Wetteren",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 369 05 93"
         },
         {
           "stable_key": "groeipunt-zele-koevliet",
@@ -468,7 +477,8 @@
           "postal_code": "9240",
           "municipality": "Zele",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "052 45 92 80"
         },
         {
           "stable_key": "groeipunt-zottegem",
@@ -479,7 +489,8 @@
           "postal_code": "9620",
           "municipality": "Zottegem",
           "country_code": "BE",
-          "source_url": "https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf"
+          "source_url": "https://www.groeipunt.be/lesplaats/dendermonde",
+          "phone": "09 345 46 58"
         }
       ]
     }
