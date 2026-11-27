@@ -22,11 +22,13 @@ for (const org of organizations) {
 }
 
 const byKey = new Map(organizations.map(x => [x.stable_key, x]));
-assert.equal(byKey.get('richtpunt-campus-ninove-zottegem').locations.length, 2, 'Ninove-Zottegem must remain one institution with two locations');
+assert.equal(byKey.get('richtpunt-campus-ninove-zottegem').display_name, 'Richtpunt campus Ninove Zottegem', 'use the confirmed official spelling without a hyphen');
+assert.equal(byKey.get('richtpunt-campus-ninove-zottegem').locations.length, 2, 'Ninove Zottegem must remain one institution with two locations');
 assert.equal(byKey.get('richtpunt-campus-gent-godshuizenlaan').locations.length, 1, 'Gent Godshuizenlaan must have exactly one SAPOOV location');
 assert.ok(!byKey.get('richtpunt-campus-gent-godshuizenlaan').locations.some(x => /oudenaarde/i.test(x.display_name + ' ' + x.official_name)), 'Oudenaarde must not be added under Gent Godshuizenlaan');
 assert.equal(byKey.get('cvo-groeipunt').institution_number, '131888', 'the latest 2026 source number is used for CVO Groeipunt');
-assert.equal(byKey.get('cvo-groeipunt').locations.length, 11, 'the initial CVO import contains the 11 campuses with a secretariat from the 2025-2026 center regulations');
+assert.equal(byKey.get('cvo-groeipunt').locations.length, 11, 'the initial CVO import contains the 11 campuses with a secretariat from the official lesplaatsen page');
+assert.ok(byKey.get('cvo-groeipunt').locations.every(x => x.phone), 'each CVO campus in the seed must have its published phone number');
 assert.ok(seed.importPolicy.writeToProduction === false, 'the seed must never target production directly');
 
 console.log(`Validated ${organizations.length} organization nodes, ${institutions.length} institutions and ${institutions.reduce((n, x) => n + (x.locations || []).length, 0)} locations.`);
