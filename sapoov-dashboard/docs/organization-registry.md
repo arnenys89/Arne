@@ -1,70 +1,158 @@
-# SAPOOV – organisaties- en campusregister
+# SAPOOV – organisaties- en locatiesregister
 
-## Doel en uitgangspunten
+Laatste broncontrole: 27 november 2026  
+Werkbranch: `feature/sapoov-organization-registry`  
+Status: brongegevens verzameld; importbestand voorbereid; nog niet naar D1 geïmporteerd en niet naar productie uitgerold.
 
-Het register onderscheidt drie niveaus die niet met elkaar mogen worden verward:
+## 1. Vastgelegde organisatorische structuur
 
-1. **Inrichtende macht / koepel** – de overkoepelende organisatie.
-2. **Onderwijsinstelling** – de juridisch geregistreerde instelling met een uniek instellingsnummer.
-3. **Campus / vestigingsplaats** – de fysieke locatie met eigen adres- en eventueel contactgegevens.
+- Koepel: **Provinciaal Onderwijs Vlaanderen** (POV).
+- Schoolbestuur: **Provincie Oost-Vlaanderen**; SAPOOV-weergavenaam: **Provinciebestuur Oost-Vlaanderen**.
+- Onder dit bestuur worden acht onderwijsinstellingen opgenomen: vijf Richtpunt-instellingen, twee Kiempunt-instellingen en CVO Groeipunt.
+- **Kiempunt Buggenhout wordt volledig uitgesloten**: geen organisatie, geen locatie en geen importrecord.
+- Ninove en Zottegem zijn twee fysieke locaties van één onderwijsinstelling: **Richtpunt campus Ninove-Zottegem**.
+- Gent Henleykaai en Gent Godshuizenlaan zijn twee afzonderlijke onderwijsinstellingen in SAPOOV.
+- De door de gebruiker vastgelegde SAPOOV-naam **Richtpunt campus Gent Godshuizenlaan** heeft precies één SAPOOV-locatie: Gent – Godshuizenlaan. De locaties Oudenaarde en Gent Abdisstraat worden niet opgenomen in die instelling.
 
-Een campus krijgt dus niet automatisch een eigen instellingsnummer. Het instellingsnummer hoort bij de onderwijsinstelling zoals die in de officiële onderwijsdatabank geregistreerd staat. De gegevens worden als tekst bewaard om voorloopnullen en de officiële notatie te behouden.
+## 2. Koepel en schoolbestuur
 
-## Gegevensmodel
+| Niveau | SAPOOV-naam | Afkorting | Website | E-mail | Telefoon | Adres |
+|---|---|---|---|---|---|---|
+| Koepel | Provinciaal Onderwijs Vlaanderen | POV | https://pov.be | provinciaalonderwijsvlaanderen@pov.be | +32 486 79 00 01 | Groendreef 1, 1000 Brussel, België |
+| Schoolbestuur | Provinciebestuur Oost-Vlaanderen | — | https://oost-vlaanderen.be | provinciaalonderwijs@oost-vlaanderen.be | +32 9 267 74 45 | Charles de Kerchovelaan 189, 9000 Gent, België |
 
-De migratie `0005_organizations.sql` introduceert:
+De juridische/administratieve entiteit is Provincie Oost-Vlaanderen. De benaming “Provinciebestuur Oost-Vlaanderen” is de gekozen SAPOOV-weergavenaam. Het contactadres van Directie Onderwijs wordt gebruikt als functioneel contactpunt voor het schoolbestuur; het is niet het persoonlijke adres van een gebruiker.
 
-- `organizations`: officiële naam, publieksnaam, instellingsnummer, ondernemingsnummer (indien relevant), onderwijstype, bovenliggende organisatie, algemeen e-mailadres, telefoon, website, logo-object, bron en verificatiedatum.
-- `campuses`: campusnaam, volledig adres, contactgegevens, website, campuslogo, hoofdvestiging en status.
-- `organization_sources`: veldgerichte bronregistratie zodat achteraf aantoonbaar blijft waar elk gegeven vandaan komt en wanneer het werd gecontroleerd.
-- `user_organization_roles`: koppeling van gebruikers aan een instelling; dit staat los van applicatierollen.
+Bronnen:
+- POV-contactgegevens: https://pov.be/over-ons-contacteer-ons/
+- Provinciale contactlijst en Directie Onderwijs: https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html
 
-Logo's worden in de uiteindelijke implementatie in Cloudflare R2 opgeslagen. De database bewaart de object key en de oorspronkelijke bron-URL, plus een notitie over gebruiksrecht/bron. Een logo-URL van een derde partij wordt niet zonder controle als permanent asset gebruikt.
+## 3. Acht onderwijsinstellingen
 
-## Validatie en beheerregels
+De volgende administratieve nummers zijn gevonden in officiële onderwijsbronnen. De gebruiker heeft expliciet bevestigd dat de contactgegevens correct zijn en dat instellingsnummer 36467 correct is. De andere nummers zijn opgenomen op basis van officiële bronvermeldingen, maar blijven bij import voorzien van bron- en verificatiemetadata.
 
-- Instellingsnummer is uniek en wordt als tekst opgeslagen.
-- Een organisatie kan meerdere campussen hebben.
-- Een campus hoort bij precies één organisatie.
-- Organisaties en campussen starten als `draft`; pas na verificatie worden ze `active`.
-- Elke officiële wijziging krijgt bron, controledatum en auditregistratie.
-- Ontbrekende e-mailadressen, websites, telefoonnummers of logo's blijven leeg; er worden geen gegevens afgeleid of verzonnen.
-- De superadministrator blijft de enige actor die het centrale register kan wijzigen.
-- Bestaande applicatierollen en bestaande gegevens blijven intact.
+| SAPOOV-naam | Type | Instellingsnummer | Website | Algemeen e-mailadres | Telefoon | SAPOOV-locaties |
+|---|---|---:|---|---|---|---|
+| Richtpunt campus Ninove-Zottegem | Secundair | 145722 | https://www.richtpuntninovezottegem.be | info@richtpuntninovezottegem.be | — (contact per locatie) | Ninove; Zottegem |
+| Richtpunt campus Eeklo | Secundair | 36467 | https://www.richtpunteeklo.be | info@richtpunteeklo.be | +32 9 370 73 73 | Eeklo |
+| Richtpunt campus Hamme | Secundair | 37275 | https://www.richtpunthamme.be | info@richtpunthamme.be | +32 52 47 83 54 | Hamme |
+| Richtpunt campus Gent Henleykaai | Secundair | 36624 | https://www.richtpuntgenthenley.be | infocampushenley@richtpuntgent.be | +32 9 267 12 10 | Gent – Henleykaai |
+| Richtpunt campus Gent Godshuizenlaan | Secundair | 36699 | https://www.richtpuntgent.be | infocampusgodshuizen@richtpuntgent.be | +32 9 267 12 60 | Gent – Godshuizenlaan |
+| Kiempunt campus Assenede | Buitengewoon basisonderwijs | 130237 | https://www.kiempunt.be | info@kiempuntassenede.be | +32 9 344 98 69 | Assenede |
+| Kiempunt campus Eeklo | Buitengewoon basisonderwijs | 116079 | https://www.kiempunt.be | info@kiempunteeklo.be | +32 9 377 32 82 | Eeklo |
+| CVO Groeipunt | Volwassenenonderwijs | 131888 | https://www.groeipunt.be | info@groeipunt.be | +32 5 431 78 60 | Meerdere locaties en lesplaatsen |
 
-## Bronnen voor verificatie
+### 3.1 Bronnen per instelling
 
-De primaire bron voor instellingsnummers en formele onderwijsgegevens is de onderwijsdatabank / POI-dataset van het Departement Onderwijs en Vorming. Die dataset wordt maandelijks bijgewerkt.
+- Richtpunt campus Ninove-Zottegem, nummer 145722 en schoolfiche: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=145722. De officiële schoolwebsite bevestigt het algemene e-mailadres en de twee locaties: https://richtpunt.be/ninovezottegem/.
+- Richtpunt campus Eeklo, nummer 36467: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=36467. Inspectieverslag met instellingsnummer, adres, telefoon, e-mail en website: https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:16414.
+- Richtpunt campus Hamme, nummer 37275: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=37275. Onderwijsinspectie/bronvermelding: https://app.akov.be/pls/pakov/f?p=INSP_PUBLIEK:VERSLAGEN:::DOWNLOAD::::P1000_DLSEC_BLOB_ID:22594.
+- Richtpunt campus Gent Henleykaai, nummer 36624: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=36624. Schoolfiche met adres, telefoon, e-mail en website: https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-henleykaai.
+- Richtpunt campus Gent Godshuizenlaan, nummer 36699: https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=36699. Schoolfiche: https://www.cultuurkuur.be/scholen/gent/richtpunt-campus-gent-godshuizenlaan. De Vlaamse POI-bron noemt deze instelling afzonderlijk met hoofdzetel Godshuizenlaan 65, 9000 Gent.
+- Kiempunt campus Assenede, nummer 130237: officiële POI-bron en schoolfiche via https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=130237. Provinciale contactlijst: https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html.
+- Kiempunt campus Eeklo, nummer 116079: officiële schoolfiche via https://data-onderwijs.vlaanderen.be/onderwijsaanbod/adres.aspx?sn=116079. Provinciale contactlijst: https://oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html.
+- CVO Groeipunt, nummer 131888: besluit van de Vlaamse Regering van 10 juli 2026, gepubliceerd in het Belgisch Staatsblad van 13 augustus 2026, vermeldt “131888 - CVO Groeipunt”: https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:72024L1785BEL_202606567. Contact: https://www.oost-vlaanderen.be/content/ovl/nl/bestuur-en-regio/het-provinciebestuur/contacten-diensten.html. Locatieoverzicht: https://www.groeipunt.be/lesplaats/dendermonde.
 
-- Onderwijsaanbod via POI-service: https://www.vlaanderen.be/datavindplaats/catalogus/onderwijsaanbod-in-vlaanderen-en-brussel-via-poi-service
-- Provinciaal Onderwijs Oost-Vlaanderen: https://oost-vlaanderen.be/leren/onderwijs/bedrijven-en-onderwijs/provinciaal-onderwijs-oost-vlaanderen.html
-- Overzicht provinciale scholen 2025-2026: https://pov.be/wp-content/uploads/2025/09/Provinciale-scholen-overzicht-2025-2026.pdf
+### 3.2 Opmerking over CVO Groeipunt en oudere nummering
 
-De provinciale overzichtspagina en het POV-document zijn geschikt om de officiële lijst van entiteiten te controleren; de onderwijsdatabank blijft leidend voor het instellingsnummer en de formele contactgegevens.
+In oudere bronnen komt ook nummer **131482** voor bij CVO Groeipunt. De meest recente gevonden Vlaamse regelgeving van 10 juli 2026 vermeldt **131888 - CVO Groeipunt**. Daarom wordt 131888 als actuele kandidaat voor de centrale instelling gebruikt. Nummer 131482 wordt als historische/te verifiëren bronvermelding bewaard en niet als tweede Groeipunt-organisatie geïmporteerd. Voor een definitieve administratieve koppeling blijft de live Instellingen-API van Onderwijs & Vorming leidend.
 
-## Door de gebruiker bevestigde indeling
+## 4. Locaties
 
-De gebruiker heeft de volgende afbakening bevestigd voor de beoogde SAPOOV-registratie:
+### 4.1 Richtpunt campus Ninove-Zottegem
 
-- De selectie omvat vijf Richtpunt-instellingen, twee Kiempunt-instellingen en CVO Groeipunt.
-- Kiempunt Buggenhout wordt volledig uitgesloten: niet als instelling en niet als afzonderlijke campus of locatie.
-- **Richtpunt campus Gent Godshuizenlaan** is de definitieve naam voor de eerder foutief aangeduide "Richtpunt campus Gent-Oudenaarde".
-- Richtpunt campus Gent Godshuizenlaan heeft volgens de gebruiker nog precies één locatie: **Gent (Godshuizenlaan)**. Er mag geen tweede locatie in Oudenaarde worden aangemaakt of geïmporteerd.
-- Richtpunt campus Gent Henleykaai blijft een afzonderlijke instelling en mag niet met Gent Godshuizenlaan worden samengevoegd.
-- Richtpunt campus Ninove-Zottegem blijft één instelling met de locaties Ninove en Zottegem.
+| Locatie | Adres | Telefoon | E-mail |
+|---|---|---|---|
+| Ninove | Centrumlaan 160, 9400 Ninove, België | +32 54 31 78 50 | info@richtpuntninove.be |
+| Zottegem | Sabina van Beierenlaan 35, 9620 Zottegem, België | +32 9 360 19 93 | info@richtpuntzottegem.be |
 
-Deze gebruikersbevestigingen bepalen de gewenste SAPOOV-structuur. De formele instellingsnummers, officiële juridische namen, adressen en overige contactgegevens moeten nog afzonderlijk aan de actuele officiële onderwijsdatabank worden getoetst vóór definitieve activatie.
+De officiële schoolwebsite vermeldt daarnaast het algemene adres info@richtpuntninovezottegem.be.
 
-## Belangrijke gegevenscontrole
+### 4.2 Overige Richtpunt- en Kiempunt-locaties
 
-De publiek beschikbare provinciale lijst 2025-2026 bevat meerdere campusvermeldingen en tien onderwijsentiteiten in Oost-Vlaanderen (waaronder Richtpunt, Kiempunt en CVO Groeipunt). Dat aantal is niet zonder meer gelijk aan de acht instellingen die eerder in dit project werden genoemd. Daarom worden er in deze migratie bewust geen acht records op basis van een gok ingevoerd. De eerder opgegeven lijst moet één-op-één worden gematcht met de actuele officiële registraties vóór import.
+| Instelling | Locatie | Adres | Telefoon | E-mail |
+|---|---|---|---|---|
+| Richtpunt campus Eeklo | Eeklo | Roze 131, 9900 Eeklo, België | +32 9 370 73 73 | info@richtpunteeklo.be |
+| Richtpunt campus Hamme | Hamme | Meulenbroekstraat 15, 9220 Hamme, België | +32 52 47 83 54 | info@richtpunthamme.be |
+| Richtpunt campus Gent Henleykaai | Gent – Henleykaai | Henleykaai 83, 9000 Gent, België | +32 9 267 12 10 | infocampushenley@richtpuntgent.be |
+| Richtpunt campus Gent Godshuizenlaan | Gent – Godshuizenlaan | Godshuizenlaan 65-75, 9000 Gent, België | +32 9 267 12 60 | infocampusgodshuizen@richtpuntgent.be |
+| Kiempunt campus Assenede | Assenede | Stoepestraat 40, 9960 Assenede, België | +32 9 344 98 69 | info@kiempuntassenede.be |
+| Kiempunt campus Eeklo | Eeklo | Gentsesteenweg 82-84, 9900 Eeklo, België | +32 9 377 32 82 | info@kiempunteeklo.be |
 
-## Volgende implementatiestappen
+**Belangrijke afwijking tussen officiële bron en SAPOOV-indeling:** de actuele provinciale contactpagina groepeert Gent Godshuizenlaan nog onder “Richtpunt campus Gent-Oudenaarde” en vermeldt daarnaast Gent Abdisstraat en Oudenaarde. De gebruiker heeft voor SAPOOV expliciet beslist dat de instelling **Richtpunt campus Gent Godshuizenlaan** heet en nog slechts één locatie heeft: Gent – Godshuizenlaan. De import volgt die gebruikersbeslissing. De officiële brongegevens worden wel bewaard als herkomstnotitie; ze mogen de SAPOOV-indeling niet stilzwijgend terug veranderen.
 
-1. Voer migratie 0005 uit op de SAPOOV-D1-database.
-2. Implementeer superadmin-API voor organisaties, campussen en bronregistratie.
-3. Bouw de beheerinterface met zoeken, filteren, status, adres- en contactvelden.
-4. Match de acht opgegeven instellingen met de officiële onderwijsdatabank.
-5. Download logo's van de officiële school- of provinciewebsites, controleer herkomst en sla ze op in R2.
-6. Test uniekheid, ouder-kindrelaties, campusadressen, rechten en auditlog.
-7. Pas pas na goedkeuring de productiegegevens aan; de productiebranch blijft onaangeroerd.
+### 4.3 CVO Groeipunt-locaties
+
+Het centrumreglement 2025-2026 noemt de volgende campussen met secretariaat. In SAPOOV worden dit fysieke locaties onder één CVO Groeipunt-instelling:
+
+| Locatie | Adres |
+|---|---|
+| Gent Leopoldskazerne (hoofdzetel) | Charles de Kerchovelaan 189, 9000 Gent, België |
+| Gent Henleykaai | Henleykaai 83, 9000 Gent, België |
+| Gent Gouvernementstraat | Gouvernementstraat 22-24, 9000 Gent, België |
+| Gent Sint-Amandsberg | E. Tinelstraat 92, 9040 Sint-Amandsberg, België |
+| Eeklo | Roze 131, 9900 Eeklo, België |
+| Deinze | Brielstraat 25, 9800 Deinze, België |
+| Ninove | Centrumlaan 160, 9400 Ninove, België |
+| Lokeren | Durmelaan 34A, 9160 Lokeren, België |
+| Wetteren | Nieuwstraat 11, 9230 Wetteren, België |
+| Zele Koevliet | Koevliet 2C, 9240 Zele, België |
+| Zottegem | Sabina van Beierenlaan 35, 9620 Zottegem, België |
+
+Daarnaast vermeldt Groeipunt lesplaatsen zonder vast secretariaat. Die worden pas als afzonderlijke SAPOOV-locaties toegevoegd wanneer ze functioneel nodig zijn; het is niet wenselijk elke tijdelijke of externe lesplaats automatisch als volwaardige schoollocatie te registreren.
+
+Bron voor de elf campussen: Centrumreglement CVO Groeipunt 2025-2026, https://www.groeipunt.be/202505_Centrumreglement%20Groeipunten%20SJ%202025-2026.pdf. Actuele lesplaatsen: https://www.groeipunt.be/lesplaats/dendermonde.
+
+## 5. Logo's en beeldmerken
+
+Officiële merkbronnen:
+- POV: https://pov.be
+- Provincie Oost-Vlaanderen: https://oost-vlaanderen.be
+- Richtpunt: https://www.richtpunt.be en de individuele Richtpunt-websites
+- Kiempunt: https://www.kiempunt.be
+- Groeipunt: https://www.groeipunt.be
+
+De officiële bronwebsites zijn geïdentificeerd. De logo-afbeeldingen zijn nog niet als lokale bestanden in R2 geplaatst. Dat blijft een aparte assetstap: originele bestanden ophalen van de officiële website, formaat en transparantie controleren, gebruiksvoorwaarden en bron noteren, en pas daarna naar de beheerde R2-opslag kopiëren. Een favicon of zoekmachine-thumbnail geldt niet als goedgekeurd logo.
+
+## 6. Gegevensmodel en importregels
+
+1. Gebruik één centrale organisatiestructuur: koepel → schoolbestuur → onderwijsinstelling → locatie.
+2. Gebruik interne UUID's als primaire sleutels. Instellingsnummers blijven externe administratieve kenmerken en worden als tekst opgeslagen.
+3. Maak het organisatietype expliciet: `umbrella`, `school_board` of `institution`.
+4. Fysieke vestigingen worden in de interface **locaties** genoemd; de database mag bestaande compatibiliteitsnamen behouden zolang de API een duidelijke locatie-abstractie aanbiedt.
+5. Bewaar per veld bron-URL, bronrecord, controledatum en verificatiestatus.
+6. Contactgegevens van een instelling en contactgegevens van haar locaties blijven afzonderlijk.
+7. Een onbekend of niet bevestigd veld blijft leeg; er worden geen e-mailadressen, afkortingen, logo's of administratieve nummers afgeleid.
+8. Logo's worden niet rechtstreeks van een externe website hotlinked als definitieve asset.
+9. Kiempunt Buggenhout wordt nergens als instelling of locatie aangemaakt.
+10. De gebruikersbeslissing voor Gent Godshuizenlaan (één locatie) heeft voorrang op het automatisch kopiëren van extra locaties uit de provinciale contactpagina.
+11. CVO Groeipunt is één instelling met meerdere locaties; campus/lesplaats is geen afzonderlijke instelling.
+12. Geen data wordt naar productie geschreven voordat de migratie op een geïsoleerde ontwikkelomgeving is getest en goedgekeurd.
+
+## 7. Officiële Vlaamse API's
+
+De Vlaamse overheid biedt een live Instellingen-API voor actuele instellinggegevens en hiërarchieën, en een afzonderlijke Instellingslocaties-API voor fysieke vestigingen en lesplaatsen. De API-documentatie vermeldt dat een API-key moet worden aangevraagd. De API's zijn de voorkeursbron voor periodieke validatie en toekomstige synchronisatie.
+
+- Instellingen-API: https://www.vlaanderen.be/datavindplaats/catalogus/onderwijs-vorming-instellingen
+- Instellingslocaties-API: https://www.vlaanderen.be/datavindplaats/catalogus/onderwijs-vorming-instellingslocaties
+- API-documentatie: https://onderwijs-api-portaal.vlaanderen.be/documentatie/instellingsgegevens
+
+## 8. Huidige technische stand
+
+- De bestaande branch bevat migratie `0005_organizations.sql` met tabellen voor organisaties, campussen, bronregistratie en koppeling van gebruikers aan organisaties.
+- De Worker bevat al centrale, superadmin-beveiligde API-eindpunten voor organisaties, campussen en bronregistraties.
+- De beheerinterface heeft deze API's nog niet als volwaardige organisatie- en locatieschermen ontsloten.
+- De bestaande tabellen en endpoints moeten vóór een echte import worden uitgebreid met expliciete organisatietypes, de koepel-/bestuurslaag, duidelijke locatie-terminologie en de teamtabellen.
+- De huidige seedgegevens zijn nog niet in D1 ingevoerd.
+- Er is geen productie-deployment of productie-D1-mutatie uitgevoerd.
+
+## 9. Volgende ontwikkelstappen
+
+1. Schema uitbreiden met organisatietype, eigen metadata op koepel/bestuur/school, en een ondubbelzinnige locatie-entiteit.
+2. Brondata als herhaalbare seed-import toevoegen, met vaste sleutels en zonder duplicaten.
+3. Organisatiebeheerinterface bouwen met boomstructuur en bewerkbare metadata.
+4. Teams en teamlidmaatschappen toevoegen, inclusief actieve leden, passieve leden en teamleiders.
+5. Rechtenmatrix en moduletoegang uitbreiden volgens het vastgelegde ontwerp.
+6. Logo-assets ophalen en controleren, daarna naar R2 kopiëren.
+7. Geautomatiseerde tests uitvoeren op hiërarchie, unieke instellingsnummers, locatiekoppelingen, rechten, auditlog en herhaalbare imports.
+8. Pas na acceptatie een aparte migratie- en deploymentprocedure naar productie opstellen.
