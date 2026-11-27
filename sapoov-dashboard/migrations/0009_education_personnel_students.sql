@@ -75,3 +75,15 @@ CREATE INDEX IF NOT EXISTS idx_student_enrolments_class
 
 INSERT OR IGNORE INTO school_years(id,label,start_date,end_date,status)
 VALUES ('sy-2026-2027','2026–2027','2026-09-01','2027-08-31','active');
+
+INSERT OR IGNORE INTO campuses(
+  id,organization_id,slug,official_name,display_name,street,house_number,postal_code,municipality,country_code,is_main_campus,status,sort_order
+)
+SELECT '50000000-0000-4000-8000-000000000001',organization_id,'ninove',official_name,display_name,street,house_number,postal_code,municipality,country_code,0,'draft',0
+FROM organization_locations WHERE id='20000000-0000-4000-8000-000000000001';
+
+INSERT OR IGNORE INTO campuses(
+  id,organization_id,slug,official_name,display_name,street,house_number,postal_code,municipality,country_code,is_main_campus,status,sort_order
+)
+SELECT '50000000-0000-4000-8000-000000000002',organization_id,'zottegem',official_name,display_name,street,house_number,postal_code,municipality,country_code,0,'draft',10
+FROM organization_locations WHERE id='20000000-0000-4000-8000-000000000002';
