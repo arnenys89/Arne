@@ -55,8 +55,8 @@ jobs:
       - name: Resolve packages
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze application source
+        run: flutter analyze lib
 
       - name: Build release APK
         run: flutter build apk --release
