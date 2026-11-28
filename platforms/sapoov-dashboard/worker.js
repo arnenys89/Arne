@@ -733,12 +733,12 @@ export default {
    const target=new URL(request.url);target.pathname=subpath;return examenmakerFetch(new Request(target.toString(),request),env,ctx);
   }
   if(url.hostname==="bestelplatform.sapoov.be"){
-   const origin=new URL(url.pathname+url.search,"https://richtpunt-bestelplatform.pages.dev");
+   const origin=new URL(url.pathname+url.search,"https://sapoov-bestelplatform.pages.dev");
    const upstreamRequest=new Request(origin.toString(),request);
    const upstream=await fetch(upstreamRequest);
    const headers=new Headers(upstream.headers);
    const location=headers.get("location");
-   if(location&&location.includes("richtpunt-bestelplatform.pages.dev"))headers.set("location",location.replace("https://richtpunt-bestelplatform.pages.dev","https://bestelplatform.sapoov.be"));
+   if(location&&location.includes("richtpunt-bestelplatform.pages.dev"))headers.set("location",location.replace("https://sapoov-bestelplatform.pages.dev","https://bestelplatform.sapoov.be"));
    headers.set("x-sapoov-proxy","bestelplatform");
    return new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});
   }
@@ -753,7 +753,7 @@ export default {
    const target="https://sapoov-identity-api.arne-nys.workers.dev"+routeMap[url.pathname]+url.search;
    return fetch(target,init);
   }
-  const bestellBase="https://richtpunt-bestelplatform.pages.dev";
+  const bestellBase="https://sapoov-bestelplatform.pages.dev";
   const isBestelPage=url.pathname==="/bestelplatform"||url.pathname.startsWith("/bestelplatform/");
   const isBestelAsset=url.pathname.startsWith("/bestelplatform-assets/");
   const isSharedAsset=url.pathname.startsWith("/assets/");
